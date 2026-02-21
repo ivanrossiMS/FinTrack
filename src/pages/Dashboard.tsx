@@ -72,7 +72,7 @@ export const Dashboard: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="dashboard-controls-mobile flex flex-col items-center w-full lg:w-auto gap-4">
+                <div className="dashboard-controls-mobile flex flex-col items-center w-full lg:w-auto gap-3">
                     <div className="range-selector-3d">
                         {(['today', 'week', 'month'] as Period[]).map(p => (
                             <button
@@ -85,13 +85,15 @@ export const Dashboard: React.FC = () => {
                         ))}
                     </div>
 
-                    <button
-                        onClick={() => setPeriod('custom')}
-                        className={`custom-range-btn ${period === 'custom' ? 'active' : ''}`}
-                    >
-                        <Calendar size={16} className="mr-2" />
-                        Filtro Personalizado
-                    </button>
+                    <div className="custom-filter-row w-full flex justify-center">
+                        <button
+                            onClick={() => setPeriod('custom')}
+                            className={`custom-range-btn ${period === 'custom' ? 'active' : ''}`}
+                        >
+                            <Calendar size={16} className="mr-2" />
+                            Filtro Personalizado
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -181,7 +183,7 @@ export const Dashboard: React.FC = () => {
             </div >
 
             {/* Financial Insights Section */}
-            <div className="insights-grid-mobile" style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+            <div className="insights-grid-mobile">
                 <div className="insights-card-container">
                     <InsightsCard
                         stats={stats}
@@ -195,35 +197,18 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* ── Upcoming Commitments ── */}
-            <div className="upcoming-commitments-card" style={{ marginTop: '2rem' }}>
-                <div style={{
-                    background: '#ffffff',
-                    borderRadius: '20px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.06)',
-                    overflow: 'hidden',
-                }}>
+            <div className="upcoming-commitments-card">
+                <div className="commitments-internal-wrapper">
                     {/* Header */}
-                    <div style={{
-                        padding: '1.25rem 1.5rem',
-                        borderBottom: '1px solid #f1f5f9',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.65rem',
-                    }}>
-                        <div style={{
-                            width: '34px', height: '34px', borderRadius: '10px',
-                            background: 'linear-gradient(135deg, #f59e0b, #f97316)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white',
-                        }}>
+                    <div className="commitments-header-bar">
+                        <div className="commitments-header-icon">
                             <Calendar size={18} />
                         </div>
-                        <div>
-                            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.01em' }}>
+                        <div className="commitments-header-text">
+                            <h3 className="commitments-title">
                                 Próximos Compromissos
                             </h3>
-                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                            <p className="commitments-subtitle">
                                 Contas pendentes por vencimento
                             </p>
                         </div>
