@@ -555,15 +555,67 @@
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
     .rep-header {
         flex-direction: column;
         align-items: stretch;
+        gap: 1rem;
     }
 
     .rep-actions-card {
         flex-direction: column;
         align-items: stretch;
+        background: white;
+        padding: 1rem;
+    }
+
+    .rep-period-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.75rem;
+        gap: 1rem;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .rep-period-pills {
+        width: 100vw;
+        margin: 0 -1rem;
+        padding: 0.25rem 1rem;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+
+    .rep-period-pills::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rep-period-pill {
+        flex-shrink: 0;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .rep-period-inputs {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        background: white;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+
+    .rep-date-pair {
+        width: 100%;
+    }
+
+    .rep-input-month {
+        height: 3rem;
     }
 
     .rep-summary-grid {

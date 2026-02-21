@@ -62,14 +62,22 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    border-bottom: 1px solid var(--glass-border);
-    padding: 0 1.25rem;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0 1rem;
     align-items: center;
     justify-content: space-between;
     z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.mobile-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .mobile-brand {
@@ -79,8 +87,8 @@
 }
 
 .mobile-brand-icon {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
 }
 
@@ -91,6 +99,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    letter-spacing: -0.02em;
 }
 
 .mobile-brand-plus {
@@ -101,18 +110,69 @@
     font-weight: 900;
 }
 
+.mobile-header-right {
+    display: flex;
+    align-items: center;
+}
+
+.mobile-user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 4px 4px 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mobile-user-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.mobile-avatar-link {
+    display: flex;
+}
+
+.mobile-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: var(--color-text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
 .mobile-menu-toggle {
     background: white;
-    border: 1px solid var(--color-border);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     color: var(--color-text);
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.92);
 }
 
 /* Floating Sidebar - Lumina Glass */
@@ -592,10 +652,11 @@
     }
 
     .mobile-nav-item .mobile-nav-label {
-        font-size: 0.65rem;
-        font-weight: 700;
+        font-size: 0.58rem;
+        font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.03em;
+        margin-top: 2px;
     }
 
     .mobile-nav-item.active {

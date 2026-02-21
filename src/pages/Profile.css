@@ -173,10 +173,9 @@
     border-bottom: 1px solid #f1f5f9;
 }
 
-@media (min-width: 640px) {
+@media (max-width: 767px) {
     .profile-info-row {
-        flex-direction: row;
-        align-items: center;
+        padding: 1rem;
     }
 }
 
@@ -192,9 +191,10 @@
     margin-bottom: 0.5rem;
 }
 
-@media (min-width: 640px) {
+@media (max-width: 767px) {
     .profile-info-label {
-        margin-bottom: 0;
+        width: 100%;
+        margin-bottom: 0.25rem;
     }
 }
 

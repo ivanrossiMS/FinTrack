@@ -47,17 +47,34 @@ export const Layout: React.FC = () => {
         <div className={clsx("app-layout", mobileMenuOpen && "mobile-menu-active")}>
             {/* ── Mobile Top Header (Visible only on Mobile) ── */}
             <header className="mobile-header">
-                <div className="mobile-brand">
-                    <img src={logoIcon} alt="Finance+" className="mobile-brand-icon" />
-                    <span className="mobile-brand-name">Finance<span className="mobile-brand-plus">+</span></span>
+                <div className="mobile-header-left">
+                    <button
+                        className="mobile-menu-toggle"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Menu"
+                    >
+                        {mobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
+                    </button>
+                    <div className="mobile-brand">
+                        <img src={logoIcon} alt="Finance+" className="mobile-brand-icon" />
+                        <span className="mobile-brand-name">F<span className="mobile-brand-plus">+</span></span>
+                    </div>
                 </div>
-                <button
-                    className="mobile-menu-toggle"
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    aria-label="Menu"
-                >
-                    {mobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
-                </button>
+
+                <div className="mobile-header-right">
+                    <div className="mobile-user-profile">
+                        <span className="mobile-user-name">{user?.name?.split(' ')[0]}</span>
+                        <NavLink to="/profile" className="mobile-avatar-link">
+                            {user?.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="mobile-user-avatar" />
+                            ) : (
+                                <div className="mobile-avatar-placeholder">
+                                    <User size={18} />
+                                </div>
+                            )}
+                        </NavLink>
+                    </div>
+                </div>
             </header>
 
             {/* Overlay for mobile menu */}

@@ -207,7 +207,17 @@
     }
 
     .range-selector {
-        width: 100%;
+        width: 100vw;
+        margin: 0 -1rem;
+        padding: 0.5rem 1rem;
         overflow-x: auto;
+        white-space: nowrap;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        scrollbar-width: none;
+        display: flex !important;
+        gap: 0.5rem !important;
     }
 }
