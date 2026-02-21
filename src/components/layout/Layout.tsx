@@ -68,7 +68,7 @@ export const Layout: React.FC = () => {
             {/* Sidebar (Desktop) / Sliding Menu (Mobile) */}
             <aside className={clsx("sidebar", mobileMenuOpen && "mobile-open")}>
                 {/* ── Brand Top (Desktop Only) ── */}
-                <div className="sidebar-brand hidden-mobile">
+                <div className="sidebar-brand">
                     <img src={logoIcon} alt="Finance+" className="sidebar-brand-icon" />
                     <div className="sidebar-brand-text">
                         <span className="sidebar-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
