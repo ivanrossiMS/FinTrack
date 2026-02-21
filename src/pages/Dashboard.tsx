@@ -86,22 +86,26 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     {period === 'custom' && (
-                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }} className="flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto">
-                            <Calendar size={18} className="text-primary ml-2" />
-                            <div className="flex gap-1 items-center px-2">
-                                <input
-                                    type="date"
-                                    value={customStart}
-                                    onChange={e => setCustomStart(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
+                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }} className="custom-dates-wrapper flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto">
+                            <Calendar size={18} className="text-primary ml-2 shrink-0" />
+                            <div className="flex gap-1 items-center px-2 w-full">
+                                <div className="input-group flex items-center gap-1">
+                                    <input
+                                        type="date"
+                                        value={customStart}
+                                        onChange={e => setCustomStart(e.target.value)}
+                                        className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                                    />
+                                </div>
                                 <span className="text-text-muted font-black opacity-30">/</span>
-                                <input
-                                    type="date"
-                                    value={customEnd}
-                                    onChange={e => setCustomEnd(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
+                                <div className="input-group flex items-center gap-1">
+                                    <input
+                                        type="date"
+                                        value={customEnd}
+                                        onChange={e => setCustomEnd(e.target.value)}
+                                        className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}

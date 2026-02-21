@@ -197,7 +197,7 @@
 }
 
 /* Responsive Overrides */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
     .dashboard-container {
         padding: 1.5rem;
     }
@@ -208,8 +208,8 @@
 
     .range-selector {
         width: 100vw;
-        margin: 0 -1rem;
-        padding: 0.5rem 1rem;
+        margin: 0 -0.875rem;
+        padding: 0.5rem 0.875rem;
         overflow-x: auto;
         white-space: nowrap;
         background: transparent !important;
