@@ -233,13 +233,15 @@
     }
 
     .kpi-card {
-        padding: 1.15rem 1.25rem !important;
+        padding: 1.25rem !important;
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        gap: 1.5rem !important;
+        justify-content: center !important;
+        gap: 1.25rem !important;
         height: auto !important;
-        min-height: 85px;
+        min-height: 100px;
+        text-align: center;
     }
 
     .kpi-icon-wrapper {
@@ -258,7 +260,10 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        flex: 1;
+        align-items: center;
+        /* Center text content */
+        flex: 0 1 auto;
+        /* Don't take all space, stay centered */
     }
 
     .kpi-label {
@@ -291,7 +296,14 @@
         margin-right: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 1.5rem !important;
+        gap: 2rem !important;
+        /* Standardized Gap */
+        margin-bottom: 2rem !important;
+    }
+
+    .custom-dates-wrapper {
+        margin: 0 auto 1.5rem auto !important;
+        justify-content: center !important;
     }
 
     .insights-card-container,
