@@ -146,20 +146,7 @@ export const Commitments: React.FC = () => {
             if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [commitments, searchTerm, statusFilter, supplierFilter, startDate, endDate, sortConfig, data.paymentMethods, data.categories]);
-
-    // Lookup maps for styling
-    const categoryMap = useMemo(() => {
-        const map = new Map<string, { name: string; color: string }>();
-        data.categories.forEach(c => map.set(c.id, { name: c.name, color: c.color || '#94a3b8' }));
-        return map;
-    }, [data.categories]);
-
-    const paymentMethodMap = useMemo(() => {
-        const map = new Map<string, { name: string; color: string }>();
-        data.paymentMethods.forEach(m => map.set(m.id, { name: m.name, color: m.color || '#94a3b8' }));
-        return map;
-    }, [data.paymentMethods]);
+    }, [commitments, searchTerm, statusFilter, supplierFilter, startDate, endDate, sortConfig, data.paymentMethods]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredCommitments.length / ITEMS_PER_PAGE);
@@ -342,55 +329,33 @@ export const Commitments: React.FC = () => {
                                             <span className="cm-id-text">#{shortId}</span>
                                         </div>
                                         <div className="cm-col-name">
-                                            <div className="cm-name-wrapper">
-                                                <div
-                                                    className="cm-status-indicator"
-                                                    style={{ backgroundColor: categoryMap.get(c.categoryId)?.color || '#94a3b8' }}
-                                                />
-                                                <div className="cm-name-content">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="cm-name-text">{c.description}</div>
-                                                        {c.attachments && c.attachments.length > 0 && (
-                                                            <button
-                                                                className="tx-att-indicator"
-                                                                onClick={(e) => { e.stopPropagation(); setViewingAttachments(c.attachments!); }}
-                                                                title={`${c.attachments.length} anexo(s)`}
-                                                            >
-                                                                <Paperclip size={11} />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <span className="cm-supplier-text">
-                                                        {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
-                                                    </span>
-                                                </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '2px' }}>
+                                                <div className="cm-name-text">{c.description}</div>
+                                                {c.attachments && c.attachments.length > 0 && (
+                                                    <button
+                                                        className="tx-att-indicator"
+                                                        onClick={(e) => { e.stopPropagation(); setViewingAttachments(c.attachments!); }}
+                                                        title={`${c.attachments.length} anexo(s)`}
+                                                    >
+                                                        <Paperclip size={11} />
+                                                    </button>
+                                                )}
                                             </div>
+                                            <span className="cm-supplier-text">
+                                                {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
+                                            </span>
                                         </div>
                                         <div className="cm-col-date font-bold text-text-light text-sm">
                                             {formatDate(c.dueDate)}
                                         </div>
                                         <div className="cm-col-value">{formatCurrency(c.amount)}</div>
                                         <div className="cm-col-status">{getStatusLabel(c)}</div>
-                                        <div className="cm-col-method">
-                                            {(() => {
-                                                const method = c.paymentMethodId ? paymentMethodMap.get(c.paymentMethodId) : null;
-                                                const mName = method?.name || '-';
-                                                const mColor = method?.color || '#94a3b8';
-                                                return (
-                                                    <span
-                                                        className="cm-method-badge"
-                                                        style={{
-                                                            color: mColor,
-                                                            backgroundColor: `${mColor}12`,
-                                                            borderColor: `${mColor}30`
-                                                        }}
-                                                    >
-                                                        {mName}
-                                                    </span>
-                                                );
-                                            })()}
+                                        <div className="cm-col-method text-xs font-semibold text-text-light opacity-80">
+                                            {c.paymentMethodId
+                                                ? (data.paymentMethods.find(m => m.id === c.paymentMethodId)?.name || '-')
+                                                : '-'}
                                         </div>
-                                        <div className="cm-col-paydate cm-date-modern">
+                                        <div className="cm-col-paydate text-xs font-medium text-text-light opacity-60">
                                             {c.paymentDate ? formatDate(c.paymentDate) : '-'}
                                         </div>
                                         <div className="cm-col-edit flex gap-2">
@@ -405,102 +370,6 @@ export const Commitments: React.FC = () => {
                                             <button onClick={() => handleDelete(c.id)} className="p-2 hover:bg-red-50 rounded-lg text-danger" title="Excluir">
                                                 <Trash2 size={16} />
                                             </button>
-                                        </div>
-
-                                        {/* Mobile Card Layout */}
-                                        <div className="cm-mobile-card">
-                                            <div
-                                                className="cm-card-left-indicator"
-                                                style={{ backgroundColor: categoryMap.get(c.categoryId)?.color || '#94a3b8' }}
-                                            />
-                                            <div className="cm-card-content">
-                                                <div className="cm-card-row">
-                                                    <div className="cm-card-left">
-                                                        <div className="cm-card-title">{c.description}</div>
-                                                        <div className="cm-card-subtitle">
-                                                            {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
-                                                        </div>
-                                                    </div>
-                                                    <div className="cm-card-right">
-                                                        {(() => {
-                                                            const cat = categoryMap.get(c.categoryId);
-                                                            if (!cat) return getStatusLabel(c);
-                                                            return (
-                                                                <div className="flex flex-col items-end gap-2">
-                                                                    <span
-                                                                        className="cm-mobile-cat-badge"
-                                                                        style={{ backgroundColor: `${cat.color}15`, color: cat.color, borderColor: `${cat.color}30` }}
-                                                                    >
-                                                                        {cat.name}
-                                                                    </span>
-                                                                    {getStatusLabel(c)}
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                    </div>
-                                                </div>
-
-                                                <div className="cm-card-row secondary">
-                                                    <div className="cm-card-info">
-                                                        <Calendar size={14} className="text-primary opacity-70" />
-                                                        <span className="font-bold">{formatDate(c.dueDate)}</span>
-                                                    </div>
-                                                    <div className="cm-card-value">
-                                                        {formatCurrency(c.amount)}
-                                                    </div>
-                                                </div>
-
-                                                {(c.paymentMethodId || c.paymentDate) && (
-                                                    <div className="cm-card-row metadata-footer">
-                                                        {c.paymentMethodId && (
-                                                            <div className="cm-card-meta-item">
-                                                                <CreditCard size={12} className="opacity-60" />
-                                                                {(() => {
-                                                                    const method = paymentMethodMap.get(c.paymentMethodId);
-                                                                    return (
-                                                                        <span
-                                                                            className="cm-method-badge mini"
-                                                                            style={{
-                                                                                color: method?.color || '#94a3b8',
-                                                                                backgroundColor: `${method?.color || '#94a3b8'}12`,
-                                                                                borderColor: `${method?.color || '#94a3b8'}30`
-                                                                            }}
-                                                                        >
-                                                                            {method?.name || '-'}
-                                                                        </span>
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                        )}
-                                                        {c.paymentDate && (
-                                                            <div className="cm-card-meta-item">
-                                                                <CheckCircle2 size={12} className="text-success opacity-80" />
-                                                                <div className="flex flex-col items-end">
-                                                                    <span className="cm-label-tiny">Pago em</span>
-                                                                    <span className="cm-date-modern">{formatDate(c.paymentDate)}</span>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                <div className="cm-card-actions">
-                                                    {c.status === 'PENDING' && (
-                                                        <button className="cm-mobile-action-btn pay" onClick={() => setPayingCommitment(c)}>
-                                                            <CreditCard size={18} />
-                                                            <span>Pagar</span>
-                                                        </button>
-                                                    )}
-                                                    <button className="cm-mobile-action-btn edit" onClick={() => handleEdit(c)}>
-                                                        <Edit size={18} />
-                                                        <span>Editar</span>
-                                                    </button>
-                                                    <button className="cm-mobile-action-btn delete" onClick={() => handleDelete(c.id)}>
-                                                        <Trash2 size={18} />
-                                                        <span>Excluir</span>
-                                                    </button>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 );

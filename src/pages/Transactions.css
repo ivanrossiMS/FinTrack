@@ -511,7 +511,7 @@
     }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .tx-page {
         gap: 1rem;
     }
@@ -522,40 +522,10 @@
 
     .tx-filters-grid {
         grid-template-columns: 1fr;
-        gap: 0.75rem;
     }
 
-    .tx-filter-item .input-field {
-        height: 3rem;
-    }
-
-    .tx-mobile-sort-bar {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 16px;
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        margin-bottom: 0.5rem;
-    }
-
-    .tx-mobile-sort-row {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .tx-mobile-date-filters {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-    }
-
-    .tx-mobile-sort-bar select {
-        flex: 1;
-        height: 2.5rem;
-        font-size: 0.8125rem;
+    .tx-header h1 {
+        font-size: 1.5rem;
     }
 
     /* Hide Desktop Grid parts */
@@ -572,6 +542,22 @@
 
     .tx-grid-row>div:not(.tx-mobile-card) {
         display: none;
+    }
+
+    /* Show Mobile parts */
+    .tx-mobile-sort-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: var(--color-bg);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .tx-mobile-sort-bar select {
+        flex: 1;
+        height: 2.5rem;
+        font-size: 0.8125rem;
     }
 
     .tx-mobile-card {
@@ -624,31 +610,33 @@
         border-top: 1px solid rgba(0, 0, 0, 0.04);
     }
 
-    .tx-card-actions .tx-btn-icon {
-        width: 100%;
-        height: 3rem;
-        background: white;
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        gap: 0.75rem;
-        font-size: 0.9rem;
-        font-weight: 700;
-        opacity: 1;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    }
-
-    .tx-lock-badge-mobile {
-        background: #f8fafc;
-        border: 1px dashed var(--color-border);
-        border-radius: 12px;
-        padding: 0.875rem;
-        display: flex;
+    .tx-att-indicator {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.6rem;
-        color: var(--color-text-light);
-        font-size: 0.8rem;
-        font-weight: 600;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        color: var(--color-primary);
+        border: none;
+        margin-left: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .tx-att-indicator:hover {
+        background: var(--color-primary-light);
+        transform: scale(1.1);
+    }
+
+    .tx-card-actions .tx-btn-icon {
         width: 100%;
+        height: 2.5rem;
+        border: 1px solid var(--color-border);
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        opacity: 1;
     }
 }

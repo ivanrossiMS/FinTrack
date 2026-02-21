@@ -72,58 +72,41 @@ export const Dashboard: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="dashboard-controls-mobile flex flex-col items-center w-full lg:w-auto gap-3">
-                    <div className="range-selector-3d">
-                        {(['today', 'week', 'month'] as Period[]).map(p => (
+                <div className="flex flex-col sm:flex-row gap-4 items-center w-full lg:w-auto">
+                    <div className="range-selector">
+                        {(['today', 'week', 'month', 'custom'] as Period[]).map(p => (
                             <button
                                 key={p}
                                 onClick={() => setPeriod(p)}
-                                className={`seg-btn-3d ${period === p ? 'active' : ''}`}
+                                className={`seg-btn ${period === p ? 'active' : ''}`}
                             >
-                                {p === 'today' ? 'Hoje' : p === 'week' ? '7 Dias' : 'Mês'}
+                                {p === 'today' ? 'Hoje' : p === 'week' ? '7 Dias' : p === 'month' ? 'Mês' : 'Personalizado'}
                             </button>
                         ))}
                     </div>
 
-                    <div className="custom-filter-row w-full flex justify-center">
-                        <button
-                            onClick={() => setPeriod('custom')}
-                            className={`custom-range-btn ${period === 'custom' ? 'active' : ''}`}
-                        >
-                            <Calendar size={16} className="mr-2" />
-                            Filtro Personalizado
-                        </button>
-                    </div>
+                    {period === 'custom' && (
+                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }} className="flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto">
+                            <Calendar size={18} className="text-primary ml-2" />
+                            <div className="flex gap-1 items-center px-2">
+                                <input
+                                    type="date"
+                                    value={customStart}
+                                    onChange={e => setCustomStart(e.target.value)}
+                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                                />
+                                <span className="text-text-muted font-black opacity-30">/</span>
+                                <input
+                                    type="date"
+                                    value={customEnd}
+                                    onChange={e => setCustomEnd(e.target.value)}
+                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </header>
-
-            {period === 'custom' && (
-                <div
-                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)', maxWidth: 'fit-content' }}
-                    className="custom-dates-wrapper flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto mb-8 mx-auto"
-                >
-                    <Calendar size={18} className="text-primary ml-2 shrink-0" />
-                    <div className="flex gap-1 items-center px-2 w-full">
-                        <div className="input-group flex items-center gap-1">
-                            <input
-                                type="date"
-                                value={customStart}
-                                onChange={e => setCustomStart(e.target.value)}
-                                className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                            />
-                        </div>
-                        <span className="text-text-muted font-black opacity-30">/</span>
-                        <div className="input-group flex items-center gap-1">
-                            <input
-                                type="date"
-                                value={customEnd}
-                                onChange={e => setCustomEnd(e.target.value)}
-                                className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Premium KPI Section */}
             <div className="kpi-grid">
@@ -131,7 +114,7 @@ export const Dashboard: React.FC = () => {
                     <div className="kpi-icon-wrapper">
                         <Wallet size={32} strokeWidth={2.5} />
                     </div>
-                    <div className="kpi-content">
+                    <div>
                         <p className="kpi-label">Saldo Total do Período</p>
                         <p className="kpi-value">
                             {formatCurrency(stats.balance)}
@@ -143,7 +126,7 @@ export const Dashboard: React.FC = () => {
                     <div className="kpi-icon-wrapper">
                         <ArrowUpCircle size={32} strokeWidth={2.5} />
                     </div>
-                    <div className="kpi-content">
+                    <div>
                         <p className="kpi-label">Total de Receitas</p>
                         <p className="kpi-value">
                             {formatCurrency(stats.income)}
@@ -155,12 +138,12 @@ export const Dashboard: React.FC = () => {
                     <div className="kpi-icon-wrapper">
                         <ArrowDownCircle size={32} strokeWidth={2.5} />
                     </div>
-                    <div className="kpi-content">
+                    <div>
                         <p className="kpi-label">Total de Despesas</p>
                         <p className="kpi-value">
                             {formatCurrency(stats.expense)}
                         </p>
-                        <div className="kpi-details">
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '11px', fontWeight: 700, opacity: 0.6 }}>
                             <span>Fixas: {formatCurrency(stats.fixedExpense)}</span>
                             <span>Var: {formatCurrency(stats.variableExpense)}</span>
                         </div>
@@ -180,35 +163,48 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </Card>
                 </div>
-            </div >
+            </div>
 
             {/* Financial Insights Section */}
-            <div className="insights-grid-mobile">
-                <div className="insights-card-container">
-                    <InsightsCard
-                        stats={stats}
-                        categoryExpenses={categoryExpenses}
-                        transactionCount={data.transactions.length}
-                    />
-                </div>
-                <div className="ai-allocation-container">
-                    <AICapitalAllocation />
-                </div>
+            <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+                <InsightsCard
+                    stats={stats}
+                    categoryExpenses={categoryExpenses}
+                    transactionCount={data.transactions.length}
+                />
+                <AICapitalAllocation />
             </div>
 
             {/* ── Upcoming Commitments ── */}
-            <div className="upcoming-commitments-card">
-                <div className="commitments-internal-wrapper">
+            <div style={{ marginTop: '2rem' }}>
+                <div style={{
+                    background: '#ffffff',
+                    borderRadius: '20px',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.06)',
+                    overflow: 'hidden',
+                }}>
                     {/* Header */}
-                    <div className="commitments-header-bar">
-                        <div className="commitments-header-icon">
+                    <div style={{
+                        padding: '1.25rem 1.5rem',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.65rem',
+                    }}>
+                        <div style={{
+                            width: '34px', height: '34px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, #f59e0b, #f97316)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white',
+                        }}>
                             <Calendar size={18} />
                         </div>
-                        <div className="commitments-header-text">
-                            <h3 className="commitments-title">
+                        <div>
+                            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.01em' }}>
                                 Próximos Compromissos
                             </h3>
-                            <p className="commitments-subtitle">
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
                                 Contas pendentes por vencimento
                             </p>
                         </div>
@@ -322,39 +318,37 @@ export const Dashboard: React.FC = () => {
                         )}
                     </div>
                 </div>
-            </div >
+            </div>
 
             {/* Empty State / Hints */}
-            {
-                data.transactions.length === 0 && (
+            {data.transactions.length === 0 && (
+                <div style={{
+                    marginTop: '2rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.25rem',
+                    padding: '1.5rem',
+                    borderRadius: '20px',
+                    background: 'rgba(99, 102, 241, 0.04)',
+                    border: '1px solid rgba(99, 102, 241, 0.12)',
+                }}>
                     <div style={{
-                        marginTop: '2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1.25rem',
-                        padding: '1.5rem',
-                        borderRadius: '20px',
-                        background: 'rgba(99, 102, 241, 0.04)',
-                        border: '1px solid rgba(99, 102, 241, 0.12)',
+                        width: '52px', height: '52px', borderRadius: '14px',
+                        background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#6366f1', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0,
                     }}>
-                        <div style={{
-                            width: '52px', height: '52px', borderRadius: '14px',
-                            background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#6366f1', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0,
-                        }}>
-                            <AlertCircle size={28} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                            <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>
-                                Comece sua jornada financeira
-                            </h4>
-                            <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 500, color: '#64748b', lineHeight: 1.5 }}>
-                                Você ainda não registrou nenhuma transação. Vá até a aba <strong>Lançamentos</strong> e adicione sua primeira receita ou despesa para ver as métricas ganharem vida!
-                            </p>
-                        </div>
+                        <AlertCircle size={28} strokeWidth={2.5} />
                     </div>
-                )
-            }
-        </div >
+                    <div>
+                        <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>
+                            Comece sua jornada financeira
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 500, color: '#64748b', lineHeight: 1.5 }}>
+                            Você ainda não registrou nenhuma transação. Vá até a aba <strong>Lançamentos</strong> e adicione sua primeira receita ou despesa para ver as métricas ganharem vida!
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };

@@ -277,10 +277,23 @@ export const Profile: React.FC = () => {
                 {/* ══════════════════════════════════════════════
                     HERO CARD — Avatar + Contact Info
                    ══════════════════════════════════════════════ */}
-                <div className="profile-hero-card">
-                    <div className="profile-hero-grid">
+                <div style={s.card}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(200px, 300px) 1fr',
+                        minHeight: 320,
+                    }}>
                         {/* Left — Avatar Column */}
-                        <div className="profile-avatar-col">
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '2.5rem 1.5rem',
+                            background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(14,165,233,0.04) 100%)',
+                            borderRight: '1px solid rgba(226,232,240,0.6)',
+                            gap: '0.75rem',
+                        }}>
                             {/* Avatar */}
                             <div style={{ position: 'relative' }}>
                                 <div style={{
@@ -403,7 +416,12 @@ export const Profile: React.FC = () => {
                         </div>
 
                         {/* Right — Contact Info */}
-                        <div className="profile-info-col">
+                        <div style={{
+                            padding: '2.5rem 2rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                        }}>
                             <h3 style={{
                                 fontSize: '1.05rem',
                                 fontWeight: 700,
@@ -497,7 +515,11 @@ export const Profile: React.FC = () => {
                 {/* ══════════════════════════════════════════════
                     FORMS ROW — Personal Data + Security
                    ══════════════════════════════════════════════ */}
-                <div className="profile-forms-row">
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+                    gap: '1.5rem',
+                }}>
                     {/* ── Personal Data ── */}
                     <div style={{ ...s.card, padding: '2rem' }}>
                         <div style={s.sectionHeader}>

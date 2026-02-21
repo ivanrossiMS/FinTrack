@@ -1,64 +1,5 @@
 /* Profile Page - Premium Styles */
 
-.profile-hero-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(226, 232, 240, 0.6);
-    border-radius: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
-}
-
-.profile-hero-grid {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    min-height: 320px;
-}
-
-.profile-avatar-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2.5rem 1.5rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(14, 165, 233, 0.04) 100%);
-    border-right: 1px solid rgba(226, 232, 240, 0.6);
-    gap: 0.75rem;
-}
-
-.profile-info-col {
-    padding: 2.5rem 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.profile-forms-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 1.5rem;
-}
-
-@media (max-width: 767px) {
-    .profile-hero-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .profile-avatar-col {
-        border-right: none;
-        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-        padding: 2rem 1rem;
-    }
-
-    .profile-info-col {
-        padding: 1.5rem 1rem;
-    }
-
-    .profile-forms-row {
-        grid-template-columns: 1fr;
-    }
-}
-
 :root {
     --profile-primary: #2563eb;
     --profile-bg-light: #f8fafc;
@@ -232,9 +173,10 @@
     border-bottom: 1px solid #f1f5f9;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 640px) {
     .profile-info-row {
-        padding: 1rem;
+        flex-direction: row;
+        align-items: center;
     }
 }
 
@@ -250,10 +192,9 @@
     margin-bottom: 0.5rem;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 640px) {
     .profile-info-label {
-        width: 100%;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0;
     }
 }
 
