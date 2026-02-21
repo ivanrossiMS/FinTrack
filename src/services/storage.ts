@@ -1,4 +1,4 @@
-import { AppData, Category, Transaction, PaymentMethod, Supplier, Commitment, SavingsGoal } from '../models/types';
+import { AppData, Category, Transaction, PaymentMethod, Commitment, SavingsGoal } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'fintrack_data_v1';
