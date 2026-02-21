@@ -20,6 +20,7 @@ export interface FinancialContext {
     balance?: number;
     topCategory?: string;
     pendingCommitments?: number;
+    availableCapital?: number;
     currency?: string;
 }
 
@@ -40,10 +41,12 @@ export async function askGemini(
         if (financialContext.monthlyIncome !== undefined) ctx.push(`Receita mensal: R$${financialContext.monthlyIncome.toFixed(2)}`);
         if (financialContext.monthlyExpenses !== undefined) ctx.push(`Gastos mensais: R$${financialContext.monthlyExpenses.toFixed(2)}`);
         if (financialContext.balance !== undefined) ctx.push(`Saldo: R$${financialContext.balance.toFixed(2)}`);
+        if (financialContext.availableCapital !== undefined) ctx.push(`Capital parado (livre): R$${financialContext.availableCapital.toFixed(2)}`);
         if (financialContext.topCategory) ctx.push(`Categoria com mais gastos: ${financialContext.topCategory}`);
         if (financialContext.pendingCommitments !== undefined) ctx.push(`Compromissos pendentes: ${financialContext.pendingCommitments}`);
+
         if (ctx.length > 0) {
-            userMessage = `[Contexto financeiro do usuário: ${ctx.join(' | ')}]\n\nPergunta: ${question}`;
+            userMessage = `[Dados Reais do Usuário: ${ctx.join(' | ')}]\n\nResponda de forma analítica e prestativa à pergunta: ${question}. Se o usuário perguntar de saldo parado ou investimento, use o dado de 'Capital parado' mencionado acima.`;
         }
     }
 

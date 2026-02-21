@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, X, ArrowRight, Volume2, HelpCircle } from 'lucide-react';
+import { addDays, isAfter, subDays, isBefore, endOfDay } from 'date-fns';
 import { useData } from '../../contexts/DataContext';
 import { parseTranscription } from '../../utils/aiParser';
 import {
@@ -144,7 +145,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
                 const utter = new SpeechSynthesisUtterance(answer);
                 utter.lang = 'pt-BR';
-                utter.rate = 1.05;
+                utter.rate = 1.25;
                 utter.pitch = 1.0;
 
                 // Close after speaking
@@ -218,10 +219,22 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                 const income = monthTxs.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
                 const expense = monthTxs.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
 
+                // Share Available Capital logic
+                const totalBalance = txs.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
+                const futureLimit = addDays(new Date(), 15);
+                const upcomingTotal = (d.commitments || [])
+                    .filter(c => c.status === 'PENDING')
+                    .filter(c => {
+                        const dv = new Date(c.dueDate);
+                        return isAfter(dv, subDays(new Date(), 1)) && isBefore(dv, endOfDay(futureLimit));
+                    })
+                    .reduce((acc, c) => acc + c.amount, 0);
+
                 const financialContext: FinancialContext = {
                     monthlyIncome: income,
                     monthlyExpenses: expense,
                     balance: income - expense,
+                    availableCapital: Math.max(0, totalBalance - upcomingTotal),
                     pendingCommitments: (d.commitments || []).filter(c => c.status === 'PENDING').length
                 };
 
@@ -298,7 +311,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                         if (isOpenRef.current && !isProcessingRef.current && transcriptRef.current) {
                             executeCommandRef.current(transcriptRef.current);
                         }
-                    }, 900);
+                    }, 600);
                 }
             }
         };
@@ -379,7 +392,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
         if (isOpen) {
             resetForNextCommand();
             isProcessingRef.current = false;
-            const t = setTimeout(() => startRecognitionRef.current(), 400);
+            const t = setTimeout(() => startRecognitionRef.current(), 200);
             return () => clearTimeout(t);
         } else {
             isProcessingRef.current = true;

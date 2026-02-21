@@ -1,4 +1,4 @@
-import { format, subDays, subMonths, endOfMonth, startOfWeek, endOfWeek, parseISO } from 'date-fns';
+import { format, subDays, subMonths, endOfMonth, startOfWeek, endOfWeek, parseISO, addDays, isAfter, isBefore, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { AppData } from '../models/types';
 
@@ -33,6 +33,8 @@ export type QueryKey =
     | 'top_category'
     | 'transaction_count'
     | 'budget_status'
+    | 'idle_capital'
+    | 'investment_advice'
     | 'greeting';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -110,6 +112,15 @@ const ROUTES: { keywords: string[]; path: string; label: string }[] = [
             'painel admin', 'painel de administração', 'gerenciar usuários',
         ],
     },
+    {
+        path: '/investments',
+        label: 'Investimentos',
+        keywords: [
+            'investimento', 'investimentos', 'investir', 'aplicar dinheiro',
+            'onde investir', 'portal de investimentos', 'portal financeiro',
+            'alocação de capital', 'rendimento', 'cdi', 'selic',
+        ],
+    },
 ];
 
 // Navigation trigger phrases
@@ -158,6 +169,27 @@ const QUERY_PATTERNS: { patterns: string[]; key: QueryKey }[] = [
             'como funciona', 'me explique', 'quem é você', 'quem e voce',
             'apresente o sistema', 'quais funções', 'quais funcoes',
             'o que posso fazer', 'me ajude', 'instruções', 'instrucoes',
+            'como usar', 'tutorial', 'me ensina',
+        ],
+    },
+
+    // ── AI Portfolio / Investment Hub ─────────────────────────────
+    {
+        key: 'idle_capital',
+        patterns: [
+            'capital parado', 'dinheiro parado', 'quanto tenho parado',
+            'quanto posso investir', 'dinheiro disponível', 'dinheiro disponivel',
+            'investimento livre', 'valor para investir', 'saldo para investir',
+        ],
+    },
+
+    {
+        key: 'investment_advice',
+        patterns: [
+            'onde investir', 'como investir', 'dica de investimento',
+            'oque fazer com dinheiro', 'me ajude a investir', 'sugestão de investimento',
+            'sugestao de investimento', 'opções de investimento', 'opcoes de investimento',
+            'melhor investimento agora',
         ],
     },
 
@@ -629,6 +661,32 @@ export function resolveQuery(key: QueryKey, data: AppData): string {
             return `Status dos orçamentos em ${monthName()}: ${results.join('; ')}.`;
         }
 
+        // ── Idle Capital / Investment ──────────────────────────────
+        case 'idle_capital': {
+            const totalBalance = txs.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
+            const futureLimit = addDays(new Date(), 15);
+            const upcomingTotal = commitments
+                .filter(c => c.status === 'PENDING')
+                .filter(c => {
+                    const d = new Date(c.dueDate);
+                    return isAfter(d, subDays(new Date(), 1)) && isBefore(d, endOfDay(futureLimit));
+                })
+                .reduce((acc, c) => acc + c.amount, 0);
+
+            const available = Math.max(0, totalBalance - upcomingTotal);
+            if (available < 10) return 'Seu capital está todo comprometido com os próximos vencimentos. No momento não há saldo excedente para novos investimentos.';
+            return `Pela minha análise, você tem ${fmt(available)} de capital parado que não será usado nos próximos 15 dias. É um ótimo valor para começar a render!`;
+        }
+
+        case 'investment_advice': {
+            const totalBalance = txs.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
+            const available = totalBalance - (commitments.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0));
+
+            if (available <= 0) return 'No momento, recomendo focar em quitar seus compromissos pendentes antes de novos aportes. Que tal ver o que vence essa semana?';
+
+            return `Com o seu saldo atual, recomendo olhar o nosso Portal de Investimentos. Para liquidez diária, considere o Tesouro Selic ou CDBs 100% do CDI. Posso te levar para a página de Investimentos se desejar!`;
+        }
+
         default:
             return 'Não consegui encontrar essa informação.';
     }
@@ -642,7 +700,7 @@ export function speak(text: string) {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'pt-BR';
-    utter.rate = 1.05;
+    utter.rate = 1.25;
     utter.pitch = 1.0;
     window.speechSynthesis.speak(utter);
 }
