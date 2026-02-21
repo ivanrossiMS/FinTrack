@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, X, ArrowRight, Volume2, HelpCircle } from 'lucide-react';
 import { addDays, isAfter, subDays, isBefore, endOfDay } from 'date-fns';
 import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { parseTranscription } from '../../utils/aiParser';
 import {
     detectIntent,
@@ -43,11 +42,7 @@ const INTENT_LABELS: Record<string, string> = {
 
 export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onClose }) => {
     const { data } = useData();
-    const { user } = useAuth();
     const navigate = useNavigate();
-
-    const firstName = user?.name?.split(' ')[0] || '';
-    const okPrefix = firstName ? `Ok, ${firstName}. ` : 'Ok. ';
 
     const [status, setStatus] = useState<ModalStatus>('IDLE');
     const [isListening, setIsListening] = useState(false);
@@ -146,8 +141,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
         // Common handler for speaking and then CLOSING
         const speakAndClose = (answer: string) => {
-            const fullAnswer = okPrefix + answer;
-            setQueryAnswer(fullAnswer);
+            setQueryAnswer(answer);
             setStatus('QUERY_RESULT');
 
             const doSpeak = () => {
@@ -162,12 +156,12 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                 }
                 window.speechSynthesis.cancel();
 
-                const utter = new SpeechSynthesisUtterance(fullAnswer);
+                const utter = new SpeechSynthesisUtterance(answer);
                 utter.lang = 'pt-BR';
                 const femaleVoice = findFemaleVoice();
                 if (femaleVoice) utter.voice = femaleVoice;
-                utter.rate = 1.5; // Increased speed
-                utter.pitch = 1.05; // Slightly higher pitch for female tone if default voice is used
+                utter.rate = 1.7; // Ultra-fast speed
+                utter.pitch = 1.0;
 
                 // Close after speaking
                 utter.onend = () => {
@@ -196,19 +190,19 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                 window.speechSynthesis.speak(utter);
             };
 
-            // Small delay so React can render QUERY_RESULT before TTS steals audio focus
-            setTimeout(doSpeak, 150);
+            // Near-instant delay for agility
+            setTimeout(doSpeak, 50);
             isProcessingRef.current = false;
         };
 
         const handleOkConfirm = () => {
             if (!window.speechSynthesis) return;
-            const utter = new SpeechSynthesisUtterance(okPrefix);
+            const utter = new SpeechSynthesisUtterance("Ok");
             utter.lang = 'pt-BR';
             const femaleVoice = findFemaleVoice();
             if (femaleVoice) utter.voice = femaleVoice;
-            utter.rate = 1.5;
-            utter.pitch = 1.05;
+            utter.rate = 1.7;
+            utter.pitch = 1.0;
             window.speechSynthesis.speak(utter);
         };
 
