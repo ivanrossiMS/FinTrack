@@ -93,40 +93,43 @@ export const Dashboard: React.FC = () => {
                         Filtro Personalizado
                     </button>
                 </div>
-                {period === 'custom' && (
-                    <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }} className="custom-dates-wrapper flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto">
-                        <Calendar size={18} className="text-primary ml-2 shrink-0" />
-                        <div className="flex gap-1 items-center px-2 w-full">
-                            <div className="input-group flex items-center gap-1">
-                                <input
-                                    type="date"
-                                    value={customStart}
-                                    onChange={e => setCustomStart(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
-                            </div>
-                            <span className="text-text-muted font-black opacity-30">/</span>
-                            <div className="input-group flex items-center gap-1">
-                                <input
-                                    type="date"
-                                    value={customEnd}
-                                    onChange={e => setCustomEnd(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
-                            </div>
+            </header>
+
+            {period === 'custom' && (
+                <div
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)', maxWidth: 'fit-content' }}
+                    className="custom-dates-wrapper flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto mb-8 mx-auto"
+                >
+                    <Calendar size={18} className="text-primary ml-2 shrink-0" />
+                    <div className="flex gap-1 items-center px-2 w-full">
+                        <div className="input-group flex items-center gap-1">
+                            <input
+                                type="date"
+                                value={customStart}
+                                onChange={e => setCustomStart(e.target.value)}
+                                className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                            />
+                        </div>
+                        <span className="text-text-muted font-black opacity-30">/</span>
+                        <div className="input-group flex items-center gap-1">
+                            <input
+                                type="date"
+                                value={customEnd}
+                                onChange={e => setCustomEnd(e.target.value)}
+                                className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                            />
                         </div>
                     </div>
-                )}
-        </div>
-            </header >
+                </div>
+            )}
 
-    {/* Premium KPI Section */ }
-    < div className = "kpi-grid" >
+            {/* Premium KPI Section */}
+            <div className="kpi-grid">
                 <Card className="kpi-card card-balance" onClick={() => navigate('/transactions')} style={{ cursor: 'pointer' }}>
                     <div className="kpi-icon-wrapper">
                         <Wallet size={32} strokeWidth={2.5} />
                     </div>
-                    <div>
+                    <div className="kpi-content">
                         <p className="kpi-label">Saldo Total do Período</p>
                         <p className="kpi-value">
                             {formatCurrency(stats.balance)}
@@ -138,7 +141,7 @@ export const Dashboard: React.FC = () => {
                     <div className="kpi-icon-wrapper">
                         <ArrowUpCircle size={32} strokeWidth={2.5} />
                     </div>
-                    <div>
+                    <div className="kpi-content">
                         <p className="kpi-label">Total de Receitas</p>
                         <p className="kpi-value">
                             {formatCurrency(stats.income)}
@@ -150,21 +153,21 @@ export const Dashboard: React.FC = () => {
                     <div className="kpi-icon-wrapper">
                         <ArrowDownCircle size={32} strokeWidth={2.5} />
                     </div>
-                    <div>
+                    <div className="kpi-content">
                         <p className="kpi-label">Total de Despesas</p>
                         <p className="kpi-value">
                             {formatCurrency(stats.expense)}
                         </p>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '11px', fontWeight: 700, opacity: 0.6 }}>
+                        <div className="kpi-details">
                             <span>Fixas: {formatCurrency(stats.fixedExpense)}</span>
                             <span>Var: {formatCurrency(stats.variableExpense)}</span>
                         </div>
                     </div>
                 </Card>
-            </div >
+            </div>
 
-    {/* Main Content Grid: Charts (8/4) */ }
-    < div className = "chart-grid" >
+            {/* Main Content Grid: Charts (8/4) */}
+            <div className="chart-grid">
                 <div className="main-chart-col">
                     <BalanceChart data={dailyBalance} />
                 </div>
@@ -177,192 +180,196 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div >
 
-    {/* Financial Insights Section */ }
-    < div style = {{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
-                <InsightsCard
-                    stats={stats}
-                    categoryExpenses={categoryExpenses}
-                    transactionCount={data.transactions.length}
-                />
-                <AICapitalAllocation />
-            </div >
+            {/* Financial Insights Section */}
+            <div className="insights-grid-mobile" style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+                <div className="insights-card-container">
+                    <InsightsCard
+                        stats={stats}
+                        categoryExpenses={categoryExpenses}
+                        transactionCount={data.transactions.length}
+                    />
+                </div>
+                <div className="ai-allocation-container">
+                    <AICapitalAllocation />
+                </div>
+            </div>
 
-    {/* ── Upcoming Commitments ── */ }
-    < div style = {{ marginTop: '2rem' }}>
-        <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.06)',
-            overflow: 'hidden',
-        }}>
-            {/* Header */}
-            <div style={{
-                padding: '1.25rem 1.5rem',
-                borderBottom: '1px solid #f1f5f9',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.65rem',
-            }}>
+            {/* ── Upcoming Commitments ── */}
+            <div className="upcoming-commitments-card" style={{ marginTop: '2rem' }}>
                 <div style={{
-                    width: '34px', height: '34px', borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #f59e0b, #f97316)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white',
+                    background: '#ffffff',
+                    borderRadius: '20px',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.06)',
+                    overflow: 'hidden',
                 }}>
-                    <Calendar size={18} />
-                </div>
-                <div>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.01em' }}>
-                        Próximos Compromissos
-                    </h3>
-                    <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
-                        Contas pendentes por vencimento
-                    </p>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div style={{ padding: '1rem 1.5rem' }}>
-                {(data.commitments || []).filter(c => c.status === 'PENDING').length === 0 ? (
+                    {/* Header */}
                     <div style={{
-                        padding: '2.5rem 1.5rem',
-                        textAlign: 'center',
-                        borderRadius: '14px',
-                        border: '2px dashed #e2e8f0',
-                        color: '#94a3b8',
-                        fontWeight: 600,
-                        fontSize: '0.9rem',
+                        padding: '1.25rem 1.5rem',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.65rem',
                     }}>
-                        Nenhum compromisso pendente por enquanto! 🌿
+                        <div style={{
+                            width: '34px', height: '34px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, #f59e0b, #f97316)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white',
+                        }}>
+                            <Calendar size={18} />
+                        </div>
+                        <div>
+                            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.01em' }}>
+                                Próximos Compromissos
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                                Contas pendentes por vencimento
+                            </p>
+                        </div>
                     </div>
-                ) : (
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                        gap: '0.75rem',
-                    }}>
-                        {(data.commitments || [])
-                            .filter(c => c.status === 'PENDING')
-                            .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                            .slice(0, 3)
-                            .map(c => {
-                                const dueDate = new Date(c.dueDate);
-                                const today = new Date();
-                                const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                                const isUrgent = diffDays <= 3;
-                                const isOverdue = diffDays < 0;
-                                const accentColor = isOverdue ? '#ef4444' : isUrgent ? '#f59e0b' : '#6366f1';
 
-                                return (
-                                    <div
-                                        key={c.id}
-                                        onClick={() => navigate('/commitments')}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.85rem',
-                                            padding: '1rem',
-                                            borderRadius: '14px',
-                                            background: `${accentColor}06`,
-                                            border: `1px solid ${accentColor}20`,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            position: 'relative',
-                                            overflow: 'hidden',
-                                        }}
-                                        onMouseEnter={e => {
-                                            (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                                            (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 20px -6px rgba(0,0,0,0.1)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            (e.currentTarget as HTMLDivElement).style.transform = 'none';
-                                            (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-                                        }}
-                                    >
-                                        {/* Left accent bar */}
-                                        <div style={{
-                                            position: 'absolute', left: 0, top: 0, bottom: 0,
-                                            width: '3px', background: accentColor, borderRadius: '14px 0 0 14px',
-                                        }} />
+                    {/* Content */}
+                    <div style={{ padding: '1rem 1.5rem' }}>
+                        {(data.commitments || []).filter(c => c.status === 'PENDING').length === 0 ? (
+                            <div style={{
+                                padding: '2.5rem 1.5rem',
+                                textAlign: 'center',
+                                borderRadius: '14px',
+                                border: '2px dashed #e2e8f0',
+                                color: '#94a3b8',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                            }}>
+                                Nenhum compromisso pendente por enquanto! 🌿
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                                gap: '0.75rem',
+                            }}>
+                                {(data.commitments || [])
+                                    .filter(c => c.status === 'PENDING')
+                                    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                                    .slice(0, 3)
+                                    .map(c => {
+                                        const dueDate = new Date(c.dueDate);
+                                        const today = new Date();
+                                        const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                        const isUrgent = diffDays <= 3;
+                                        const isOverdue = diffDays < 0;
+                                        const accentColor = isOverdue ? '#ef4444' : isUrgent ? '#f59e0b' : '#6366f1';
 
-                                        {/* Icon */}
-                                        <div style={{
-                                            width: '40px', height: '40px', borderRadius: '12px',
-                                            background: `${accentColor}12`,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            color: accentColor, flexShrink: 0,
-                                        }}>
-                                            <Clock size={18} />
-                                        </div>
+                                        return (
+                                            <div
+                                                key={c.id}
+                                                onClick={() => navigate('/commitments')}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.85rem',
+                                                    padding: '1rem',
+                                                    borderRadius: '14px',
+                                                    background: `${accentColor}06`,
+                                                    border: `1px solid ${accentColor}20`,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                    position: 'relative',
+                                                    overflow: 'hidden',
+                                                }}
+                                                onMouseEnter={e => {
+                                                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                                                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 20px -6px rgba(0,0,0,0.1)';
+                                                }}
+                                                onMouseLeave={e => {
+                                                    (e.currentTarget as HTMLDivElement).style.transform = 'none';
+                                                    (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+                                                }}
+                                            >
+                                                {/* Left accent bar */}
+                                                <div style={{
+                                                    position: 'absolute', left: 0, top: 0, bottom: 0,
+                                                    width: '3px', background: accentColor, borderRadius: '14px 0 0 14px',
+                                                }} />
 
-                                        {/* Info */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <p style={{
-                                                margin: 0, fontWeight: 700, fontSize: '0.875rem', color: '#1e293b',
-                                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                                            }}>
-                                                {c.description}
-                                            </p>
-                                            <p style={{
-                                                margin: '0.15rem 0 0 0', fontSize: '0.7rem', fontWeight: 600,
-                                                color: isOverdue ? '#ef4444' : isUrgent ? '#d97706' : '#94a3b8',
-                                            }}>
-                                                {isOverdue ? `Vencido há ${Math.abs(diffDays)} dia(s)` :
-                                                    diffDays === 0 ? 'Vence hoje!' :
-                                                        diffDays === 1 ? 'Vence amanhã' :
-                                                            `Vence em ${diffDays} dias · ${formatDate(c.dueDate)}`}
-                                            </p>
-                                        </div>
+                                                {/* Icon */}
+                                                <div style={{
+                                                    width: '40px', height: '40px', borderRadius: '12px',
+                                                    background: `${accentColor}12`,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: accentColor, flexShrink: 0,
+                                                }}>
+                                                    <Clock size={18} />
+                                                </div>
 
-                                        {/* Amount */}
-                                        <span style={{
-                                            fontWeight: 800, fontSize: '0.95rem', color: accentColor,
-                                            fontFamily: 'var(--font-mono, monospace)',
-                                            whiteSpace: 'nowrap', flexShrink: 0,
-                                        }}>
-                                            {formatCurrency(c.amount)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                                                {/* Info */}
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <p style={{
+                                                        margin: 0, fontWeight: 700, fontSize: '0.875rem', color: '#1e293b',
+                                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                                    }}>
+                                                        {c.description}
+                                                    </p>
+                                                    <p style={{
+                                                        margin: '0.15rem 0 0 0', fontSize: '0.7rem', fontWeight: 600,
+                                                        color: isOverdue ? '#ef4444' : isUrgent ? '#d97706' : '#94a3b8',
+                                                    }}>
+                                                        {isOverdue ? `Vencido há ${Math.abs(diffDays)} dia(s)` :
+                                                            diffDays === 0 ? 'Vence hoje!' :
+                                                                diffDays === 1 ? 'Vence amanhã' :
+                                                                    `Vence em ${diffDays} dias · ${formatDate(c.dueDate)}`}
+                                                    </p>
+                                                </div>
+
+                                                {/* Amount */}
+                                                <span style={{
+                                                    fontWeight: 800, fontSize: '0.95rem', color: accentColor,
+                                                    fontFamily: 'var(--font-mono, monospace)',
+                                                    whiteSpace: 'nowrap', flexShrink: 0,
+                                                }}>
+                                                    {formatCurrency(c.amount)}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-        </div>
+                </div>
             </div >
 
-    {/* Empty State / Hints */ }
-{
-    data.transactions.length === 0 && (
-        <div style={{
-            marginTop: '2rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1.25rem',
-            padding: '1.5rem',
-            borderRadius: '20px',
-            background: 'rgba(99, 102, 241, 0.04)',
-            border: '1px solid rgba(99, 102, 241, 0.12)',
-        }}>
-            <div style={{
-                width: '52px', height: '52px', borderRadius: '14px',
-                background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#6366f1', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0,
-            }}>
-                <AlertCircle size={28} strokeWidth={2.5} />
-            </div>
-            <div>
-                <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>
-                    Comece sua jornada financeira
-                </h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 500, color: '#64748b', lineHeight: 1.5 }}>
-                    Você ainda não registrou nenhuma transação. Vá até a aba <strong>Lançamentos</strong> e adicione sua primeira receita ou despesa para ver as métricas ganharem vida!
-                </p>
-            </div>
-        </div>
-    )
-}
+            {/* Empty State / Hints */}
+            {
+                data.transactions.length === 0 && (
+                    <div style={{
+                        marginTop: '2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1.25rem',
+                        padding: '1.5rem',
+                        borderRadius: '20px',
+                        background: 'rgba(99, 102, 241, 0.04)',
+                        border: '1px solid rgba(99, 102, 241, 0.12)',
+                    }}>
+                        <div style={{
+                            width: '52px', height: '52px', borderRadius: '14px',
+                            background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#6366f1', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0,
+                        }}>
+                            <AlertCircle size={28} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>
+                                Comece sua jornada financeira
+                            </h4>
+                            <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 500, color: '#64748b', lineHeight: 1.5 }}>
+                                Você ainda não registrou nenhuma transação. Vá até a aba <strong>Lançamentos</strong> e adicione sua primeira receita ou despesa para ver as métricas ganharem vida!
+                            </p>
+                        </div>
+                    </div>
+                )
+            }
         </div >
     );
 };
