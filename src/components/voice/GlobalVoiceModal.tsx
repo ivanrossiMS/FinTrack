@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, X, ArrowRight, Volume2, HelpCircle } from 'lucide-react';
 import { addDays, isAfter, subDays, isBefore, endOfDay } from 'date-fns';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { parseTranscription } from '../../utils/aiParser';
 import {
     detectIntent,
@@ -41,7 +42,11 @@ const INTENT_LABELS: Record<string, string> = {
 
 export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onClose }) => {
     const { data } = useData();
+    const { user } = useAuth();
     const navigate = useNavigate();
+
+    const firstName = user?.name?.split(' ')[0] || '';
+    const okPrefix = firstName ? `Ok, ${firstName}. ` : 'Ok. ';
 
     const [status, setStatus] = useState<ModalStatus>('IDLE');
     const [isListening, setIsListening] = useState(false);
@@ -128,7 +133,8 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
         // Common handler for speaking and then CLOSING
         const speakAndClose = (answer: string) => {
-            setQueryAnswer(answer);
+            const fullAnswer = okPrefix + answer;
+            setQueryAnswer(fullAnswer);
             setStatus('QUERY_RESULT');
 
             const doSpeak = () => {
@@ -143,7 +149,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                 }
                 window.speechSynthesis.cancel();
 
-                const utter = new SpeechSynthesisUtterance(answer);
+                const utter = new SpeechSynthesisUtterance(fullAnswer);
                 utter.lang = 'pt-BR';
                 utter.rate = 1.25;
                 utter.pitch = 1.0;
@@ -180,19 +186,29 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             isProcessingRef.current = false;
         };
 
+        const handleOkConfirm = () => {
+            if (!window.speechSynthesis) return;
+            const utter = new SpeechSynthesisUtterance(okPrefix);
+            utter.lang = 'pt-BR';
+            utter.rate = 1.35;
+            window.speechSynthesis.speak(utter);
+        };
+
         switch (detected.type) {
             case 'navigate': {
-                if (detected.route) { nav(detected.route); close(); }
+                if (detected.route) { handleOkConfirm(); nav(detected.route); close(); }
                 else { isProcessingRef.current = false; startRecognitionRef.current(); }
                 break;
             }
             case 'transaction': {
+                handleOkConfirm();
                 const parsed = parseTranscription(text, d.categories, d.paymentMethods, d.suppliers);
                 nav('/transactions', { state: { voicePrefill: parsed, openForm: true } });
                 close();
                 break;
             }
             case 'commitment': {
+                handleOkConfirm();
                 const parsed = parseCommitment(text, d.categories);
                 nav('/commitments', { state: { voicePrefill: parsed, openForm: true } });
                 close();
