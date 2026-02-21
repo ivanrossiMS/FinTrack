@@ -57,19 +57,25 @@ export const Layout: React.FC = () => {
                     </button>
                     <div className="mobile-brand">
                         <img src={logoIcon} alt="Finance+" className="mobile-brand-icon" />
-                        <span className="mobile-brand-name">F<span className="mobile-brand-plus">+</span></span>
+                        <span className="mobile-brand-name">Finance<span className="mobile-brand-plus">+</span></span>
                     </div>
                 </div>
 
                 <div className="mobile-header-right">
                     <div className="mobile-user-profile">
-                        <span className="mobile-user-name">{user?.name?.split(' ')[0]}</span>
+                        <div className="mobile-user-info">
+                            <span className="mobile-user-name">{user?.name?.split(' ')[0]}</span>
+                            <span className={`mobile-user-plan ${user?.plan?.toLowerCase() || 'free'}`}>
+                                {user?.plan === 'PREMIUM' && <Crown size={8} />}
+                                {user?.plan || 'Free'}
+                            </span>
+                        </div>
                         <NavLink to="/profile" className="mobile-avatar-link">
                             {user?.avatar ? (
                                 <img src={user.avatar} alt={user.name} className="mobile-user-avatar" />
                             ) : (
                                 <div className="mobile-avatar-placeholder">
-                                    <User size={18} />
+                                    <User size={22} />
                                 </div>
                             )}
                         </NavLink>
