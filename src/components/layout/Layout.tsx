@@ -42,7 +42,6 @@ export const Layout: React.FC = () => {
     ];
 
     const mainNavItems = navItems.filter(item => item.main);
-    const secondaryNavItems = navItems.filter(item => !item.main);
 
     return (
         <div className={clsx("app-layout", mobileMenuOpen && "mobile-menu-active")}>
