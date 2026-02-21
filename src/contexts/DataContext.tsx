@@ -83,10 +83,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const date = addMonths(baseDate, i).toISOString();
             const description = count > 1 ? `${baseTx.description} [${i + 1}/${count}]` : baseTx.description;
 
+            // If it's installments (not recurring), divide the total amount
+            const installmentAmount = (!baseTx.isRecurring && count > 1)
+                ? Math.round((baseTx.amount / count) * 100) / 100
+                : baseTx.amount;
+
             newTransactions.push({
                 ...baseTx,
                 id: uuidv4(),
                 date,
+                amount: installmentAmount,
                 description,
                 installmentId: groupId,
                 installmentNumber: i + 1,
@@ -217,10 +223,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         for (let i = 0; i < count; i++) {
             const dueDate = addMonths(baseDate, i).toISOString();
             const description = count > 1 ? `${baseComm.description} [${i + 1}/${count}]` : baseComm.description;
+            const installmentAmount = count > 1 ? Math.round((baseComm.amount / count) * 100) / 100 : baseComm.amount;
 
             newCommitments.push({
                 ...baseComm,
                 id: uuidv4(),
+                amount: installmentAmount,
                 dueDate,
                 description,
                 status: 'PENDING',
@@ -314,11 +322,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     ? `PAGTO: ${commitment.description} [${i + 1}/${count}]`
                     : `PAGTO: ${commitment.description}`;
 
+                const installmentAmount = count > 1 ? Math.round((commitment.amount / count) * 100) / 100 : commitment.amount;
+
                 newTransactions.push({
                     id: i === 0 ? (commitment.transactionId || uuidv4()) : uuidv4(),
                     type: 'EXPENSE',
                     date,
-                    amount: commitment.amount, // Valor total por parcela (usuário quer 10 lançamentos do valor total)
+                    amount: installmentAmount,
                     description,
                     categoryId: commitment.categoryId,
                     supplierId: commitment.supplierId,
