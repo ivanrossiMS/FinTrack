@@ -13,6 +13,7 @@ import {
     type VoiceIntent,
 } from '../../utils/intentParser';
 import { askGemini, type FinancialContext } from '../../utils/geminiAI';
+import { playActivationBeep, playExecutionBeep, playDeactivationBeep } from '../../utils/audioSystem';
 import './GlobalVoiceModal.css';
 
 interface GlobalVoiceModalProps {
@@ -59,6 +60,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
     // ── Refs that are always current ───────────────────────────
     const recognitionRef = useRef<any>(null);
     const autoExecTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isOpenRef = useRef(isOpen);
     const dataRef = useRef(data);
     const navigateRef = useRef(navigate);
@@ -89,6 +91,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
     // ── Stop everything ──────────────────────────────────────────
     const stopAll = () => {
         if (autoExecTimerRef.current) { clearTimeout(autoExecTimerRef.current); autoExecTimerRef.current = null; }
+        if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
         if (recognitionRef.current) {
             try { recognitionRef.current.abort(); } catch (_) { /* ignore */ }
             recognitionRef.current = null;
@@ -113,6 +116,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
     const executeCommand = async (text: string) => {
         if (!text.trim() || isProcessingRef.current) return;
 
+        playExecutionBeep();
         isProcessingRef.current = true;
         setStatus('PROCESSING');
 
@@ -130,6 +134,15 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
         const nav = navigateRef.current;
         const close = onCloseRef.current;
         const d = dataRef.current;
+
+        // Helper to find a female-sounding voice for pt-BR
+        const findFemaleVoice = () => {
+            const voices = window.speechSynthesis.getVoices();
+            // Look for Google Maria, Daniela (Apple), or any with "female" in the name/metadata if possible
+            // In pt-BR, common female names are Maria, Francisca, Leticia, Victoria
+            return voices.find(v => v.lang.includes('pt-BR') &&
+                (v.name.includes('Maria') || v.name.includes('Francisca') || v.name.includes('Letícia') || v.name.includes('Google português do Brasil')));
+        };
 
         // Common handler for speaking and then CLOSING
         const speakAndClose = (answer: string) => {
@@ -151,8 +164,10 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
                 const utter = new SpeechSynthesisUtterance(fullAnswer);
                 utter.lang = 'pt-BR';
-                utter.rate = 1.25;
-                utter.pitch = 1.0;
+                const femaleVoice = findFemaleVoice();
+                if (femaleVoice) utter.voice = femaleVoice;
+                utter.rate = 1.5; // Increased speed
+                utter.pitch = 1.05; // Slightly higher pitch for female tone if default voice is used
 
                 // Close after speaking
                 utter.onend = () => {
@@ -190,7 +205,10 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             if (!window.speechSynthesis) return;
             const utter = new SpeechSynthesisUtterance(okPrefix);
             utter.lang = 'pt-BR';
-            utter.rate = 1.35;
+            const femaleVoice = findFemaleVoice();
+            if (femaleVoice) utter.voice = femaleVoice;
+            utter.rate = 1.5;
+            utter.pitch = 1.05;
             window.speechSynthesis.speak(utter);
         };
 
@@ -307,6 +325,12 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
             setInterimText(interimParts.trim());
 
+            // User is speaking: reset or cancel inactivity timer
+            if (inactivityTimerRef.current) {
+                clearTimeout(inactivityTimerRef.current);
+                inactivityTimerRef.current = null;
+            }
+
             // Cancel pending auto-exec if user keeps talking
             if (autoExecTimerRef.current) {
                 clearTimeout(autoExecTimerRef.current);
@@ -406,10 +430,27 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
     // ── Lifecycle: open/close ────────────────────────────────────
     useEffect(() => {
         if (isOpen) {
+            playActivationBeep();
             resetForNextCommand();
             isProcessingRef.current = false;
+
+            // 6-second auto-close if no speech detected
+            if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+            inactivityTimerRef.current = setTimeout(() => {
+                if (isOpenRef.current && !transcriptRef.current && !isProcessingRef.current) {
+                    playDeactivationBeep();
+                    onCloseRef.current();
+                }
+            }, 5000);
+
             const t = setTimeout(() => startRecognitionRef.current(), 200);
-            return () => clearTimeout(t);
+            return () => {
+                clearTimeout(t);
+                if (inactivityTimerRef.current) {
+                    clearTimeout(inactivityTimerRef.current);
+                    inactivityTimerRef.current = null;
+                }
+            };
         } else {
             isProcessingRef.current = true;
             stopAll();
