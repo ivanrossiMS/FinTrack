@@ -1,0 +1,537 @@
+/* ===== Transactions Page Refined UI ===== */
+
+.tx-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+/* ── Header Section ── */
+.tx-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.tx-header-left h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.tx-counter {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+.tx-new-btn {
+    border-radius: var(--radius-full);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-3d);
+}
+
+/* ── Summary Cards ── */
+.tx-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.tx-summary-card {
+    background: var(--color-surface);
+    padding: 1.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tx-summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.tx-summ-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.tx-summ-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tx-summ-icon {
+    opacity: 0.6;
+}
+
+.tx-summ-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+}
+
+.tx-summ-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: transparent;
+}
+
+/* Variants */
+.tx-summary-card.income .tx-summ-icon {
+    color: var(--color-success);
+}
+
+.tx-summary-card.income .tx-summ-indicator {
+    background: var(--color-success);
+}
+
+.tx-summary-card.income:hover {
+    border-color: var(--color-success);
+}
+
+.tx-summary-card.expense .tx-summ-icon {
+    color: var(--color-danger);
+}
+
+.tx-summary-card.expense .tx-summ-indicator {
+    background: var(--color-danger);
+}
+
+.tx-summary-card.expense:hover {
+    border-color: var(--color-danger);
+}
+
+.tx-summary-card.balance.positive .tx-summ-icon {
+    color: var(--color-primary);
+}
+
+.tx-summary-card.balance.positive .tx-summ-indicator {
+    background: var(--color-primary);
+}
+
+.tx-summary-card.balance.negative .tx-summ-value {
+    color: var(--color-danger);
+}
+
+.tx-summary-card.balance.negative .tx-summ-indicator {
+    background: var(--color-danger);
+}
+
+/* Responsive adjustments for summary grid in CSS file itself */
+@media (max-width: 768px) {
+    .tx-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .tx-summary-card {
+        padding: 1.25rem;
+    }
+
+    .tx-summ-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* ── Filters Card ── */
+.tx-filters-card {
+    background: var(--color-surface);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tx-filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.tx-search-wrapper {
+    position: relative;
+}
+
+.tx-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-light);
+    pointer-events: none;
+}
+
+.tx-search-wrapper .input-field {
+    padding-left: 2.75rem !important;
+}
+
+.tx-filter-item .input-field {
+    height: 2.75rem;
+    background: var(--color-bg);
+}
+
+.tx-filter-date {
+    position: relative;
+}
+
+.tx-date-icon {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-light);
+    z-index: 1;
+}
+
+.tx-filter-date .input-field {
+    padding-left: 2.25rem;
+}
+
+.tx-clear-btn {
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    border: 1px solid transparent;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.tx-clear-btn:hover:not(:disabled) {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+.tx-clear-btn.active {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+    border-color: #fee2e2;
+}
+
+.tx-period-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+}
+
+/* ── Active Chips ── */
+.tx-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tx-chip {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    box-shadow: var(--shadow-sm);
+}
+
+.tx-chip-remove {
+    color: var(--color-text-light);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tx-chip-remove:hover {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* ── List/Table Section ── */
+.tx-list-container {
+    background: var(--color-surface);
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.tx-table-wrapper {
+    overflow-x: auto;
+}
+
+/* Common Grid Definition */
+.tx-grid-header,
+.tx-grid-row {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr 105px 145px 150px 80px;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 0 1.5rem;
+}
+
+/* Header UI */
+.tx-grid-header {
+    background: var(--color-bg);
+    border-bottom: 2px solid var(--color-border);
+    height: 48px;
+}
+
+.tx-header-col {
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tx-header-col.sortable {
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.tx-header-col.sortable:hover {
+    color: var(--color-text);
+}
+
+.tx-align-right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+/* Row UI */
+.tx-items-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.tx-grid-row {
+    height: 64px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: var(--color-surface);
+    transition: all 0.2s ease;
+}
+
+.tx-grid-row:hover {
+    background: #f8fafc;
+}
+
+/* Description Col */
+.tx-col-description {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    overflow: hidden;
+}
+
+.tx-status-indicator {
+    width: 4px;
+    height: 24px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.tx-description-text {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Category Badge */
+.tx-category-badge {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+/* Amount Col */
+.tx-col-amount {
+    font-family: var(--font-mono, monospace);
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-align: right;
+    padding-right: 1.5rem;
+}
+
+.tx-col-amount.income {
+    color: var(--color-success);
+}
+
+.tx-col-amount.expense {
+    color: var(--color-danger);
+}
+
+/* Method Badge */
+.tx-method-badge {
+    display: inline-flex;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid transparent;
+}
+
+.tx-method-badge-mini {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+/* Actions Col */
+.tx-col-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.tx-grid-row:hover .tx-col-actions {
+    opacity: 1;
+}
+
+.tx-btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-light);
+    transition: all 0.2s ease;
+}
+
+.tx-btn-icon:hover {
+    background: var(--color-bg);
+    color: var(--color-primary);
+}
+
+.tx-btn-icon.danger:hover {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* ── Mobile UI ── */
+.tx-mobile-sort-bar {
+    display: none;
+}
+
+.tx-mobile-card {
+    display: none;
+}
+
+/* ── Empty State ── */
+.tx-empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: var(--color-text-light);
+}
+
+.tx-empty-state p {
+    font-weight: 500;
+}
+
+/* ══════════════ RESPONSIVE ══════════════ */
+
+/* ══════════════ RESPONSIVE ══════════════ */
+
+@media (max-width: 1023px) {
+    .tx-page {
+        padding: 1.5rem;
+    }
+
+    .tx-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tx-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .tx-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tx-grid-header {
+        display: none;
+    }
+
+    .tx-grid-row {
+        grid-template-columns: 1fr auto;
+        height: auto;
+        padding: 1.25rem;
+        gap: 0.5rem;
+    }
+
+    .tx-col-category,
+    .tx-col-date,
+    .tx-col-method {
+        display: none;
+    }
+
+    .tx-col-actions {
+        opacity: 1;
+    }
+}

@@ -1,0 +1,28 @@
+.card {
+    background-color: #fafbfc;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    /* Default very subtle */
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* Extremely subtle border */
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-3d);
+    /* Elevated only on hover */
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

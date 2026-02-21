@@ -1,0 +1,22 @@
+<svg width="600" height="150" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="icon_bg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="plus_grad" x1="480" y1="40" x2="550" y2="110" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4ADE80"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon Part -->
+  <rect x="15" y="15" width="120" height="120" rx="32" fill="url(#icon_bg)"/>
+  <path d="M45 80C45 60.67 60.67 45 80 45" stroke="#FF4B6C" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+  <path d="M45 80C45 99.33 60.67 115 80 115" stroke="#4ADE80" stroke-width="12" stroke-linecap="round" opacity="0.8"/>
+  <text x="75" y="92" dominant-baseline="middle" text-anchor="middle" fill="white" style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 70px;">F</text>
+  <text x="115" y="45" dominant-baseline="middle" text-anchor="middle" fill="white" style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 40px;">+</text>
+
+  <!-- Text Part -->
+  <text x="160" y="95" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 85px; fill: #4834D4;">Finance</text>
+  <text x="510" y="95" style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 110px; fill: url(#plus_grad);">+</text>
+</svg>

@@ -1,0 +1,132 @@
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--color-bg);
+    background-image: radial-gradient(circle at top left, var(--color-primary-light) 0%, var(--color-bg) 40%, var(--color-surface-soft) 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem;
+}
+
+/* Background blob decorations */
+.login-page::before,
+.login-page::after {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+    opacity: 0.4;
+}
+
+.login-page::before {
+    background: #7c3aed;
+    top: -200px;
+    right: -100px;
+    animation: float 20s infinite alternate;
+}
+
+.login-page::after {
+    background: #3b82f6;
+    bottom: -200px;
+    left: -100px;
+    animation: float 25s infinite alternate-reverse;
+}
+
+@keyframes float {
+    from {
+        transform: translate(0, 0);
+    }
+
+    to {
+        transform: translate(50px, 50px);
+    }
+}
+
+.login-card {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 2rem;
+    padding: 3rem 2.5rem;
+    box-shadow:
+        0 20px 40px -10px rgba(0, 0, 0, 0.05),
+        0 10px 20px -5px rgba(0, 0, 0, 0.02);
+    transition: transform 0.3s ease;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.logo-container {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.logo-img {
+    height: 64px;
+    width: auto;
+    filter: drop-shadow(0 4px 12px rgba(88, 80, 236, 0.15));
+}
+
+.slogan {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4a5568;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.register-footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9375rem;
+    color: var(--color-text-light);
+}
+
+.register-link {
+    color: #5850ec;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.register-link:hover {
+    color: #4338ca;
+    text-decoration: underline;
+}
+
+/* Animations */
+.animate-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

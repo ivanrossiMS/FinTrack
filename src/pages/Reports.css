@@ -1,0 +1,759 @@
+/* ===== Reports Page Refined UI ===== */
+
+.rep-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ── Header & Top Bar ── */
+.rep-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+
+.rep-header-left h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.rep-subtitle {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+.rep-actions-card {
+    background: var(--color-surface);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.rep-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.rep-label-mini {
+    font-size: 0.625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+}
+
+.rep-input-month {
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* ── Period Bar ── */
+.rep-period-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--color-surface);
+    padding: 0.75rem 1.25rem;
+    border-radius: 14px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+}
+
+.rep-period-pills {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.rep-period-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.4375rem 0.875rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: var(--color-bg);
+    color: var(--color-text-light);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rep-period-pill:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text);
+}
+
+.rep-period-pill.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.rep-period-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.rep-date-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.rep-btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+
+/* ── Main Grid ── */
+.rep-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* ── Summary Cards ── */
+.rep-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.rep-summ-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border: 1px solid transparent;
+}
+
+.rep-summ-card .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.rep-summ-card .value {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.rep-summ-card.income {
+    background-color: rgba(34, 197, 94, 0.08);
+    color: var(--color-success);
+}
+
+.rep-summ-card.expense {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: var(--color-danger);
+}
+
+.rep-summ-card.result {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+.rep-summ-card.result.positive {
+    color: var(--color-primary);
+}
+
+.rep-summ-card.result.negative {
+    color: #f97316;
+}
+
+/* ── Cards General ── */
+.rep-card {
+    background: var(--color-surface);
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    padding: 1.5rem;
+}
+
+.rep-card-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ── Chart Section ── */
+.rep-chart-container {
+    padding: 1rem 0;
+}
+
+/* ── Ranking Section ── */
+.rep-ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rep-ranking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.rep-ranking-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rep-rank-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    overflow: hidden;
+}
+
+.rep-rank-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.rep-rank-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rep-rank-value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+/* ── Table Section ── */
+.rep-table-card {
+    padding: 0;
+}
+
+.rep-table-header-bar {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rep-count-badge {
+    font-size: 0.625rem;
+    font-weight: 800;
+    color: var(--color-text-light);
+    background: var(--color-bg);
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+}
+
+.rep-table-scroll {
+    overflow-x: auto;
+}
+
+.rep-grid-header,
+.rep-grid-row {
+    display: grid;
+    grid-template-columns: 100px 2fr 1.2fr 130px;
+    gap: 1rem;
+    align-items: center;
+    padding: 0 1.5rem;
+}
+
+.rep-grid-header {
+    background: var(--color-bg);
+    height: 44px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.rep-col-h {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+    letter-spacing: 0.05em;
+}
+
+.rep-grid-row {
+    min-height: 52px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    transition: background 0.15s ease;
+}
+
+.rep-grid-row:hover {
+    background: #f8fafc;
+}
+
+.rep-col-date {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.rep-col-desc {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rep-fixed-tag {
+    font-size: 0.5rem;
+    background: var(--color-primary);
+    color: white;
+    padding: 1px 4px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.rep-col-cat {
+    display: flex;
+}
+
+.rep-badge-pill {
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rep-col-val {
+    text-align: right;
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.rep-col-val.income {
+    color: var(--color-success);
+}
+
+.rep-col-val.expense {
+    color: var(--color-danger);
+}
+
+.rep-col-r {
+    text-align: right;
+    justify-content: flex-end;
+}
+
+/* ══════════════════════════════════
+   Commitment Section
+   ══════════════════════════════════ */
+
+/* Commitment table uses 5 columns */
+.rep-cm-grid {
+    grid-template-columns: 100px 2fr 1.2fr 100px 130px;
+}
+
+/* Filter pills row */
+.rep-cm-filters {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+}
+
+.rep-cm-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: var(--color-bg);
+    color: var(--color-text-light);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rep-cm-filter-pill:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text);
+}
+
+.rep-cm-filter-pill.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.rep-cm-pill-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    padding: 0 4px;
+}
+
+.rep-cm-filter-pill:not(.active) .rep-cm-pill-count {
+    background: var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.rep-cm-pill-count.overdue {
+    background: rgba(239, 68, 68, 0.2);
+    color: #dc2626;
+}
+
+.rep-cm-filter-pill.active .rep-cm-pill-count.overdue {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+/* Summary mini-cards */
+.rep-cm-summary {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+}
+
+.rep-cm-stat {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.rep-cm-stat.paid {
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--color-success);
+}
+
+.rep-cm-stat.upcoming {
+    background: rgba(88, 80, 236, 0.06);
+    color: var(--color-primary);
+}
+
+.rep-cm-stat.overdue {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--color-danger);
+}
+
+.rep-cm-stat-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+}
+
+.rep-cm-stat-value {
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+/* Status badges */
+.rep-cm-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rep-cm-badge.paid {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--color-success);
+}
+
+.rep-cm-badge.upcoming {
+    background: rgba(88, 80, 236, 0.1);
+    color: var(--color-primary);
+}
+
+.rep-cm-badge.overdue {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger);
+}
+
+/* ── Print Header (hidden on screen) ── */
+.rep-print-header {
+    display: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .rep-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .rep-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .rep-actions-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .rep-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rep-grid-header {
+        display: none;
+    }
+
+    .rep-grid-row {
+        grid-template-columns: 1fr 1fr;
+        padding: 1rem;
+        height: auto;
+    }
+
+    .rep-col-desc {
+        grid-column: span 2;
+    }
+
+    .rep-col-cat {
+        order: 3;
+    }
+
+    .rep-col-date {
+        order: 4;
+        text-align: right;
+    }
+
+    .rep-col-val {
+        grid-column: span 2;
+        order: 5;
+        text-align: right;
+        font-size: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.03);
+        padding-top: 0.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .rep-cm-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ══════════════════════════════════
+   Print Styles
+   ══════════════════════════════════ */
+@media print {
+
+    /* Reset everything for clean printing */
+    * {
+        box-shadow: none !important;
+    }
+
+    body {
+        background: white !important;
+        color: #1e293b !important;
+        font-size: 11pt !important;
+    }
+
+    /* Hide all non-print elements */
+    .print-hide,
+    .rep-cm-filters,
+    nav,
+    aside.sidebar,
+    header.app-header,
+    .layout-sidebar,
+    .main-layout> :not(.main-content),
+    button:not(.print-visible),
+    .rep-btn-group {
+        display: none !important;
+    }
+
+    /* Show print header */
+    .rep-print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #1e293b;
+    }
+
+    .rep-print-header h1 {
+        font-size: 18pt;
+        font-weight: 800;
+        margin: 0 0 0.25rem;
+    }
+
+    .rep-print-header p {
+        font-size: 10pt;
+        color: #64748b;
+        margin: 0;
+    }
+
+    .rep-page {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        gap: 1rem !important;
+    }
+
+    .rep-main-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Summary cards in row */
+    .rep-summary-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+
+    .rep-summ-card {
+        padding: 0.75rem !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        background: white !important;
+        page-break-inside: avoid;
+    }
+
+    .rep-summ-card .value {
+        font-size: 1rem !important;
+    }
+
+    /* Cards */
+    .rep-card {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Hide chart for print (it doesn't render well) */
+    .rep-chart-container {
+        display: none !important;
+    }
+
+    /* Table layout for print */
+    .rep-grid-header,
+    .rep-grid-row {
+        padding: 0 0.75rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .rep-grid-header {
+        display: grid !important;
+        background: #f1f5f9 !important;
+        height: 32px !important;
+    }
+
+    .rep-grid-row {
+        min-height: 28px !important;
+        font-size: 9pt !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .rep-col-desc {
+        font-size: 9pt !important;
+    }
+
+    .rep-col-val {
+        font-size: 9pt !important;
+    }
+
+    .rep-badge-pill {
+        font-size: 8pt !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    /* Commitment summary for print */
+    .rep-cm-summary {
+        gap: 0.5rem !important;
+        padding: 0.75rem !important;
+    }
+
+    .rep-cm-stat {
+        padding: 0.5rem !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+    }
+
+    .rep-cm-badge {
+        font-size: 8pt !important;
+    }
+
+    /* Page breaks */
+    .rep-table-card {
+        page-break-before: auto;
+    }
+
+    .rep-col-b {
+        display: none !important;
+    }
+}
