@@ -17,6 +17,7 @@ import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
 import { Commitments } from './pages/Commitments';
 import { Savings } from './pages/Savings';
+import { Investments } from './pages/Investments';
 
 function App() {
     return (
@@ -34,6 +35,7 @@ function App() {
                                 <Route path="/transactions" element={<Transactions />} />
                                 <Route path="/commitments" element={<Commitments />} />
                                 <Route path="/savings" element={<Savings />} />
+                                <Route path="/investments" element={<Investments />} />
                                 <Route path="/reports" element={<Reports />} />
                                 <Route path="/manage" element={<Manage />} />
                                 <Route path="/settings" element={<Settings />} />

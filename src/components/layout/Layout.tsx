@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -29,6 +29,7 @@ export const Layout: React.FC = () => {
         { path: '/transactions', label: 'Lançamentos', icon: DollarSign },
         { path: '/commitments', label: 'Compromissos', icon: Calendar },
         { path: '/savings', label: 'Economia', icon: Target },
+        { path: '/investments', label: 'Investimentos', icon: TrendingUp },
         { path: '/reports', label: 'Relatórios', icon: PieChart },
         { path: '/manage', label: 'Cadastros', icon: List },
         { path: '/profile', label: 'Perfil', icon: User },

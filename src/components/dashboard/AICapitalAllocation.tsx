@@ -170,7 +170,7 @@ export const AICapitalAllocation: React.FC = () => {
                             e.currentTarget.style.transform = 'none';
                             e.currentTarget.style.background = '#1e293b';
                         }}
-                        onClick={() => navigate('/savings')}
+                        onClick={() => navigate('/investments')}
                     >
                         Investir <ArrowRight size={14} />
                     </button>
