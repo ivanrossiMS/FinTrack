@@ -52,6 +52,67 @@
     position: relative;
     z-index: 10;
     padding-bottom: 6rem;
+    transition: margin 0.3s ease;
+}
+
+/* ── Mobile Branding Header (New) ── */
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0 1.25rem;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+}
+
+.mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-brand-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+}
+
+.mobile-brand-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #7C3AED, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.mobile-brand-plus {
+    background: linear-gradient(135deg, #4ADE80, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+}
+
+.mobile-menu-toggle {
+    background: white;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Floating Sidebar - Lumina Glass */
@@ -81,6 +142,65 @@
 
     .main-content {
         padding: 0;
+    }
+}
+
+/* ── Mobile Layout & Nav Adjustments ── */
+@media (max-width: 1023px) {
+    .app-layout {
+        padding-top: 60px;
+        /* Space for mobile header */
+    }
+
+    .main-content {
+        padding: 1.25rem 1.25rem 7.5rem;
+        /* More bottom padding for nav */
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        /* Hidden by default */
+        width: 280px;
+        height: 100vh;
+        z-index: 2000;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0 24px 24px 0 !important;
+        margin: 0 !important;
+        padding-top: 1.5rem !important;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(280px);
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .mobile-header {
+        display: flex;
+    }
+
+    .mobile-menu-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(4px);
+        z-index: 1500;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .hidden-mobile {
+        display: none !important;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
 
@@ -429,24 +549,83 @@
     }
 }
 
-/* Mobile Nav - Lumina Style */
-@media (max-width: 767px) {
-    .bottom-nav {
+/* ── Mobile Floating Bottom Navigation (Premium) ── */
+@media (max-width: 1023px) {
+    .mobile-bottom-nav {
         position: fixed;
-        bottom: 1.5rem;
-        left: 1.5rem;
-        right: 1.5rem;
-        background: var(--glass-bg);
-        backdrop-filter: var(--glass-blur);
+        bottom: 1.25rem;
+        left: 1.25rem;
+        right: 1.25rem;
+        height: 68px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
         display: flex;
+        align-items: center;
         justify-content: space-around;
-        padding: 0.75rem;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--glass-shadow);
+        padding: 0 0.5rem;
+        box-shadow:
+            0 10px 25px -5px rgba(0, 0, 0, 0.1),
+            0 4px 10px -2px rgba(0, 0, 0, 0.05),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.5);
         z-index: 1000;
     }
 
+    .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        flex: 1;
+        transition: all 0.2s ease;
+        padding: 0.5rem 0;
+        border-radius: 12px;
+    }
+
+    .mobile-nav-item .mobile-nav-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .mobile-nav-item.active {
+        color: var(--color-primary);
+        background: rgba(99, 102, 241, 0.08);
+    }
+
+    .mobile-nav-item.active svg {
+        transform: translateY(-2px);
+        filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+    }
+
+    /* Move the AI FAB slightly higher on mobile to not overlap nav */
+    .ai-fab-neural {
+        bottom: 6.5rem;
+        right: 1.25rem;
+        width: 60px;
+        height: 60px;
+    }
+
+    .ai-fab-core {
+        border-radius: 18px;
+    }
+}
+
+/* Legacy styles removal/override */
+@media (max-width: 767px) {
+    .bottom-nav {
+        position: static;
+        display: none;
+    }
+}
+
+/* Mobile Nav - Lumina Style */
+@media (max-width: 767px) {
     .nav-item {
         flex-direction: column;
         gap: 4px;

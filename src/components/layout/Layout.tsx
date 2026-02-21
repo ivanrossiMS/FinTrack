@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X as CloseIcon } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -13,6 +13,7 @@ export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
     const navigate = useNavigate();
     const [voiceOpen, setVoiceOpen] = React.useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
     const handleLogout = () => {
         logout();
@@ -24,27 +25,51 @@ export const Layout: React.FC = () => {
         navigate('/admin');
     };
 
+    // Unified Nav Items
     const navItems = [
-        { path: '/', label: 'Dashboard', icon: Home },
-        { path: '/transactions', label: 'Lançamentos', icon: DollarSign },
-        { path: '/commitments', label: 'Compromissos', icon: Calendar },
-        { path: '/savings', label: 'Economia', icon: Target },
-        { path: '/investments', label: 'Investimentos', icon: TrendingUp },
-        { path: '/reports', label: 'Relatórios', icon: PieChart },
-        { path: '/manage', label: 'Cadastros', icon: List },
-        { path: '/profile', label: 'Perfil', icon: User },
+        { path: '/', label: 'Dashboard', icon: Home, main: true },
+        { path: '/transactions', label: 'Lançamentos', icon: DollarSign, main: true },
+        { path: '/commitments', label: 'Compromissos', icon: Calendar, main: true },
+        { path: '/savings', label: 'Economia', icon: Target, main: false },
+        { path: '/investments', label: 'Investimentos', icon: TrendingUp, main: true },
+        { path: '/reports', label: 'Relatórios', icon: PieChart, main: false },
+        { path: '/manage', label: 'Cadastros', icon: List, main: false },
+        { path: '/profile', label: 'Perfil', icon: User, main: true },
         ...(user?.isAdmin ? [
-            { path: '/admin', label: 'ADM', icon: ShieldCheck },
-            { path: '/settings', label: 'Ajustes', icon: Settings }
+            { path: '/admin', label: 'ADM', icon: ShieldCheck, main: false },
+            { path: '/settings', label: 'Ajustes', icon: Settings, main: false }
         ] : []),
     ];
 
+    const mainNavItems = navItems.filter(item => item.main);
+    const secondaryNavItems = navItems.filter(item => !item.main);
+
     return (
-        <div className="app-layout">
-            {/* Desktop Sidebar / Mobile Bottom Nav Placeholder */}
-            <aside className="sidebar bottom-nav">
-                {/* ── Brand Top ── */}
-                <div className="sidebar-brand">
+        <div className={clsx("app-layout", mobileMenuOpen && "mobile-menu-active")}>
+            {/* ── Mobile Top Header (Visible only on Mobile) ── */}
+            <header className="mobile-header">
+                <div className="mobile-brand">
+                    <img src={logoIcon} alt="Finance+" className="mobile-brand-icon" />
+                    <span className="mobile-brand-name">Finance<span className="mobile-brand-plus">+</span></span>
+                </div>
+                <button
+                    className="mobile-menu-toggle"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    aria-label="Menu"
+                >
+                    {mobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
+                </button>
+            </header>
+
+            {/* Overlay for mobile menu */}
+            {mobileMenuOpen && (
+                <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)} />
+            )}
+
+            {/* Sidebar (Desktop) / Sliding Menu (Mobile) */}
+            <aside className={clsx("sidebar", mobileMenuOpen && "mobile-open")}>
+                {/* ── Brand Top (Desktop Only) ── */}
+                <div className="sidebar-brand hidden-mobile">
                     <img src={logoIcon} alt="Finance+" className="sidebar-brand-icon" />
                     <div className="sidebar-brand-text">
                         <span className="sidebar-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
@@ -53,7 +78,7 @@ export const Layout: React.FC = () => {
                 </div>
 
                 <div className="sidebar-header">
-                    <NavLink to="/profile" className="sidebar-avatar-container">
+                    <NavLink to="/profile" className="sidebar-avatar-container" onClick={() => setMobileMenuOpen(false)}>
                         {user?.avatar ? (
                             <img src={user.avatar} alt={user.name} />
                         ) : (
@@ -75,6 +100,7 @@ export const Layout: React.FC = () => {
                             key={path}
                             to={path}
                             className={({ isActive }) => clsx("nav-item", isActive && "active")}
+                            onClick={() => setMobileMenuOpen(false)}
                         >
                             <Icon size={22} strokeWidth={2} />
                             <span className="nav-label">{label}</span>
@@ -82,7 +108,7 @@ export const Layout: React.FC = () => {
                     ))}
 
                     <button
-                        onClick={handleLogout}
+                        onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
                         className="nav-item nav-item-logout border-none"
                     >
                         <LogOut size={22} />
@@ -93,9 +119,22 @@ export const Layout: React.FC = () => {
                     <div className="sidebar-copyright">
                         © {new Date().getFullYear()} Ivan Rossi
                     </div>
-
                 </div>
             </aside>
+
+            {/* ── Mobile Floating Bottom Nav ── */}
+            <nav className="mobile-bottom-nav">
+                {mainNavItems.slice(0, 5).map(({ path, icon: Icon, label }) => (
+                    <NavLink
+                        key={path}
+                        to={path}
+                        className={({ isActive }) => clsx("mobile-nav-item", isActive && "active")}
+                    >
+                        <Icon size={22} />
+                        <span className="mobile-nav-label">{label.split(' ')[0]}</span>
+                    </NavLink>
+                ))}
+            </nav>
 
             <main className="main-content">
                 <div className="container">

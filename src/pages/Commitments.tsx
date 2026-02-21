@@ -371,6 +371,48 @@ export const Commitments: React.FC = () => {
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
+
+                                        {/* Mobile Card Layout */}
+                                        <div className="cm-mobile-card">
+                                            <div className="cm-card-row">
+                                                <div className="cm-card-left">
+                                                    <div className="cm-card-title">{c.description}</div>
+                                                    <div className="cm-card-subtitle">
+                                                        {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
+                                                    </div>
+                                                </div>
+                                                <div className="cm-card-right">
+                                                    {getStatusLabel(c)}
+                                                </div>
+                                            </div>
+
+                                            <div className="cm-card-row secondary">
+                                                <div className="cm-card-info">
+                                                    <Calendar size={12} />
+                                                    <span>{formatDate(c.dueDate)}</span>
+                                                </div>
+                                                <div className="cm-card-value">
+                                                    {formatCurrency(c.amount)}
+                                                </div>
+                                            </div>
+
+                                            <div className="cm-card-actions">
+                                                {c.status === 'PENDING' && (
+                                                    <button className="cm-mobile-action-btn pay" onClick={() => setPayingCommitment(c)}>
+                                                        <CreditCard size={18} />
+                                                        <span>Pagar</span>
+                                                    </button>
+                                                )}
+                                                <button className="cm-mobile-action-btn edit" onClick={() => handleEdit(c)}>
+                                                    <Edit size={18} />
+                                                    <span>Editar</span>
+                                                </button>
+                                                <button className="cm-mobile-action-btn delete" onClick={() => handleDelete(c.id)}>
+                                                    <Trash2 size={18} />
+                                                    <span>Excluir</span>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 );
                             })}

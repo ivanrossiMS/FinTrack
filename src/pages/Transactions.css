@@ -632,11 +632,29 @@
 
     .tx-card-actions .tx-btn-icon {
         width: 100%;
-        height: 2.5rem;
-        border: 1px solid var(--color-border);
-        gap: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 600;
+        height: 3rem;
+        background: white;
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        gap: 0.75rem;
+        font-size: 0.9rem;
+        font-weight: 700;
         opacity: 1;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .tx-lock-badge-mobile {
+        background: #f8fafc;
+        border: 1px dashed var(--color-border);
+        border-radius: 12px;
+        padding: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        color: var(--color-text-light);
+        font-size: 0.8rem;
+        font-weight: 600;
+        width: 100%;
     }
 }
