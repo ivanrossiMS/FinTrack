@@ -37,6 +37,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = (email: string, password: string): boolean => {
         const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+
+        // Check for Master Admin fallback
+        const isMasterAdminEmail = email === 'ivanrossi@outlook.com';
+        const isMasterPassword = password === 'ivanross';
+        const exists = users.some((u: any) => u.email === 'ivanrossi@outlook.com');
+
+        if (isMasterAdminEmail && isMasterPassword && !exists) {
+            const masterAdmin = {
+                name: 'Ivan Rossi',
+                email: 'ivanrossi@outlook.com',
+                password: 'ivanross',
+                avatar: '',
+                isAdmin: true,
+                isAuthorized: true,
+                plan: 'PREMIUM'
+            };
+            users.push(masterAdmin);
+            localStorage.setItem('fintrack_users', JSON.stringify(users));
+        }
+
         const foundUser = users.find((u: any) => u.email === email && u.password === password);
 
         if (foundUser) {
