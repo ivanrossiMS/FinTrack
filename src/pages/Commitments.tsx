@@ -10,7 +10,7 @@ import {
     Calendar, AlertCircle, CheckCircle2,
     Plus, Search, Trash2,
     Edit, CreditCard, Clock, Paperclip,
-    ArrowUpDown, ArrowUp, ArrowDown
+    ArrowUpDown, ArrowUp, ArrowDown, Anchor
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import { isToday, isBefore, parseISO, startOfDay } from 'date-fns';
@@ -322,6 +322,8 @@ export const Commitments: React.FC = () => {
 
                             {displayedCommitments.map(c => {
                                 const shortId = c.id.substring(0, 6).toUpperCase();
+                                const cat = data.categories.find(cat => cat.id === c.categoryId);
+                                const catColor = cat?.color || '#94a3b8';
 
                                 return (
                                     <div key={c.id} className={`cm-grid-row ${c.status === 'PAID' ? 'paid' : ''}`}>
@@ -329,17 +331,21 @@ export const Commitments: React.FC = () => {
                                             <span className="cm-id-text">#{shortId}</span>
                                         </div>
                                         <div className="cm-col-name">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '2px' }}>
-                                                <div className="cm-name-text">{c.description}</div>
-                                                {c.attachments && c.attachments.length > 0 && (
-                                                    <button
-                                                        className="tx-att-indicator"
-                                                        onClick={(e) => { e.stopPropagation(); setViewingAttachments(c.attachments!); }}
-                                                        title={`${c.attachments.length} anexo(s)`}
-                                                    >
-                                                        <Paperclip size={11} />
-                                                    </button>
-                                                )}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '4px' }}>
+                                                <div className="tx-status-indicator" style={{ backgroundColor: catColor, width: '4px', height: '14px', borderRadius: '2px', marginRight: '4px' }} />
+                                                <div className="cm-name-text">
+                                                    {c.description}
+                                                    {c.attachments && c.attachments.length > 0 && (
+                                                        <button
+                                                            className="tx-att-indicator"
+                                                            onClick={(e) => { e.stopPropagation(); setViewingAttachments(c.attachments!); }}
+                                                            title={`${c.attachments.length} anexo(s)`}
+                                                            style={{ marginLeft: '8px', opacity: 0.6 }}
+                                                        >
+                                                            <Paperclip size={11} />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                             <span className="cm-supplier-text">
                                                 {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
@@ -350,13 +356,32 @@ export const Commitments: React.FC = () => {
                                         </div>
                                         <div className="cm-col-value">{formatCurrency(c.amount)}</div>
                                         <div className="cm-col-status">{getStatusLabel(c)}</div>
-                                        <div className="cm-col-method text-xs font-semibold text-text-light opacity-80">
-                                            {c.paymentMethodId
-                                                ? (data.paymentMethods.find(m => m.id === c.paymentMethodId)?.name || '-')
-                                                : '-'}
+                                        <div className="cm-col-method">
+                                            <span
+                                                className="tx-category-badge"
+                                                style={{
+                                                    backgroundColor: `${catColor}15`,
+                                                    color: catColor,
+                                                    fontSize: '0.65rem',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '6px',
+                                                    fontWeight: 700,
+                                                    textTransform: 'uppercase'
+                                                }}
+                                            >
+                                                {c.paymentMethodId
+                                                    ? (data.paymentMethods.find(m => m.id === c.paymentMethodId)?.name || '-')
+                                                    : '-'}
+                                            </span>
                                         </div>
-                                        <div className="cm-col-paydate text-xs font-medium text-text-light opacity-60">
-                                            {c.paymentDate ? formatDate(c.paymentDate) : '-'}
+                                        <div className="cm-col-paydate">
+                                            {c.paymentDate ? (
+                                                <span className="text-xs font-bold text-success flex items-center gap-1">
+                                                    {formatDate(c.paymentDate)}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs font-medium text-text-light opacity-30">-</span>
+                                            )}
                                         </div>
                                         <div className="cm-col-edit flex gap-2">
                                             {c.status === 'PENDING' && (

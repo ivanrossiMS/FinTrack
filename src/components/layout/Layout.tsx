@@ -62,10 +62,12 @@ export const Layout: React.FC = () => {
                     </NavLink>
                     <div className="sidebar-user-info">
                         <span className="sidebar-user-name" title={user?.name}>{user?.name || 'Usuário'}</span>
-                        <span className={`sidebar-user-tag ${user?.plan?.toLowerCase() || 'free'}`}>
-                            {user?.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
-                            Plano {user?.plan === 'PREMIUM' ? 'Premium' : 'Free'}
-                        </span>
+                        <div className="sidebar-user-plan-row">
+                            <span className={`sidebar-user-tag ${user?.plan?.toLowerCase() || 'free'}`}>
+                                {user?.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
+                                {user?.plan === 'PREMIUM' ? 'Plano Premium' : 'Plano Free'}
+                            </span>
+                        </div>
                     </div>
                 </div>
 

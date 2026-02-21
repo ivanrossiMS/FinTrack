@@ -73,38 +73,41 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 items-center w-full lg:w-auto">
-                    <div className="range-selector">
-                        {(['today', 'week', 'month', 'custom'] as Period[]).map(p => (
-                            <button
-                                key={p}
-                                onClick={() => setPeriod(p)}
-                                className={`seg-btn ${period === p ? 'active' : ''}`}
-                            >
-                                {p === 'today' ? 'Hoje' : p === 'week' ? '7 Dias' : p === 'month' ? 'Mês' : 'Personalizado'}
-                            </button>
-                        ))}
-                    </div>
-
-                    {period === 'custom' && (
-                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }} className="flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto">
-                            <Calendar size={18} className="text-primary ml-2" />
-                            <div className="flex gap-1 items-center px-2">
-                                <input
-                                    type="date"
-                                    value={customStart}
-                                    onChange={e => setCustomStart(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
-                                <span className="text-text-muted font-black opacity-30">/</span>
-                                <input
-                                    type="date"
-                                    value={customEnd}
-                                    onChange={e => setCustomEnd(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
-                            </div>
+                    <div className="dash-filters-container">
+                        <div className="range-selector 3d-bar">
+                            {(['today', 'week', 'month', 'custom'] as Period[]).map(p => (
+                                <button
+                                    key={p}
+                                    onClick={() => setPeriod(p)}
+                                    className={`seg-btn ${period === p ? 'active' : ''}`}>
+                                    {p === 'today' ? 'Hoje' : p === 'week' ? '7 Dias' : p === 'month' ? 'Mês' : 'Personalizado'}
+                                </button>
+                            ))}
                         </div>
-                    )}
+
+                        {period === 'custom' && (
+                            <div className="custom-date-row">
+                                <div className="custom-date-badge">
+                                    <Calendar size={18} className="text-primary" />
+                                    <div className="custom-date-picker-group">
+                                        <input
+                                            type="date"
+                                            value={customStart}
+                                            onChange={e => setCustomStart(e.target.value)}
+                                            className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                                        />
+                                        <span className="text-text-muted font-black opacity-30">/</span>
+                                        <input
+                                            type="date"
+                                            value={customEnd}
+                                            onChange={e => setCustomEnd(e.target.value)}
+                                            className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 
