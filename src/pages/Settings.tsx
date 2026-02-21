@@ -2,15 +2,26 @@ import React, { useRef } from 'react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 import { StorageService } from '../services/storage';
+import { Database, Download, Upload, AlertTriangle, PlayCircle, Info } from 'lucide-react';
+import './Settings.css';
 
 export const Settings: React.FC = () => {
     const { data, refresh } = useData();
+    const { user } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleReset = () => {
-        if (confirm('ATENÇÃO: Isso apagará TODOS os seus dados e recarregará a página. Deseja continuar?')) {
-            StorageService.clear();
+        const confirmMsg = user?.isAdmin
+            ? 'ATENÇÃO: Isso apagará TODOS os seus dados pessoais. Deseja também apagar as Categorias/Métodos Globais (Admin)?'
+            : 'ATENÇÃO: Isso apagará TODOS os seus dados. Deseja continuar?';
+
+        if (confirm(confirmMsg)) {
+            if (user?.isAdmin && confirm('Apagar também as configurações GLOBAIS (Categorias e Métodos para todos)?')) {
+                StorageService.clearGlobals();
+            }
+            StorageService.clear(user?.email);
         }
     };
 
@@ -38,7 +49,7 @@ export const Settings: React.FC = () => {
                 const json = JSON.parse(event.target?.result as string);
                 if (json.transactions && json.categories) {
                     if (confirm('Isso substituirá seus dados atuais pelos dados do arquivo. Confirmar?')) {
-                        StorageService.save(json);
+                        StorageService.save(json, user?.email);
                         refresh();
                         alert('Dados importados com sucesso!');
                     }
@@ -54,59 +65,135 @@ export const Settings: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6">
-            <header>
-                <h2 className="text-lg font-bold">Configurações</h2>
-                <p style={{ color: 'var(--color-text-muted)' }}>Gerenciamento de dados e preferências</p>
+        <div className="stg-page-container">
+            <header className="stg-header">
+                <h2 className="text-4xl font-black text-text tracking-tighter mb-2">Ajustes</h2>
+                <p className="text-text-muted font-semibold text-lg opacity-80">
+                    Gerenciamento de dados e preferências do sistema.
+                </p>
             </header>
 
-            <Card title="Gerenciamento de Dados">
-                <div className="flex flex-col gap-4">
-                    <p className="text-sm text-muted">
-                        Faça backup dos seus dados ou restaure de um arquivo anterior.
-                        Todos os dados são salvos no navegador (LocalStorage).
-                    </p>
+            <div className="stg-grid">
+                {/* Backup Section */}
+                <Card className="stg-card">
+                    <div className="stg-card-content">
+                        <div className="stg-section-header">
+                            <div className="stg-icon-box blue">
+                                <Database size={24} />
+                            </div>
+                            <div className="stg-title-group">
+                                <h3>Backup e Restauração</h3>
+                                <p>Segurança dos seus dados</p>
+                            </div>
+                        </div>
 
-                    <div className="flex gap-2 flex-wrap">
-                        <Button onClick={handleExportJSON}>Exportar Backup (JSON)</Button>
-                        <Button variant="secondary" onClick={handleImportClick}>Importar Backup (JSON)</Button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            accept=".json"
-                            onChange={handleFileChange}
-                        />
+                        <p className="text-sm text-text-muted leading-relaxed">
+                            Exporte seus dados para um arquivo JSON para manter um backup físico ou transfira-os para outro dispositivo.
+                        </p>
+
+                        <div className="stg-actions-row">
+                            <Button onClick={handleExportJSON} className="gap-2">
+                                <Download size={18} /> Exportar
+                            </Button>
+                            <Button variant="secondary" onClick={handleImportClick} className="gap-2">
+                                <Upload size={18} /> Importar
+                            </Button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                style={{ display: 'none' }}
+                                accept=".json"
+                                onChange={handleFileChange}
+                            />
+                        </div>
                     </div>
+                </Card>
 
-                    <div className="mt-4 pt-4 border-t border-border">
-                        <p className="text-sm text-muted mb-2">Para testes:</p>
-                        <Button
-                            variant="ghost"
-                            onClick={() => {
-                                if (confirm('Isso apagará seus dados atuais e criará dados de teste. Continuar?')) {
-                                    StorageService.seedDemoData();
-                                    refresh();
-                                }
-                            }}
-                        >
-                            Gerar Dados de Demonstração
-                        </Button>
+                {/* Experimental / Demo */}
+                <Card className="stg-card">
+                    <div className="stg-card-content">
+                        <div className="stg-section-header">
+                            <div className="stg-icon-box amber">
+                                <PlayCircle size={24} />
+                            </div>
+                            <div className="stg-title-group">
+                                <h3>Dados de Demonstração</h3>
+                                <p>Exploração e testes</p>
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-text-muted leading-relaxed">
+                            Preencha seu sistema com dados fictícios para explorar todas as funcionalidades e gráficos sem precisar cadastrar tudo manualmente.
+                        </p>
+
+                        <div className="stg-actions-row">
+                            <Button
+                                variant="ghost"
+                                className="border border-border gap-2"
+                                onClick={() => {
+                                    if (confirm('Isso apagará seus dados atuais e criará dados de teste. Continuar?')) {
+                                        StorageService.seedDemoData(user?.email);
+                                        refresh();
+                                    }
+                                }}
+                            >
+                                <PlayCircle size={18} /> Gerar Demo
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </Card>
+                </Card>
 
-            <Card title="Zona de Perigo" className="border-red-200 bg-red-50">
-                <h4 className="text-danger font-bold mb-2">Apagar todos os dados</h4>
-                <p className="text-sm mb-4 text-danger">
-                    Esta ação é irreversível. Todas as transações, categorias e configurações serão perdidas.
-                </p>
-                <Button variant="danger" onClick={handleReset}>Resetar Dados de Fábrica</Button>
-            </Card>
+                {/* Info Card */}
+                <Card className="stg-card">
+                    <div className="stg-card-content">
+                        <div className="stg-section-header">
+                            <div className="stg-icon-box blue opacity-70">
+                                <Info size={24} />
+                            </div>
+                            <div className="stg-title-group">
+                                <h3>Sobre o FinTrack</h3>
+                                <p>Informações técnicas</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-text-muted">
+                            Seus dados são armazenados localmente no seu navegador para total privacidade.
+                            Não enviamos suas informações financeiras para servidores externos sem o seu consentimento.
+                        </p>
+                    </div>
+                </Card>
 
-            <footer className="text-center text-xs text-muted mt-8">
-                Finance+ v1.0.0 • Desenvolvido com React + Vite
+                {/* Danger Zone */}
+                <Card className="stg-card stg-danger-zone">
+                    <div className="stg-card-content">
+                        <div className="stg-section-header">
+                            <div className="stg-icon-box red">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div className="stg-title-group">
+                                <h3 className="text-danger">Zona de Perigo</h3>
+                                <p className="text-danger opacity-70">Ação irreversível</p>
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-danger opacity-80 leading-relaxed">
+                            O reset de fábrica apagará permanentemente todas as transações, categorias, fornecedores e configurações.
+                        </p>
+
+                        <div className="stg-actions-row">
+                            <Button variant="danger" onClick={handleReset} className="gap-2">
+                                <AlertTriangle size={18} /> Resetar Fábrica
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            <footer className="stg-footer">
+                <span className="text-xs font-bold text-text-muted">
+                    FinTrack Assistant • Versão 2.5.0 • © 2026
+                </span>
             </footer>
         </div>
     );
 };
+

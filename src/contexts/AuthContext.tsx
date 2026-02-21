@@ -128,21 +128,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const updateUser = (updatedUser: any) => {
+        // Read the authoritative user record from registered users to get admin-set fields
+        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+        const registeredUser = users.find((u: any) => u.email === updatedUser.email);
+
         const userSession = {
             name: updatedUser.name,
             email: updatedUser.email,
             avatar: updatedUser.avatar,
             phone: updatedUser.phone,
             profession: updatedUser.profession,
-            isAdmin: updatedUser.isAdmin || updatedUser.email === 'ivanrossi@outlook.com'
+            isAdmin: updatedUser.isAdmin || updatedUser.email === 'ivanrossi@outlook.com',
+            isAuthorized: registeredUser?.isAuthorized ?? updatedUser.isAuthorized ?? true,
+            plan: registeredUser?.plan || updatedUser.plan || 'FREE',
         };
         setUser(userSession);
         localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
 
-        // Also update the user in the registered users list, preserving existing fields like password
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+        // Also update the user in the registered users list, preserving existing fields like password & plan
         const newUsers = users.map((u: any) =>
-            u.email === updatedUser.email ? { ...u, ...updatedUser } : u
+            u.email === updatedUser.email
+                ? { ...u, name: updatedUser.name, avatar: updatedUser.avatar, phone: updatedUser.phone, profession: updatedUser.profession }
+                : u
         );
         localStorage.setItem('fintrack_users', JSON.stringify(newUsers));
     };

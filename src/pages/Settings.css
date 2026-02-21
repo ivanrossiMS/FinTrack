@@ -1,0 +1,145 @@
+/* ===== Settings (Ajustes) Page Refined UI ===== */
+
+.stg-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding-bottom: 2rem;
+    animation: fade-in 0.4s ease-out;
+}
+
+/* ── Header ── */
+.stg-header {
+    margin-bottom: 0.5rem;
+}
+
+.stg-header h2 {
+    background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ── Grid Layout ── */
+.stg-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+/* ── Card Overrides ── */
+.stg-card {
+    height: 100%;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stg-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.stg-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+/* ── Icon Boxes ── */
+.stg-section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.stg-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.stg-icon-box.blue {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.stg-icon-box.red {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.stg-icon-box.amber {
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+}
+
+.stg-title-group h3 {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.stg-title-group p {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* ── Actions Row ── */
+.stg-actions-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.stg-danger-zone {
+    border: 1px dashed rgba(239, 68, 68, 0.3) !important;
+    background: rgba(239, 68, 68, 0.02) !important;
+}
+
+.stg-footer {
+    text-align: center;
+    padding-top: 2rem;
+    opacity: 0.6;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .stg-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .stg-actions-row>button {
+        width: 100%;
+    }
+}

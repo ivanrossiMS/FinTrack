@@ -79,16 +79,8 @@
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    gap: 1rem;
-    /* Smaller gap on mobile */
-    margin-bottom: 2rem;
-}
-
-@media (min-width: 1024px) {
-    .kpi-grid {
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
+    gap: 2rem;
+    margin-bottom: 3rem;
 }
 
 .kpi-card {
@@ -189,10 +181,11 @@
 
 /* Glassy Chart Cards */
 .chart-card {
-    background: white;
-    border: 1px solid rgba(226, 232, 240, 0.6) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border-radius: 1.5rem !important;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-lg) !important;
 }
 
 .chart-card-title {
@@ -201,4 +194,20 @@
     color: var(--color-text) !important;
     padding: 1.5rem 1.5rem 0 1.5rem !important;
     margin: 0 !important;
+}
+
+/* Responsive Overrides */
+@media (max-width: 640px) {
+    .dashboard-container {
+        padding: 1.5rem;
+    }
+
+    .kpi-value {
+        font-size: 1.75rem;
+    }
+
+    .range-selector {
+        width: 100%;
+        overflow-x: auto;
+    }
 }

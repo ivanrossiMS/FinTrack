@@ -40,6 +40,7 @@ export interface Transaction {
     supplierId?: string;
     paymentMethodId?: string;
     isRecurring?: boolean;
+    recurrenceCount?: number;
     isFixed?: boolean;
     installmentId?: string;
     installmentNumber?: number;

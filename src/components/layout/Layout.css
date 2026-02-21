@@ -1,107 +1,231 @@
-/* Layout container */
+/* Layout container - Lumina Aurora Background */
 .app-layout {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     min-height: 100vh;
     background-color: var(--color-bg);
-    padding: 1.5rem;
-    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Sidebar */
-.sidebar {
-    width: 280px;
-    background-color: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: 2rem 1.25rem;
+/* Aurora Backdrop */
+.app-layout::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+        radial-gradient(circle at 0% 0%, #e0e7ff 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, #f0fdfa 0%, transparent 50%),
+        radial-gradient(circle at 100% 0%, #fae8ff 0%, transparent 40%),
+        radial-gradient(circle at 0% 100%, #fff1f2 0%, transparent 40%);
+    opacity: 0.6;
+    animation: aurora-shift 20s infinite alternate ease-in-out;
+}
+
+/* Premium Grain Texture */
+.app-layout::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3%3Ffilter id='noiseFilter'%3E%3FfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3/filter%3E%3rect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3/svg%3E");
+}
+
+@keyframes aurora-shift {
+    0% {
+        transform: scale(1) translate(0, 0);
+    }
+
+    100% {
+        transform: scale(1.1) translate(2%, 2%);
+    }
+}
+
+.main-content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    z-index: 10;
+    padding-bottom: 6rem;
+}
+
+/* Floating Sidebar - Lumina Glass */
+@media (min-width: 768px) {
+    .app-layout {
+        flex-direction: row;
+        padding: 1.25rem;
+        gap: 1.25rem;
+        height: 100vh;
+    }
+
+    .sidebar {
+        width: 270px;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--glass-shadow);
+        flex-shrink: 0;
+        position: relative;
+        z-index: 20;
+        overflow: hidden;
+    }
+
+    .main-content {
+        padding: 0;
+    }
+}
+
+/* ── Sidebar Brand Block (Top) ── */
+.sidebar-brand {
     display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-3d);
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0.25rem 0.75rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
     flex-shrink: 0;
 }
 
-/* Sidebar Branding / Header Section */
+.sidebar-brand-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+}
+
+.sidebar-brand-name {
+    font-size: 1rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #7C3AED, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.sidebar-brand-plus {
+    background: linear-gradient(135deg, #4ADE80, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+}
+
+.sidebar-brand-slogan {
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+
+/* Sidebar User Header Section */
 .sidebar-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 2.5rem;
-    padding: 0.5rem;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.25rem;
 }
 
 .sidebar-avatar-container {
-    width: 90px;
-    height: 90px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    border: 3px solid var(--color-surface);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 3px solid white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     flex-shrink: 0;
-    background-color: var(--color-bg);
+    background-color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sidebar-avatar-container img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center;
+    object-fit: cover;
 }
 
 .sidebar-avatar-container:hover {
-    transform: scale(1.05);
+    transform: scale(1.08) rotate(2deg);
 }
 
 .sidebar-user-info {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    align-items: center;
+    gap: 0.3rem;
+    text-align: center;
+    width: 100%;
 }
 
 .sidebar-user-name {
     font-weight: 700;
     color: var(--color-text);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .sidebar-user-tag {
     font-size: 0.6rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.125rem 0.5rem;
-    border-radius: 9999px;
-    display: flex;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    display: inline-flex;
     align-items: center;
+    gap: 0.2rem;
     width: fit-content;
-    white-space: nowrap;
-    margin-top: 0.25rem;
-}
-
-.sidebar-user-tag.free {
-    background-color: #f1f5f9;
+    background: rgba(100, 116, 139, 0.1);
     color: #64748b;
-    border: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .sidebar-user-tag.premium {
-    background-color: #eef2ff;
-    color: #4338ca;
-    border: 1px solid #c7d2fe;
+    background: linear-gradient(135deg, #6366f1, #0d9488);
+    color: white;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-/* Navigation List */
+/* Navigation - Lumina Style */
 .nav-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.nav-list::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-item {
@@ -113,60 +237,224 @@
     font-size: 0.95rem;
     font-weight: 600;
     border-radius: var(--radius-md);
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-decoration: none;
-    border-left: 3px solid transparent;
 }
 
 .nav-item:hover:not(.active) {
-    background-color: rgba(0, 0, 0, 0.02);
-    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--color-primary);
+    transform: translateX(5px);
 }
 
 .nav-item.active {
-    background-color: white;
+    background: white;
     color: var(--color-primary);
-    box-shadow: var(--shadow-sm);
-    border-left-color: var(--color-primary);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+    transform: scale(1.02);
 }
 
-.nav-item.text-danger:hover {
-    background-color: #fff1f2;
+/* AI Assistant Pulsing Button (Sidebar) */
+.nav-item-voice {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(13, 148, 136, 0.1) 100%) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    color: var(--color-primary) !important;
+    margin-top: 1rem;
+}
+
+.nav-item-voice:hover {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.nav-item-logout {
     color: #ef4444;
+    margin-top: 0.25rem;
 }
 
-/* Main Content Area */
-.main-content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    background-color: transparent;
-    padding: 1.5rem;
-    padding-bottom: 2rem;
+.nav-item-logout:hover {
+    background: rgba(239, 68, 68, 0.06) !important;
+    color: #dc2626 !important;
 }
 
-.container {
+.sidebar-copyright {
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: center;
+    padding: 0.5rem 0 0.1rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.4);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+/* ── Neural Pulse AI FAB (Modern & Eye-catching) ── */
+.ai-fab-neural {
+    position: fixed;
+    bottom: 2.5rem;
+    right: 2.5rem;
+    z-index: 1000;
+    width: 72px;
+    height: 72px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+}
+
+.ai-fab-neural:hover {
+    transform: translateY(-8px) scale(1.1);
+}
+
+/* Energy Core */
+.ai-fab-core {
     width: 100%;
-    margin: 0 auto;
+    height: 100%;
+    background: linear-gradient(135deg, #6366f1 0%, #0d9488 100%);
+    color: white;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    position: relative;
+    z-index: 5;
+    box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
 }
 
-/* Fixed Layout for all viewports (Reverting Mobile First) */
-@media (max-width: 1023px) {
-    .app-layout {
-        flex-direction: row;
-        /* Keep sidebar side-by-side */
-        padding: 1rem;
-        gap: 1rem;
-        overflow-x: auto;
+.ai-fab-label {
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    opacity: 0.9;
+}
+
+/* Pulsing Outer Glow */
+.ai-fab-glow {
+    position: absolute;
+    inset: -5px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+    border-radius: 30px;
+    z-index: 1;
+    animation: ai-glow-pulse 3s infinite ease-in-out;
+}
+
+/* Decorative Neural Rings */
+.ai-fab-rings {
+    position: absolute;
+    inset: -15px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 35px;
+    border: 1.5px solid rgba(99, 102, 241, 0.2);
+    animation: spin 8s linear infinite;
+}
+
+.ring-1 {
+    border-top-color: var(--color-primary);
+    border-right-color: var(--color-accent);
+    animation-duration: 4s;
+}
+
+.ring-2 {
+    inset: 5px;
+    border-bottom-color: var(--color-accent);
+    border-left-color: var(--color-primary);
+    animation: spin 6s linear infinite reverse;
+    opacity: 0.5;
+}
+
+/* Shimmer Effect on Core */
+.ai-fab-core::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.2) 45%,
+            rgba(255, 255, 255, 0.5) 50%,
+            rgba(255, 255, 255, 0.2) 55%,
+            transparent 100%);
+    transform: rotate(45deg);
+    animation: ai-shimmer 4s infinite ease-in-out;
+}
+
+@keyframes ai-glow-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.4;
     }
 
-    .sidebar {
-        width: 240px;
-        /* Slightly narrower on small screens */
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+@keyframes ai-shimmer {
+    0% {
+        transform: translate(-30%, -30%) rotate(45deg);
     }
 
-    .main-content {
-        padding: 1rem;
-        padding-bottom: 2rem;
+    100% {
+        transform: translate(30%, 30%) rotate(45deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mobile Nav - Lumina Style */
+@media (max-width: 767px) {
+    .bottom-nav {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        right: 1.5rem;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        display: flex;
+        justify-content: space-around;
+        padding: 0.75rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        z-index: 1000;
+    }
+
+    .nav-item {
+        flex-direction: column;
+        gap: 4px;
+        padding: 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    .sidebar-header {
+        display: none;
     }
 }

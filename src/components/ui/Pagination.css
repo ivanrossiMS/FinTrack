@@ -1,0 +1,79 @@
+.pg-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.02);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pg-info {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    opacity: 0.8;
+}
+
+.pg-info strong {
+    color: var(--color-primary);
+}
+
+.pg-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pg-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0 0.5rem;
+}
+
+.pg-btn,
+.pg-num-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: white;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.pg-btn:hover:not(:disabled),
+.pg-num-btn:hover:not(.active) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+    transform: translateY(-2px);
+}
+
+.pg-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+.pg-num-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+@media (max-width: 640px) {
+    .pg-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}

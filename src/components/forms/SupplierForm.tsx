@@ -14,16 +14,12 @@ interface SupplierFormProps {
 export const SupplierForm: React.FC<SupplierFormProps> = ({ onClose, initialData }) => {
     const { addSupplier, updateSupplier } = useData();
     const [name, setName] = useState(initialData?.name || '');
-    const [document, setDocument] = useState(initialData?.contact?.split(' | ')[1] || ''); // Hacky parsing if we stored it as string
+    const [document, setDocument] = useState(initialData?.contact?.split(' | ')[1] || '');
     const [phone, setPhone] = useState(initialData?.contact?.split(' | ')[0] || '');
     const [notes, setNotes] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Combine fields for 'contact' string if the model is limited, 
-        // or just use what's available. The prompt says "if they exist in your schema".
-        // Let's assume standard Supplier has Name and Contact.
         const combinedContact = `${phone}${document ? ` | ${document}` : ''}`;
 
         if (initialData) {
@@ -35,21 +31,19 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ onClose, initialData
     };
 
     return (
-        <form id="supplier-form" onSubmit={handleSubmit} className="flex flex-col h-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                <div className="md:col-span-2">
-                    <Input
-                        label="Nome do Fornecedor"
-                        value={name}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                        required
-                        autoFocus
-                        placeholder="Ex: Supermercado Central, Distribuidora X..."
-                        icon={<Building2 size={16} />}
-                    />
-                </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <Input
+                    label="Nome do Fornecedor"
+                    value={name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                    required
+                    autoFocus
+                    placeholder="Ex: Supermercado Central, Distribuidora X..."
+                    icon={<Building2 size={16} />}
+                />
 
-                <div className="col-span-1">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                     <Input
                         label="Documento / CPF / CNPJ"
                         value={document}
@@ -57,9 +51,6 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ onClose, initialData
                         placeholder="00.000.000/0000-00"
                         icon={<FileText size={16} />}
                     />
-                </div>
-
-                <div className="col-span-1">
                     <Input
                         label="Telefone / Contato"
                         value={phone}
@@ -69,36 +60,61 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ onClose, initialData
                     />
                 </div>
 
-                <div className="md:col-span-2">
-                    <div style={{ backgroundColor: 'var(--color-primary-light)', borderColor: 'var(--color-primary-light)' }} className="p-4 rounded-xl border flex gap-3">
-                        <Info size={18} className="text-primary shrink-0" />
-                        <p className="text-xs text-primary font-medium italic leading-relaxed">
-                            Informações de contato como telefone e documento são combinadas em um único campo 'Contato' para este fornecedor.
-                        </p>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    <label style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: '#94a3b8',
+                        textTransform: 'uppercase' as const,
+                        letterSpacing: '0.04em',
+                        marginLeft: '0.125rem',
+                    }}>
+                        Observações Adicionais
+                    </label>
+                    <textarea
+                        placeholder="Notas importantes sobre este fornecedor..."
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '12px',
+                            border: '1.5px solid #e2e8f0',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '0.9375rem',
+                            fontWeight: 500,
+                            minHeight: '90px',
+                            resize: 'none' as const,
+                            outline: 'none',
+                            fontFamily: 'inherit',
+                            transition: 'all 0.2s ease',
+                        }}
+                        onFocus={e => { e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.08)'; }}
+                        onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                    />
                 </div>
 
-                <div className="md:col-span-2">
-                    <div className="flex flex-col gap-2 w-100">
-                        <label className="text-xs font-bold text-text-muted uppercase tracking-wider ml-1">Observações Adicionais</label>
-                        <textarea
-                            style={{ backgroundColor: 'var(--color-surface-soft)', border: '1px solid var(--color-border)' }}
-                            className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm min-h-[100px] resize-none"
-                            placeholder="Notas importantes sobre este fornecedor..."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                        />
-                    </div>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.65rem',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '12px',
+                    backgroundColor: '#f0f9ff',
+                    border: '1px solid #bae6fd',
+                }}>
+                    <Info size={16} color="#0ea5e9" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <p style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 500, margin: 0, lineHeight: 1.5 }}>
+                        Telefone e documento são combinados no campo "Contato" deste fornecedor.
+                    </p>
                 </div>
             </div>
 
-            <div style={{ borderTopColor: 'var(--color-border)' }} className="flex flex-col-reverse md:flex-row justify-end items-center gap-3 pt-6 border-t mt-6">
-                <Button type="button" variant="secondary" onClick={onClose} className="w-full md:w-auto px-8">
-                    Cancelar
-                </Button>
-                <Button type="submit" variant="primary" className="w-full md:w-auto px-8 shadow-md">
-                    {initialData ? 'Salvar Alterações' : 'Criar Fornecedor'}
-                </Button>
+            {/* Footer */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+                <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+                <Button type="submit" variant="primary">{initialData ? 'Salvar Alterações' : 'Criar Fornecedor'}</Button>
             </div>
         </form>
     );

@@ -22,10 +22,11 @@
 
 /* User Management Table */
 .admin-card {
-    background: #fff;
-    border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    /* shadow-premium utility used */
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
     overflow: hidden;
 }
 
@@ -367,40 +368,43 @@
 }
 
 /* Mobile Responsive */
-/* Responsive Mobile Overrides */
-@media (max-width: 1023px) {
-    .admin-container {
-        padding: 1.5rem;
+@media (max-width: 1024px) {
+
+    .admin-table,
+    .admin-table thead,
+    .admin-table tbody,
+    .admin-table th,
+    .admin-table td,
+    .admin-table tr {
+        display: block;
     }
 
-    .admin-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .admin-card-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .admin-table {
-        table-layout: auto;
-    }
-
-    .col-user {
-        width: 40%;
-    }
-
-    .col-email {
+    .admin-table thead {
         display: none;
     }
 
-    .col-status {
-        width: 30%;
+    .admin-table tr {
+        border-bottom: 2px solid #f3f4f6;
+        padding: 1.5rem;
+    }
+
+    .admin-table td {
+        border: none;
+        padding: 0.5rem 0;
+        width: 100% !important;
+        text-align: left !important;
     }
 
     .col-actions {
-        width: 30%;
+        display: flex !important;
+        justify-content: flex-end;
+        margin-top: 1rem;
+        padding-top: 1rem !important;
+        border-top: 1px solid #f3f4f6 !important;
+    }
+
+    .user-info-cell {
+        margin-bottom: 0.5rem;
     }
 }
 

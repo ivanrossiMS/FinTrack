@@ -1,5 +1,5 @@
 import { TransactionType, Category, PaymentMethod, Supplier } from '../models/types';
-import { format, subDays, setDate } from 'date-fns';
+import { format, subDays, addMonths } from 'date-fns';
 
 export interface ParsedTransaction {
     type: TransactionType;
@@ -15,221 +15,365 @@ export interface ParsedTransaction {
     question?: string;
 }
 
-// Words to strip when building the description
-const FILLER_WORDS = new Set([
-    'reais', 'real', 'conto', 'contos', 'pila', 'pilas',
-    'de', 'do', 'da', 'dos', 'das', 'o', 'a', 'os', 'as',
-    'um', 'uma', 'uns', 'umas', 'com', 'no', 'na', 'nos', 'nas',
-    'em', 'por', 'para', 'pra', 'pro', 'que', 'e', 'ou',
-    'hoje', 'ontem', 'anteontem', 'dia', 'mês', 'semana',
-    'pix', 'crédito', 'débito', 'cartão', 'dinheiro', 'espécie',
-    'recebi', 'ganhei', 'gastei', 'paguei', 'comprei',
-    'foi', 'era', 'tava', 'estava', 'fiz', 'foram',
-    'ok', 'okay', 'finalizar', 'pronto', 'concluir'
+// ─── Trigger-word prefix phrases to strip from the spoken text ─────────────────
+// Only the ACTION words at the START — never mid-sentence content words
+const PREFIX_STRIPS = [
+    'gastei', 'paguei', 'comprei', 'recebi', 'ganhei', 'transferi',
+    'fiz um lançamento de', 'fiz um pagamento de', 'anotar',
+    'registrar', 'lançar', 'adicionar', 'botar',
+    'novo lançamento', 'nova despesa', 'nova receita',
+    'foi um gasto de', 'saiu', 'entrou',
+];
+
+// ─── True filler: only words that NEVER are part of a description ──────────────
+const PURE_FILLER = new Set([
+    // money units
+    'reais', 'real', 'conto', 'contos', 'pila', 'pilas', 'bala',
+    // articles/prepositions
+    'um', 'uma', 'uns', 'umas',
+    'de', 'do', 'da', 'dos', 'das',
+    'o', 'a', 'os', 'as',
+    'no', 'na', 'nos', 'nas',
+    'pelo', 'pela', 'pelos', 'pelas',
+    'ao', 'aos', 'à', 'às',
+    'por', 'pra', 'pro',
+    // conclusion words
+    'ok', 'okay', 'finalizar', 'pronto', 'concluir', 'confirmar',
 ]);
 
-const INCOME_KEYWORDS = ['recebi', 'ganhei', 'salário', 'renda', 'pix recebido', 'venda', 'provento', 'receita'];
+// Words that signal DATE context — the word AND the following day number should be skipped
+const DATE_SIGNALS = new Set(['hoje', 'ontem', 'anteontem', 'dia', 'semana', 'mês', 'mes', 'amanhã', 'amanha']);
 
-const CATEGORY_MAPPINGS: { [key: string]: string[] } = {
-    'transporte': ['uber', '99', 'táxi', 'taxi', 'ônibus', 'onibus', 'metrô', 'metro', 'gasolina', 'combustível', 'combustivel', 'carro', 'estacionamento', 'pedágio'],
-    'alimentação': ['mercado', 'almoço', 'almoco', 'jantar', 'ifood', 'lanche', 'restaurante', 'padaria', 'fruta', 'verdura', 'café', 'cafe', 'pizza', 'hamburguer', 'sushi', 'supermercado', 'comida', 'feira'],
-    'moradia': ['aluguel', 'condomínio', 'condominio', 'luz', 'água', 'agua', 'internet', 'gás', 'gas', 'reforma', 'iptu', 'conta de luz', 'conta de água'],
-    'saúde': ['farmácia', 'farmacia', 'médico', 'medico', 'exame', 'dentista', 'remédio', 'remedio', 'hospital', 'consulta', 'plano de saúde'],
-    'lazer': ['cinema', 'viagem', 'show', 'bar', 'festa', 'netflix', 'spotify', 'jogos', 'jogo', 'ingresso', 'parque', 'teatro'],
-    'educação': ['escola', 'faculdade', 'curso', 'livro', 'mensalidade', 'aula', 'matrícula', 'matricula'],
-    'vestuário': ['roupa', 'tênis', 'tenis', 'camisa', 'calça', 'calca', 'sapato', 'loja'],
-    'assinatura': ['assinatura', 'plano', 'mensalidade', 'streaming']
-};
+// Words that signal PAYMENT METHOD context
+const PAYMENT_SIGNALS = new Set(['pix', 'crédito', 'credito', 'débito', 'debito',
+    'dinheiro', 'espécie', 'especie', 'cartão', 'cartao', 'nubank', 'inter', 'itaú', 'itau',
+    'bradesco', 'santander', 'cash']);
 
-const PAYMENT_KEYWORDS: { [key: string]: string[] } = {
-    'pix': ['pix'],
-    'cartão de crédito': ['crédito', 'credito', 'cartão', 'cartao'],
-    'cartão de débito': ['débito', 'debito'],
-    'dinheiro': ['dinheiro', 'espécie', 'especie', 'cash'],
-    'nubank': ['nubank', 'roxinho'],
-    'inter': ['inter', 'banco inter'],
-    'itaú': ['itaú', 'itau'],
-    'bradesco': ['bradesco'],
-    'santander': ['santander'],
-    'c6': ['c6', 'c6 bank']
-};
+// ── Income keywords ────────────────────────────────────────────────────────────
+const INCOME_KEYWORDS = [
+    'recebi', 'ganhei', 'salário', 'salario', 'renda', 'pix recebido',
+    'venda', 'provento', 'receita', 'depósito', 'deposito', 'freelance',
+    'entrou', 'transferência recebida', 'reembolso', 'dividendos',
+];
 
+// ── Category keyword heuristics (extended) ────────────────────────────────────
+// Maps broad theme → keywords that imply that theme in Portuguese speech
+const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
+    {
+        keywords: ['uber', '99', 'táxi', 'taxi', 'ônibus', 'onibus', 'metrô', 'metro',
+            'gasolina', 'combustível', 'combustivel', 'carro', 'estacionamento',
+            'pedágio', 'pedagio', 'moto', 'bicicleta', 'passagem', 'transporte'],
+        themes: ['transporte', 'transport', 'veículo', 'veiculo', 'mobilidade'],
+    },
+    {
+        keywords: ['mercado', 'supermercado', 'almoço', 'almoco', 'jantar', 'ifood',
+            'rappi', 'lanche', 'restaurante', 'padaria', 'fruta', 'verdura', 'café', 'cafe',
+            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira',
+            'churrasco', 'açaí', 'acai', 'sorvete', 'refeição', 'refeicao',
+            'marmita', 'delivery', 'a praça', 'praça', 'china'],
+        themes: ['alimentação', 'alimentacao', 'comida', 'refeição', 'refeicao', 'food', 'gastro'],
+    },
+    {
+        keywords: ['aluguel', 'condomínio', 'condominio', 'luz', 'energia',
+            'água', 'agua', 'internet', 'wifi', 'gás', 'gas', 'reforma',
+            'iptu', 'imóvel', 'imovel', 'casa', 'apartamento', 'apto',
+            'manutenção', 'manutencao', 'encanador', 'eletricista', 'limpeza'],
+        themes: ['moradia', 'habitação', 'habitacao', 'casa', 'residência', 'residencia', 'home', 'imóvel'],
+    },
+    {
+        keywords: ['farmácia', 'farmacia', 'médico', 'medico', 'exame', 'dentista',
+            'remédio', 'remedio', 'hospital', 'consulta', 'plano de saúde', 'plano saúde',
+            'plano saude', 'psicólogo', 'psicologo', 'psiquiatra', 'nutricionista',
+            'academia', 'gym', 'personal', 'cirurgia', 'check-up'],
+        themes: ['saúde', 'saude', 'health', 'médico', 'medico', 'bem-estar'],
+    },
+    {
+        keywords: ['cinema', 'viagem', 'show', 'bar', 'festa', 'netflix', 'amazon prime',
+            'disney', 'hbo', 'spotify', 'jogo', 'jogos', 'ingresso', 'parque', 'teatro',
+            'balada', 'clube', 'hobbie', 'hobby', 'photoshop', 'adobé', 'adobe'],
+        themes: ['lazer', 'entretenimento', 'diversão', 'diversao', 'recreation', 'leisure'],
+    },
+    {
+        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade escolar',
+            'aula', 'matrícula', 'matricula', 'pós', 'pos', 'mba',
+            'idioma', 'inglês', 'ingles', 'espanhol', 'treinamento', 'workshop'],
+        themes: ['educação', 'educacao', 'education', 'escola', 'ensino', 'aprendizado'],
+    },
+    {
+        keywords: ['roupa', 'clothes', 'tênis', 'tenis', 'camisa', 'calça', 'calca',
+            'sapato', 'sandália', 'sandalia', 'bolsa', 'acessório', 'acessorio',
+            'loja', 'shopping', 'moda', 'vestido', 'jaqueta', 'jeans'],
+        themes: ['vestuário', 'vestuario', 'roupas', 'moda', 'clothing'],
+    },
+    {
+        keywords: ['assinatura', 'streaming', 'plano mensal', 'mensalidade',
+            'apple', 'google', 'microsoft', 'adobe', 'canva', 'dropbox',
+            'icloud', 'antivírus', 'antivirus', 'vpn'],
+        themes: ['assinatura', 'subscricão', 'subscription', 'serviço digital', 'servico digital'],
+    },
+    {
+        keywords: ['salário', 'salario', 'ordenado', 'pagamento', 'holerite', 'pró-labore',
+            'prolabore', 'freelance', 'consultoria', 'serviços prestados', 'renda extra'],
+        themes: ['salário', 'salario', 'renda', 'receita', 'income', 'salary'],
+    },
+    {
+        keywords: ['investimento', 'ações', 'acoes', 'bolsa', 'fundo', 'tesouro', 'cdb',
+            'poupança', 'poupanca', 'renda fixa', 'cripto', 'bitcoin'],
+        themes: ['investimento', 'investimentos', 'poupança', 'poupanca', 'finanças', 'financas'],
+    },
+    {
+        keywords: ['pet', 'cachorro', 'gato', 'ração', 'racao', 'veterinário', 'veterinario',
+            'banho tosa', 'petshop'],
+        themes: ['pet', 'animal', 'animais'],
+    },
+    {
+        keywords: ['cartão', 'cartao', 'fatura', 'boleto', 'empréstimo', 'emprestimo',
+            'financiamento', 'parcela', 'juros', 'dívida', 'divida'],
+        themes: ['dívida', 'divida', 'financiamento', 'crédito', 'credito'],
+    },
+];
+
+// ── Payment method keyword map ─────────────────────────────────────────────────
+const PAYMENT_KEYWORDS: { patterns: RegExp; themes: string[] }[] = [
+    { patterns: /\bpix\b/, themes: ['pix'] },
+    { patterns: /\bcr[eé]dito\b|\bcart[aã]o\b(?!\s+de\s+d[eé]bito)/, themes: ['crédito', 'credito', 'cartão crédito', 'visa', 'mastercard'] },
+    { patterns: /\bd[eé]bito\b/, themes: ['débito', 'debito', 'cartão débito'] },
+    { patterns: /\bdinheiro\b|\besp[eé]cie\b|\bcash\b/, themes: ['dinheiro', 'espécie', 'especie', 'cash'] },
+    { patterns: /\bnubank\b|\broxinho\b/, themes: ['nubank'] },
+    { patterns: /\binter\b|\bbanco inter\b/, themes: ['inter'] },
+    { patterns: /\bitaú\b|\bitau\b/, themes: ['itaú', 'itau'] },
+    { patterns: /\bbradesco\b/, themes: ['bradesco'] },
+    { patterns: /\bsantander\b/, themes: ['santander'] },
+    { patterns: /\bc6\b/, themes: ['c6', 'c6bank'] },
+    { patterns: /\bbb\b|\bbrasil\b/, themes: ['banco do brasil', 'bb'] },
+    { patterns: /\bcaixa\b/, themes: ['caixa', 'cef'] },
+];
+
+// ── Normalise text: lowercase, remove accents ─────────────────────────────────
+function normalise(s: string): string {
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// ── Score a user category against a theme name ────────────────────────────────
+function scoreCategory(cat: Category, themes: string[], type: TransactionType): number {
+    const catNorm = normalise(cat.name);
+    let score = 0;
+    for (const theme of themes) {
+        const themeNorm = normalise(theme);
+        if (catNorm === themeNorm) { score = 100; break; }
+        if (catNorm.includes(themeNorm) || themeNorm.includes(catNorm)) { score = Math.max(score, 80); }
+    }
+    if (score > 0 && (cat.type === type || cat.type === 'BOTH')) score += 10;
+    return score;
+}
+
+// ── Parse a day number mentioned in speech into a yyyy-MM-dd string ──────────
+function parseDayMention(day: number): string {
+    const today = new Date();
+    const todayDay = today.getDate();
+    // If mentioned day is still ahead or today → this month; otherwise → next month
+    const month = day >= todayDay ? today.getMonth() : today.getMonth() + 1;
+    const year = month > 11 ? today.getFullYear() + 1 : today.getFullYear();
+    const clampedMonth = month > 11 ? 0 : month;
+    const maxDay = new Date(year, clampedMonth + 1, 0).getDate();
+    const safeDay = Math.min(day, maxDay);
+    return format(new Date(year, clampedMonth, safeDay), 'yyyy-MM-dd');
+}
+
+// ── Main parser ────────────────────────────────────────────────────────────────
 export const parseTranscription = (
     text: string,
     categories: Category[],
     paymentMethods: PaymentMethod[],
     suppliers: Supplier[]
 ): ParsedTransaction => {
-    const input = text.toLowerCase().trim();
-    const words = text.trim().split(/\s+/);
+    console.log('[aiParser] Input:', text);
 
-    console.log('[aiParser] Input text:', text);
+    const raw = text.trim();
+    const norm = normalise(raw);
 
-    // Default values
     let type: TransactionType = 'EXPENSE';
-    let description = '';
     let amount = 0;
     let date = format(new Date(), 'yyyy-MM-dd');
     let categoryId = '';
     let paymentMethodId = paymentMethods.length > 0 ? paymentMethods[0].id : undefined;
-    let supplierId: string | undefined = undefined;
-    let observation = '';
-    let confidence = 0.5;
+    let supplierId: string | undefined;
+    let confidence = 0.4;
 
-    // 1. Infer Type
-    if (INCOME_KEYWORDS.some(kw => input.includes(kw))) {
+    // ── 1. Transaction type ──────────────────────────────────────────────────
+    if (INCOME_KEYWORDS.some(kw => norm.includes(normalise(kw)))) {
         type = 'INCOME';
         confidence += 0.1;
     }
 
-    // 2. Extract Amount — look for numbers followed by "reais" first, then any number
-    let amountFound = false;
+    // ── 2. Amount extraction ─────────────────────────────────────────────────
+    // Order: R$###, ### reais, plain number. Take the LARGEST plausible match to avoid picking day numbers.
+    const amountMatches = [...norm.matchAll(/(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:reais?|contos?|pilas?|bala)?/g)];
+    let bestAmount = 0;
+    for (const m of amountMatches) {
+        const val = parseFloat(m[1].replace(',', '.'));
+        if (val > 0 && val < 1_000_000 && val > bestAmount) bestAmount = val;
+    }
+    // Written numbers
+    const written: [string, number][] = [
+        ['mil e quinhentos', 1500], ['mil e duzentos', 1200], ['dois mil', 2000], ['tres mil', 3000],
+        ['um mil', 1000], ['quinhentos', 500], ['quatrocentos', 400], ['trezentos', 300],
+        ['duzentos', 200], ['cento e cinquenta', 150], ['cento e vinte', 120], ['cento e dez', 110],
+        ['cem', 100], ['cento', 100], ['noventa', 90], ['oitenta', 80], ['setenta', 70],
+        ['sessenta', 60], ['cinquenta', 50], ['quarenta', 40], ['trinta', 30], ['vinte e cinco', 25],
+        ['vinte', 20], ['quinze', 15], ['quatorze', 14], ['treze', 13], ['doze', 12],
+        ['onze', 11], ['dez', 10], ['nove', 9], ['oito', 8], ['sete', 7], ['seis', 6],
+        ['cinco', 5], ['quatro', 4], ['tres', 3], ['dois', 2], ['dois e meio', 2.5],
+    ];
+    for (const [word, val] of written) {
+        if (norm.includes(word) && val > bestAmount) { bestAmount = val; break; }
+    }
+    if (bestAmount > 0) { amount = bestAmount; confidence += 0.2; }
 
-    // Pattern: "40 reais", "40,50 reais", "R$ 40"
-    const amountWithUnit = input.match(/(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:reais|real|conto|contos|pila|pilas)?/g);
-    if (amountWithUnit) {
-        for (const match of amountWithUnit) {
-            const numMatch = match.match(/(\d+(?:[.,]\d{1,2})?)/);
-            if (numMatch) {
-                const val = parseFloat(numMatch[1].replace(',', '.'));
-                if (val > 0 && val < 1000000) {
-                    amount = val;
-                    amountFound = true;
-                    confidence += 0.2;
-                    break;
+    // ── 3. Date extraction ────────────────────────────────────────────────────
+    if (norm.includes('ontem')) {
+        date = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    } else if (norm.includes('anteontem')) {
+        date = format(subDays(new Date(), 2), 'yyyy-MM-dd');
+    } else if (norm.includes('amanha') || norm.includes('amanhã')) {
+        date = format(subDays(new Date(), -1), 'yyyy-MM-dd');
+    } else {
+        // "dia 10", "no dia 15", "dia cinco"
+        const dayNumMatch = norm.match(/\bdia\s+(\d{1,2})\b/);
+        if (dayNumMatch) {
+            const d = parseInt(dayNumMatch[1]);
+            if (d >= 1 && d <= 31) date = parseDayMention(d);
+        }
+        // Month mentions: "em janeiro", "em fevereiro" ...
+        const monthNames = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        for (let i = 0; i < monthNames.length; i++) {
+            if (norm.includes(monthNames[i])) {
+                const today = new Date();
+                const targetMonth = i; // 0-indexed
+                const year = targetMonth < today.getMonth()
+                    ? today.getFullYear() + 1
+                    : today.getFullYear();
+                const dayNum = norm.match(/\bdia\s+(\d{1,2})\b/);
+                const day = dayNum ? parseInt(dayNum[1]) : today.getDate();
+                date = format(new Date(year, targetMonth, day), 'yyyy-MM-dd');
+                break;
+            }
+        }
+        // "próximo mês"
+        if (norm.includes('proximo mes') || norm.includes('próximo mês')) {
+            date = format(addMonths(new Date(), 1), 'yyyy-MM-dd');
+        }
+    }
+
+    // ── 4. Category matching ──────────────────────────────────────────────────
+    // Strategy A: keyword hints → themes → score user categories
+    let bestCatScore = 0;
+    let bestCat: Category | undefined;
+
+    for (const hint of CATEGORY_HINTS) {
+        if (hint.keywords.some(kw => norm.includes(normalise(kw)))) {
+            for (const cat of categories) {
+                const s = scoreCategory(cat, hint.themes, type);
+                if (s > bestCatScore) { bestCatScore = s; bestCat = cat; }
+            }
+        }
+    }
+
+    // Strategy B: direct fuzzy match — any user category name that appears in the text
+    if (bestCatScore < 50) {
+        for (const cat of categories) {
+            const catNorm = normalise(cat.name);
+            if (norm.includes(catNorm) && (cat.type === type || cat.type === 'BOTH')) {
+                if (80 > bestCatScore) { bestCatScore = 80; bestCat = cat; }
+            }
+        }
+    }
+
+    // Strategy C: partial word overlap ≥ 4 chars
+    if (bestCatScore < 50) {
+        for (const cat of categories) {
+            const catWords = normalise(cat.name).split(/\s+/).filter(w => w.length >= 4);
+            for (const cw of catWords) {
+                if (norm.includes(cw) && (cat.type === type || cat.type === 'BOTH')) {
+                    if (60 > bestCatScore) { bestCatScore = 60; bestCat = cat; }
                 }
             }
         }
     }
 
-    // Handle written numbers
-    if (!amountFound) {
-        const writtenNumbers: { [key: string]: number } = {
-            'um': 1, 'dois': 2, 'três': 3, 'tres': 3, 'quatro': 4, 'cinco': 5,
-            'seis': 6, 'sete': 7, 'oito': 8, 'nove': 9,
-            'dez': 10, 'onze': 11, 'doze': 12, 'treze': 13, 'quatorze': 14, 'quinze': 15,
-            'vinte': 20, 'trinta': 30, 'quarenta': 40, 'cinquenta': 50,
-            'sessenta': 60, 'setenta': 70, 'oitenta': 80, 'noventa': 90,
-            'cem': 100, 'cento': 100, 'duzentos': 200, 'trezentos': 300,
-            'quinhentos': 500, 'mil': 1000
-        };
-        for (const [word, value] of Object.entries(writtenNumbers)) {
-            if (input.includes(` ${word} reais`) || input.includes(`${word} reais`) || input.endsWith(` ${word}`)) {
-                amount = value;
-                amountFound = true;
-                break;
-            }
-        }
-    }
-
-    // 3. Extract Date
-    if (input.includes('ontem')) {
-        date = format(subDays(new Date(), 1), 'yyyy-MM-dd');
-    } else if (input.includes('anteontem')) {
-        date = format(subDays(new Date(), 2), 'yyyy-MM-dd');
-    } else {
-        const dayMatch = input.match(/dia (\d{1,2})/);
-        if (dayMatch) {
-            const day = parseInt(dayMatch[1]);
-            if (day >= 1 && day <= 31) {
-                date = format(setDate(new Date(), day), 'yyyy-MM-dd');
-            }
-        }
-    }
-
-    // 4. Match Category
-    let bestCat: Category | undefined;
-
-    for (const [catName, keywords] of Object.entries(CATEGORY_MAPPINGS)) {
-        if (keywords.some(kw => input.includes(kw)) || input.includes(catName)) {
-            const found = categories.find(c =>
-                (c.name.toLowerCase().includes(catName) || catName.includes(c.name.toLowerCase())) &&
-                (c.type === type || c.type === 'BOTH')
-            );
-            if (found) {
-                bestCat = found;
-                confidence += 0.2;
-                break;
-            }
-        }
-    }
-
-    // Fallback: try to match category name directly from user's categories
-    if (!bestCat) {
-        for (const cat of categories) {
-            if (input.includes(cat.name.toLowerCase()) && (cat.type === type || cat.type === 'BOTH')) {
-                bestCat = cat;
-                confidence += 0.15;
-                break;
-            }
-        }
-    }
-
-    // Final fallback: first category of matching type
+    // Strategy D: fallback to first matching type
     if (!bestCat) {
         bestCat = categories.find(c => c.type === type || c.type === 'BOTH');
     }
 
-    if (bestCat) categoryId = bestCat.id;
+    if (bestCat) { categoryId = bestCat.id; confidence += bestCatScore >= 50 ? 0.2 : 0.05; }
 
-    // 5. Match Payment Method
-    for (const [methodName, keywords] of Object.entries(PAYMENT_KEYWORDS)) {
-        if (keywords.some(kw => input.includes(kw))) {
+    // ── 5. Payment method matching ────────────────────────────────────────────
+    for (const { patterns, themes } of PAYMENT_KEYWORDS) {
+        if (patterns.test(norm)) {
             const found = paymentMethods.find(m =>
-                m.name.toLowerCase().includes(methodName) ||
-                keywords.some(kw => m.name.toLowerCase().includes(kw))
+                themes.some(t => normalise(m.name).includes(normalise(t)))
             );
-            if (found) {
-                paymentMethodId = found.id;
-                confidence += 0.1;
-                break;
-            }
+            if (found) { paymentMethodId = found.id; confidence += 0.1; break; }
         }
     }
 
-    // 6. Match Supplier
-    for (const supplier of suppliers) {
-        if (input.includes(supplier.name.toLowerCase())) {
-            supplierId = supplier.id;
-            confidence += 0.1;
+    // ── 6. Supplier matching ──────────────────────────────────────────────────
+    for (const s of suppliers) {
+        if (norm.includes(normalise(s.name))) { supplierId = s.id; confidence += 0.05; break; }
+    }
+
+    // ── 7. Description extraction ─────────────────────────────────────────────
+    // Remove prefix trigger phrases first (only at the start)
+    let workText = raw;
+    for (const prefix of PREFIX_STRIPS) {
+        const prefixLower = prefix.toLowerCase();
+        const lower = workText.toLowerCase();
+        if (lower.startsWith(prefixLower + ' ') || lower.startsWith(prefixLower)) {
+            workText = workText.substring(prefix.length).trim();
             break;
         }
     }
 
-    // 7. Build Description — keep meaningful words, skip filler and numbers
-    const amountStr = amount.toString();
-    const descWords = words.filter(w => {
-        const lower = w.toLowerCase().replace(/[.,!?;:]/g, '');
-        if (FILLER_WORDS.has(lower)) return false;
-        if (lower === amountStr) return false;
-        if (/^\d+([.,]\d{1,2})?$/.test(lower)) return false;
-        if (lower.length <= 1) return false;
-        return true;
-    });
+    // Tokenise and filter
+    const tokens = workText.split(/\s+/);
+    let skipNext = false;
+    const descTokens: string[] = [];
 
-    if (descWords.length > 0) {
-        description = descWords.slice(0, 5).join(' ');
-        // Capitalize first letter
+    for (let i = 0; i < tokens.length; i++) {
+        const tok = tokens[i];
+        const tokNorm = normalise(tok.replace(/[.,!?;:]/g, ''));
+
+        if (skipNext) { skipNext = false; continue; }
+        if (PURE_FILLER.has(tokNorm)) continue;
+        if (DATE_SIGNALS.has(tokNorm)) { skipNext = true; continue; } // skip "dia X"
+        if (PAYMENT_SIGNALS.has(tokNorm)) continue;
+        if (/^r\$/.test(tokNorm)) continue; // skip "r$" or "r$50" currency tokens
+        if (/^\$/.test(tokNorm)) continue;   // skip bare "$"
+        if (/^\d+([.,]\d{1,2})?$/.test(tokNorm)) continue; // bare numbers
+        if (tok.length <= 1) continue;
+
+        descTokens.push(tok);
+    }
+
+    let description = descTokens.join(' ').trim();
+
+    // Capitalise first letter
+    if (description) {
+        description = description.charAt(0).toUpperCase() + description.slice(1).toLowerCase();
+    }
+
+    // Fallback: if description is suspiciously short or empty, take the middle part (after trigger, before amount)
+    if (!description || description.length < 3) {
+        // Just take first 5 original tokens that aren't pure numbers
+        description = raw.split(/\s+/).filter(w => !/^\d+$/.test(w)).slice(0, 5).join(' ');
         description = description.charAt(0).toUpperCase() + description.slice(1);
     }
 
-    // If description is still empty, use the original transcription cleaned up
-    if (!description && text.trim().length > 0) {
-        description = text.trim().split(/\s+/).slice(0, 4).join(' ');
-        description = description.charAt(0).toUpperCase() + description.slice(1);
-    }
-
-    // Final validation
-    let needsClarification = false;
-    let question = '';
-
-    if (amount === 0) {
-        needsClarification = true;
-        question = 'Qual o valor do lançamento?';
-    }
-
-    // Cap confidence at 1.0
     confidence = Math.min(confidence, 1.0);
+    const needsClarification = amount === 0;
+    const question = needsClarification ? 'Qual o valor do lançamento?' : '';
 
     const result: ParsedTransaction = {
         type,
@@ -239,10 +383,10 @@ export const parseTranscription = (
         categoryId,
         paymentMethodId,
         supplierId,
-        observation,
+        observation: '',
         confidence,
         needsClarification,
-        question
+        question,
     };
 
     console.log('[aiParser] Result:', result);

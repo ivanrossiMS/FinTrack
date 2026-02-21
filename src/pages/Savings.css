@@ -22,11 +22,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--color-surface);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
     padding: 1.5rem 2rem;
     border-radius: 18px;
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 .sav-header-left h1 {
@@ -53,17 +54,18 @@
 }
 
 .sav-summary-card {
-    background: var(--color-surface);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
     padding: 1.5rem;
     border-radius: 20px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-sm);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--glass-shadow);
 }
 
 .sav-summary-card:hover {
@@ -119,15 +121,16 @@
 }
 
 .sav-goal-card {
-    background: var(--color-surface);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
     border-radius: 24px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--glass-border);
     padding: 1.75rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
 }
 

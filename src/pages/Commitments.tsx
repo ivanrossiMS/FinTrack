@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -14,11 +14,19 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import { isToday, isBefore, parseISO, startOfDay } from 'date-fns';
+import { useLocation } from 'react-router-dom';
 import './Commitments.css';
+
+import { Pagination } from '../components/ui/Pagination';
 
 export const Commitments: React.FC = () => {
     const { data, deleteCommitment } = useData();
+    const location = useLocation();
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [supplierFilter, setSupplierFilter] = useState('ALL');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCommitment, setEditingCommitment] = useState<any>(null);
     const [payingCommitment, setPayingCommitment] = useState<any>(null);
@@ -27,6 +35,31 @@ export const Commitments: React.FC = () => {
         key: 'dueDate',
         direction: 'asc'
     });
+
+    // ── Pagination State ──
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 20;
+
+    // Reset page to 1 on filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, supplierFilter, startDate, endDate]);
+
+    // Handle voice assistant prefill
+    useEffect(() => {
+        if (location.state?.openForm && location.state?.voicePrefill) {
+            const vp = location.state.voicePrefill;
+            setEditingCommitment({
+                description: vp.description || '',
+                amount: vp.amount || 0,
+                dueDate: vp.dueDate || new Date().toISOString().split('T')[0],
+                supplierId: vp.supplierId || '',
+                categoryId: vp.categoryId || '',
+            });
+            setIsFormOpen(true);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     const commitments = data.commitments || [];
 
@@ -48,8 +81,33 @@ export const Commitments: React.FC = () => {
     const filteredCommitments = useMemo(() => {
         let result = commitments.filter(c => {
             const matchesSearch = c.description.toLowerCase().includes(searchTerm.toLowerCase());
-            return matchesSearch;
+
+            // Status filter logic
+            let matchesStatus = true;
+            if (statusFilter !== 'ALL') {
+                const dueDate = parseISO(c.dueDate);
+                const today = startOfDay(new Date());
+                const isOverdue = c.status === 'PENDING' && isBefore(dueDate, today);
+
+                if (statusFilter === 'PAID') matchesStatus = c.status === 'PAID';
+                else if (statusFilter === 'PENDING') matchesStatus = c.status === 'PENDING' && !isOverdue;
+                else if (statusFilter === 'OVERDUE') matchesStatus = isOverdue;
+            }
+
+            // Supplier filter
+            const matchesSupplier = supplierFilter === 'ALL' || c.supplierId === supplierFilter;
+
+            // Date filter
+            let matchesDate = true;
+            if (startDate || endDate) {
+                const cDate = parseISO(c.dueDate);
+                if (startDate && isBefore(cDate, startOfDay(parseISO(startDate)))) matchesDate = false;
+                if (endDate && isBefore(startOfDay(parseISO(endDate)), cDate)) matchesDate = false;
+            }
+
+            return matchesSearch && matchesStatus && matchesSupplier && matchesDate;
         });
+
 
         return result.sort((a, b) => {
             let valA: any, valB: any;
@@ -88,21 +146,37 @@ export const Commitments: React.FC = () => {
             if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [commitments, searchTerm, sortConfig, data.paymentMethods]);
+    }, [commitments, searchTerm, statusFilter, supplierFilter, startDate, endDate, sortConfig, data.paymentMethods]);
 
-    // Stats
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredCommitments.length / ITEMS_PER_PAGE);
+    const displayedCommitments = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredCommitments.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredCommitments, currentPage]);
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setStatusFilter('ALL');
+        setSupplierFilter('ALL');
+        setStartDate('');
+        setEndDate('');
+        setCurrentPage(1);
+    };
+
+    // Stats - Dynamic based on ALL filteredCommitments
     const stats = useMemo(() => {
-        const pending = commitments.filter(c => c.status === 'PENDING');
-        const paid = commitments.filter(c => c.status === 'PAID');
-        const dueToday = pending.filter(c => isToday(parseISO(c.dueDate)));
+        const actualPendingOnly = filteredCommitments.filter(c => c.status === 'PENDING');
+        const paid = filteredCommitments.filter(c => c.status === 'PAID');
+        const dueToday = actualPendingOnly.filter(c => isToday(parseISO(c.dueDate)));
 
         return {
-            totalPending: pending.reduce((acc, c) => acc + c.amount, 0),
+            totalPending: actualPendingOnly.reduce((acc, c) => acc + c.amount, 0),
             totalPaid: paid.reduce((acc, c) => acc + c.amount, 0),
             countToday: dueToday.length,
             amountToday: dueToday.reduce((acc, c) => acc + c.amount, 0)
         };
-    }, [commitments]);
+    }, [filteredCommitments]);
 
     const handleEdit = (c: any) => {
         setEditingCommitment(c);
@@ -163,28 +237,68 @@ export const Commitments: React.FC = () => {
                 </div>
             </div>
 
-            <div className="cm-list-card">
-                <div className="cm-list-header">
+            <div className="cm-filter-wrapper">
+                <div className="cm-filter-bar">
                     <div className="cm-search-wrapper">
                         <Search size={18} className="cm-search-icon" />
                         <input
                             type="text"
-                            placeholder="Buscar compromisso..."
+                            placeholder="Buscar por descrição..."
                             className="cm-search-input"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
-                </div>
 
+                    <div className="cm-filters-row">
+                        <div className="cm-filter-group">
+                            <label>Status</label>
+                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                                <option value="ALL">Todos os Status</option>
+                                <option value="PENDING">Pendentes</option>
+                                <option value="PAID">Pagos</option>
+                                <option value="OVERDUE">Vencidos</option>
+                            </select>
+                        </div>
+
+                        <div className="cm-filter-group">
+                            <label>Fornecedor</label>
+                            <select value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)}>
+                                <option value="ALL">Todos os Fornecedores</option>
+                                {data.suppliers.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="cm-filter-group">
+                            <label>Período</label>
+                            <div className="cm-date-range">
+                                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                                <span>até</span>
+                                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                            </div>
+                        </div>
+
+                        {(searchTerm || statusFilter !== 'ALL' || supplierFilter !== 'ALL' || startDate || endDate) && (
+                            <button className="cm-clear-btn" onClick={clearFilters} title="Limpar Filtros">
+                                <Trash2 size={16} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="cm-list-card">
                 <div className="cm-list-body">
                     {filteredCommitments.length === 0 ? (
                         <div className="p-10 text-center text-text-light font-medium opacity-60">
-                            Nenhum compromisso encontrado.
+                            Nenhum compromisso encontrado com esses filtros.
                         </div>
                     ) : (
                         <>
                             <div className="cm-grid-row header">
+                                <div className="cm-col-id">ID</div>
                                 <div className="cm-col-name sortable" onClick={() => handleSort('description')}>
                                     Nome {getSortIcon('description')}
                                 </div>
@@ -206,13 +320,14 @@ export const Commitments: React.FC = () => {
                                 <div className="cm-col-edit">Ações</div>
                             </div>
 
-                            {filteredCommitments.map(c => {
-                                const supplier = c.supplierId ? data.suppliers.find(s => s.id === c.supplierId) : null;
-                                const method = c.paymentMethodId ? data.paymentMethods.find(m => m.id === c.paymentMethodId) : null;
-                                const isPaid = c.status === 'PAID';
+                            {displayedCommitments.map(c => {
+                                const shortId = c.id.substring(0, 6).toUpperCase();
 
                                 return (
-                                    <div key={c.id} className={`cm-grid-row ${isPaid ? 'paid' : ''}`}>
+                                    <div key={c.id} className={`cm-grid-row ${c.status === 'PAID' ? 'paid' : ''}`}>
+                                        <div className="cm-col-id">
+                                            <span className="cm-id-text">#{shortId}</span>
+                                        </div>
                                         <div className="cm-col-name">
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '2px' }}>
                                                 <div className="cm-name-text">{c.description}</div>
@@ -227,7 +342,7 @@ export const Commitments: React.FC = () => {
                                                 )}
                                             </div>
                                             <span className="cm-supplier-text">
-                                                {supplier?.name || ''}
+                                                {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
                                             </span>
                                         </div>
                                         <div className="cm-col-date font-bold text-text-light text-sm">
@@ -236,13 +351,15 @@ export const Commitments: React.FC = () => {
                                         <div className="cm-col-value">{formatCurrency(c.amount)}</div>
                                         <div className="cm-col-status">{getStatusLabel(c)}</div>
                                         <div className="cm-col-method text-xs font-semibold text-text-light opacity-80">
-                                            {method?.name || '-'}
+                                            {c.paymentMethodId
+                                                ? (data.paymentMethods.find(m => m.id === c.paymentMethodId)?.name || '-')
+                                                : '-'}
                                         </div>
                                         <div className="cm-col-paydate text-xs font-medium text-text-light opacity-60">
                                             {c.paymentDate ? formatDate(c.paymentDate) : '-'}
                                         </div>
                                         <div className="cm-col-edit flex gap-2">
-                                            {!isPaid && (
+                                            {c.status === 'PENDING' && (
                                                 <button className="cm-mini-pay-btn" onClick={() => setPayingCommitment(c)} title="Pagar">
                                                     <CreditCard size={14} />
                                                 </button>
@@ -257,6 +374,14 @@ export const Commitments: React.FC = () => {
                                     </div>
                                 );
                             })}
+
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                                totalItems={filteredCommitments.length}
+                                itemsPerPage={ITEMS_PER_PAGE}
+                            />
                         </>
                     )}
                 </div>

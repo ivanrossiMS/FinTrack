@@ -13,7 +13,12 @@
     display: flex;
     flex-direction: column;
     width: 100% !important;
-    background: white;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
 }
 
 @media (min-width: 1024px) {
@@ -30,8 +35,8 @@
     align-items: center;
     justify-content: center;
     padding: 3rem 2rem;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-bottom: 1px solid var(--profile-border);
+    background: rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--glass-border);
 }
 
 @media (min-width: 1024px) {
@@ -155,10 +160,10 @@
 }
 
 .profile-info-table {
-    border: 1px solid var(--profile-border);
+    border: 1px solid var(--glass-border);
     border-radius: 16px;
     overflow: hidden;
-    background: white;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .profile-info-row {

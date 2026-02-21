@@ -4,8 +4,8 @@ import { Modal } from '../components/ui/Modal';
 import {
     Plus, Search, Filter, Trash2, Edit, Lock,
     ArrowUpDown, ArrowUp, ArrowDown,
-    X, Calendar, Anchor,
-    TrendingUp, TrendingDown, Target, Mic, Paperclip
+    X, Calendar, SlidersHorizontal, Anchor,
+    TrendingUp, TrendingDown, Target, Paperclip
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { Transaction, Attachment } from '../models/types';
@@ -37,6 +37,8 @@ const SORT_COLUMNS: { key: SortColumn; label: string }[] = [
     { key: 'method', label: 'Método' },
 ];
 
+import { Pagination } from '../components/ui/Pagination';
+
 export const Transactions: React.FC = () => {
     const { data, deleteTransaction } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,6 +47,10 @@ export const Transactions: React.FC = () => {
     const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
     const location = useLocation();
     const [viewingAttachments, setViewingAttachments] = useState<Attachment[] | null>(null);
+
+    // ── Pagination State ──
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 20;
 
     // ── Filter state ──
     const [searchTerm, setSearchTerm] = useState('');
@@ -55,13 +61,26 @@ export const Transactions: React.FC = () => {
     const [filterFixed, setFilterFixed] = useState<'ALL' | 'FIXED' | 'VARIABLE'>('ALL');
     const [filterCategoryId, setFilterCategoryId] = useState<string>('ALL');
 
-    // Handle incoming drill-down state from Dashboard
+    // Reset page to 1 when filters change
     useEffect(() => {
-        if (location.state?.categoryId) {
-            setFilterCategoryId(location.state.categoryId);
-            // Clear location state to prevent re-filtering on refresh
+        setCurrentPage(1);
+    }, [searchTerm, filterType, filterMonth, dateStart, dateEnd, filterFixed, filterCategoryId]);
+
+    // Handle incoming state from Dashboard or Voice Assistant
+    useEffect(() => {
+        if (!location.state) return;
+
+        // Voice assistant prefill: open form with pre-parsed data
+        if (location.state.openForm && location.state.voicePrefill) {
+            const vp = location.state.voicePrefill as Partial<Transaction>;
+            setVoiceData(vp);
+            setEditingTx(undefined);
+            setIsModalOpen(true);
             window.history.replaceState({}, document.title);
-        } else if (location.state?.type) {
+        } else if (location.state.categoryId) {
+            setFilterCategoryId(location.state.categoryId);
+            window.history.replaceState({}, document.title);
+        } else if (location.state.type) {
             setFilterType(location.state.type);
             window.history.replaceState({}, document.title);
         }
@@ -185,7 +204,14 @@ export const Transactions: React.FC = () => {
         return result;
     }, [data.transactions, filterMonth, filterType, searchTerm, filterFixed, categoryMap, isPeriodActive, effectiveDates, sort, filterCategoryId]);
 
-    // ── Summary Stats (derived from filtered data) ──
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
+    const displayedTransactions = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredTransactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredTransactions, currentPage]);
+
+    // ── Summary Stats (derived from ALL filtered data) ──
     const summaryStats = useMemo(() => {
         const income = filteredTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
         const expense = filteredTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
@@ -247,6 +273,7 @@ export const Transactions: React.FC = () => {
         setFilterFixed('ALL');
         setFilterCategoryId('ALL');
         setSort({ column: null, direction: null });
+        setCurrentPage(1);
     }, []);
 
     const hasActiveFilters = searchTerm !== '' || filterType !== 'ALL' || isPeriodActive || filterFixed !== 'ALL' || filterCategoryId !== 'ALL' || sort.column !== null;
@@ -295,14 +322,6 @@ export const Transactions: React.FC = () => {
                     <span className="tx-counter">{filteredTransactions.length} registros encontrados</span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button
-                        onClick={() => setIsVoiceAssistantOpen(true)}
-                        variant="secondary"
-                        className="tx-voice-btn"
-                    >
-                        <Mic size={20} />
-                        <span>Gravar por voz</span>
-                    </Button>
                     <Button
                         onClick={() => setIsModalOpen(true)}
                         variant="primary"
@@ -470,6 +489,41 @@ export const Transactions: React.FC = () => {
 
             {/* ── List Content ── */}
             <div className="tx-list-container">
+                {/* Mobile Sort Dropdown */}
+                <div className="tx-mobile-sort-bar">
+                    <SlidersHorizontal size={18} />
+                    <select
+                        className="input-field"
+                        value={sort.column || ''}
+                        onChange={e => {
+                            const val = e.target.value as SortColumn | '';
+                            if (val === '') {
+                                setSort({ column: null, direction: null });
+                            } else {
+                                setSort(prev => ({ column: val, direction: prev.direction || 'asc' }));
+                            }
+                        }}
+                    >
+                        <option value="">Ordenar por...</option>
+                        {SORT_COLUMNS.map(c => (
+                            <option key={c.key} value={c.key}>{c.label}</option>
+                        ))}
+                    </select>
+                    <select
+                        className="input-field"
+                        value={sort.direction || 'asc'}
+                        onChange={e => {
+                            if (sort.column) {
+                                setSort(prev => ({ ...prev, direction: e.target.value as SortDirection }));
+                            }
+                        }}
+                        disabled={!sort.column}
+                    >
+                        <option value="asc">A-Z ↑</option>
+                        <option value="desc">Z-A ↓</option>
+                    </select>
+                </div>
+
                 <div className="tx-table-wrapper">
                     {filteredTransactions.length === 0 ? (
                         <div className="tx-empty-state">
@@ -485,6 +539,7 @@ export const Transactions: React.FC = () => {
                         <>
                             {/* Desktop Header */}
                             <div className="tx-grid-header">
+                                <span className="tx-header-col">ID</span>
                                 <button className="tx-header-col sortable" onClick={() => handleSort('description')}>
                                     Descrição <SortIcon column="description" />
                                 </button>
@@ -505,14 +560,20 @@ export const Transactions: React.FC = () => {
 
                             {/* List of Transactions */}
                             <div className="tx-items-list">
-                                {filteredTransactions.map(tx => {
+                                {displayedTransactions.map(tx => {
                                     const cat = categoryMap.get(tx.categoryId);
                                     const catName = cat?.name || 'Geral';
                                     const catColor = cat?.color || '#94a3b8';
                                     const isExpense = tx.type === 'EXPENSE';
+                                    const shortId = tx.id.substring(0, 6).toUpperCase();
 
                                     return (
                                         <div key={tx.id} className="tx-grid-row">
+                                            {/* Column: ID */}
+                                            <div className="tx-col-id">
+                                                <span className="tx-id-text">#{shortId}</span>
+                                            </div>
+
                                             {/* Column: Description */}
                                             <div className="tx-col-description">
                                                 <div className="tx-status-indicator" style={{ backgroundColor: catColor }} />
@@ -593,10 +654,72 @@ export const Transactions: React.FC = () => {
                                                     </>
                                                 )}
                                             </div>
+
+                                            {/* Mobile Card Layout */}
+                                            <div className="tx-mobile-card">
+                                                <div className="tx-card-row">
+                                                    <span className="tx-card-description">{tx.description}</span>
+                                                    <span
+                                                        className="tx-category-badge"
+                                                        style={{
+                                                            backgroundColor: `${catColor}15`,
+                                                            color: catColor,
+                                                            borderColor: `${catColor}30`
+                                                        }}
+                                                    >
+                                                        {catName}
+                                                    </span>
+                                                </div>
+                                                <div className="tx-card-row secondary">
+                                                    <span className="tx-card-date">
+                                                        {formatDate(tx.date)}
+                                                    </span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        {(() => {
+                                                            const method = tx.paymentMethodId ? paymentMethodMap.get(tx.paymentMethodId) : null;
+                                                            return method && (
+                                                                <span className="tx-method-badge-mini" style={{ color: method.color, backgroundColor: `${method.color}15` }}>
+                                                                    {method.name}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        <span className={`tx-card-amount ${isExpense ? 'expense' : 'income'}`}>
+                                                            {isExpense ? '- ' : '+ '}{formatCurrency(tx.amount)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="tx-card-actions">
+                                                    {lockedTransactionIds.has(tx.id) ? (
+                                                        <div className="tx-lock-badge-mobile">
+                                                            <Lock size={14} />
+                                                            <span>Vinculado a Compromisso (Bloqueado)</span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <button className="tx-btn-icon" onClick={() => handleEdit(tx)}>
+                                                                <Edit size={18} />
+                                                                <span>Editar</span>
+                                                            </button>
+                                                            <button className="tx-btn-icon danger" onClick={() => handleDelete(tx.id)}>
+                                                                <Trash2 size={18} />
+                                                                <span>Excluir</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
+
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                                totalItems={filteredTransactions.length}
+                                itemsPerPage={ITEMS_PER_PAGE}
+                            />
                         </>
                     )}
                 </div>

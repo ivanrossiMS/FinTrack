@@ -147,88 +147,82 @@ export const Admin: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map((u) => {
-                                const isMasterAdmin = u.email === 'ivanrossi@outlook.com';
-                                const isAdmin = isMasterAdmin || u.isAdmin;
-                                const isAuthorized = u.isAuthorized !== false;
-
-                                return (
-                                    <tr key={u.email}>
-                                        <td>
-                                            <div className="user-info-cell">
-                                                <div className="user-avatar-wrapper">
-                                                    {u.avatar ? (
-                                                        <img src={u.avatar} alt={u.name} />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-indigo-300">
-                                                            <User size={24} />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="user-details">
-                                                    <span className="user-name">{u.name}</span>
-                                                    <span className="user-profession">{u.profession || 'Membro Externo'}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="email-cell">
-                                                <Mail size={16} className="email-icon" />
-                                                <span>{u.email}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="flex flex-col gap-2">
-                                                {isAdmin ? (
-                                                    <span className="badge-admin">
-                                                        <Shield size={10} strokeWidth={3} /> ADMINISTRADOR
-                                                    </span>
+                            {filteredUsers.map((u) => (
+                                <tr key={u.email}>
+                                    <td>
+                                        <div className="user-info-cell">
+                                            <div className="user-avatar-wrapper">
+                                                {u.avatar ? (
+                                                    <img src={u.avatar} alt={u.name} />
                                                 ) : (
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <span className={`badge-plan ${u.plan === 'PREMIUM' ? 'premium' : 'free'}`}>
-                                                            {u.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
-                                                            {u.plan === 'PREMIUM' ? 'PREMIUM' : 'FREE'}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleToggleAuth(u)}
-                                                            className={`badge-auth ${isAuthorized ? 'active' : 'inactive'}`}
-                                                        >
-                                                            {isAuthorized ? <Check size={10} /> : <X size={10} />}
-                                                            {isAuthorized ? 'AUTORIZADO' : 'PENDENTE'}
-                                                        </button>
+                                                    <div className="w-full h-full flex items-center justify-center text-indigo-300">
+                                                        <User size={24} />
                                                     </div>
                                                 )}
                                             </div>
-                                        </td>
-                                        <td>
-                                            <div className="action-bar">
-                                                <button
-                                                    onClick={() => handleImpersonate(u.email)}
-                                                    className="action-btn action-btn-primary"
-                                                    title="Visualizar Painel"
-                                                >
-                                                    <ExternalLink size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenEdit(u)}
-                                                    className="action-btn"
-                                                    title="Editar Detalhes"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteUser(u.email)}
-                                                    className={`action-btn action-btn-danger ${u.email === currentUser.email ? 'opacity-20 pointer-events-none' : ''}`}
-                                                    title="Excluir Permanentemente"
-                                                    disabled={u.email === currentUser.email}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                            <div className="user-details">
+                                                <span className="user-name">{u.name}</span>
+                                                <span className="user-profession">{u.profession || 'Membro Externo'}</span>
                                             </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="email-cell">
+                                            <Mail size={16} className="email-icon" />
+                                            <span>{u.email}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="flex flex-col gap-2">
+                                            {u.email === 'ivanrossi@outlook.com' || u.isAdmin ? (
+                                                <span className="badge-admin">
+                                                    <Shield size={10} strokeWidth={3} /> ADMINISTRADOR
+                                                </span>
+                                            ) : (
+                                                <div className="flex flex-wrap gap-2">
+                                                    <span className={`badge-plan ${u.plan === 'PREMIUM' ? 'premium' : 'free'}`}>
+                                                        {u.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
+                                                        {u.plan === 'PREMIUM' ? 'PREMIUM' : 'FREE'}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleToggleAuth(u)}
+                                                        className={`badge-auth ${u.isAuthorized !== false ? 'active' : 'inactive'}`}
+                                                    >
+                                                        {u.isAuthorized !== false ? <Check size={10} /> : <X size={10} />}
+                                                        {u.isAuthorized !== false ? 'AUTORIZADO' : 'PENDENTE'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="action-bar">
+                                            <button
+                                                onClick={() => handleImpersonate(u.email)}
+                                                className="action-btn action-btn-primary"
+                                                title="Visualizar Painel"
+                                            >
+                                                <ExternalLink size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleOpenEdit(u)}
+                                                className="action-btn"
+                                                title="Editar Detalhes"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(u.email)}
+                                                className={`action-btn action-btn-danger ${u.email === currentUser.email ? 'opacity-20 pointer-events-none' : ''}`}
+                                                title="Excluir Permanentemente"
+                                                disabled={u.email === currentUser.email}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

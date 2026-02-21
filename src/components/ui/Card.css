@@ -1,28 +1,28 @@
 .card {
-    background-color: #fafbfc;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    /* Default very subtle */
+    box-shadow: var(--glass-shadow);
     padding: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    /* Extremely subtle border */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-3d);
-    /* Elevated only on hover */
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
 .card-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--color-text);
-    margin-bottom: 1.25rem;
+    color: var(--color-primary-dark);
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    letter-spacing: -0.01em;
 }

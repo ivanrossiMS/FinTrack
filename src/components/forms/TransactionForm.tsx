@@ -4,7 +4,7 @@ import { Transaction, TransactionType } from '../../models/types';
 import { Button } from '../ui/Button';
 import { Input, Select } from '../ui/Input';
 import { format } from 'date-fns';
-import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight, ArrowDownLeft, Repeat } from 'lucide-react';
 import { formatCurrency } from '../../utils/format';
 import { AttachmentManager } from '../ui/AttachmentManager';
 import { Attachment } from '../../models/types';
@@ -26,6 +26,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
     const [paymentMethodId, setPaymentMethodId] = useState(initialData?.paymentMethodId || '');
     const [isFixed, setIsFixed] = useState(initialData?.isFixed || false);
     const [installments, setInstallments] = useState('1');
+    const [isRecurring, setIsRecurring] = useState(initialData?.isRecurring || false);
+    const [recurrenceCount, setRecurrenceCount] = useState(initialData?.recurrenceCount?.toString() || '2');
     const [attachments, setAttachments] = useState<Attachment[]>(initialData?.attachments || []);
 
     const availableCategories = data.categories.filter(c => c.type === type || c.type === 'BOTH');
@@ -57,7 +59,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
             supplierId: supplierId || undefined,
             paymentMethodId: paymentMethodId || undefined,
             isFixed,
+            isRecurring: type === 'INCOME' ? isRecurring : false,
             installments: parseInt(installments) > 1 ? parseInt(installments) : undefined,
+            recurrenceCount: (type === 'INCOME' && isRecurring) ? parseInt(recurrenceCount) : undefined,
             attachments
         };
 
@@ -211,6 +215,134 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                     );
                 })()}
 
+                {/* ── Receita Recorrente ── */}
+                {type === 'INCOME' && (
+                    <div style={{
+                        borderRadius: '14px',
+                        border: isRecurring ? '1.5px solid #34d399' : '1.5px solid #e2e8f0',
+                        background: isRecurring ? 'rgba(16, 185, 129, 0.04)' : '#ffffff',
+                        overflow: 'hidden',
+                        transition: 'all 0.25s ease',
+                        animation: 'fadeIn 0.3s ease-out',
+                    }}>
+                        <div
+                            onClick={() => setIsRecurring(!isRecurring)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.85rem 1rem',
+                                cursor: 'pointer',
+                                userSelect: 'none' as const,
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    width: '36px', height: '36px', borderRadius: '10px',
+                                    background: isRecurring ? 'linear-gradient(135deg, #059669, #10b981)' : '#f1f5f9',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.25s ease',
+                                }}>
+                                    <Repeat size={16} color={isRecurring ? 'white' : '#94a3b8'} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', display: 'block' }}>
+                                        Receita Recorrente
+                                    </span>
+                                    <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                                        Gera múltiplos lançamentos automáticos
+                                    </span>
+                                </div>
+                            </div>
+                            <div style={{
+                                width: '48px', height: '26px',
+                                borderRadius: '999px',
+                                backgroundColor: isRecurring ? '#10b981' : '#e2e8f0',
+                                position: 'relative',
+                                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                boxShadow: isRecurring ? '0 0 12px rgba(16, 185, 129, 0.3)' : 'none',
+                                flexShrink: 0,
+                            }}>
+                                <div style={{
+                                    width: '20px', height: '20px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#ffffff',
+                                    position: 'absolute',
+                                    top: '3px',
+                                    left: isRecurring ? '25px' : '3px',
+                                    transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                                }} />
+                            </div>
+                        </div>
+
+                        {isRecurring && (
+                            <div style={{
+                                marginTop: '1rem',
+                                paddingTop: '0.85rem',
+                                borderTop: '1px dashed rgba(56, 161, 105, 0.2)',
+                                animation: 'fadeIn 0.3s ease-out',
+                            }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                    {['2', '3', '6', '12'].map(n => (
+                                        <button
+                                            key={n}
+                                            type="button"
+                                            onClick={() => setRecurrenceCount(n)}
+                                            style={{
+                                                padding: '0.5rem',
+                                                borderRadius: '10px',
+                                                fontWeight: 700,
+                                                fontSize: '0.8rem',
+                                                border: recurrenceCount === n ? '2px solid #38a169' : '1px solid #e2e8f0',
+                                                background: recurrenceCount === n ? 'rgba(56, 161, 105, 0.08)' : 'white',
+                                                color: recurrenceCount === n ? '#38a169' : '#64748b',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                            }}
+                                        >
+                                            {n}x meses
+                                        </button>
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>Personalizar:</span>
+                                    <input
+                                        type="number"
+                                        min="2"
+                                        max="48"
+                                        value={recurrenceCount}
+                                        onChange={e => setRecurrenceCount(e.target.value)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.45rem 0.75rem',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e2e8f0',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            textAlign: 'center',
+                                            outline: 'none',
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>meses</span>
+                                </div>
+                                <p style={{
+                                    fontSize: '0.7rem',
+                                    color: '#38a169',
+                                    fontWeight: 600,
+                                    marginTop: '0.65rem',
+                                    padding: '0.5rem 0.75rem',
+                                    background: 'rgba(56, 161, 105, 0.06)',
+                                    borderRadius: '8px',
+                                    margin: '0.65rem 0 0 0',
+                                }}>
+                                    ✨ Serão gerados <strong>{recurrenceCount}</strong> lançamentos de <strong>{formatCurrency(parseFloat(amount.replace(',', '.')) || 0)}</strong> cada, mensalmente.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <Select
                     label="Fornecedor (Opcional)"
                     value={supplierId}
@@ -222,28 +354,59 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                     ]}
                 />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0' }}>
-                    <div style={{ position: 'relative' }}>
-                        <input
-                            type="checkbox"
-                            id="isFixed"
-                            checked={isFixed}
-                            onChange={e => setIsFixed(e.target.checked)}
-                            style={{
-                                width: '40px',
-                                height: '22px',
-                                appearance: 'none',
-                                backgroundColor: isFixed ? 'var(--color-primary)' : '#e2e8f0',
-                                borderRadius: '999px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                position: 'relative',
-                            }}
-                        />
+                <div
+                    onClick={() => setIsFixed(!isFixed)}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.85rem 1rem',
+                        borderRadius: '14px',
+                        border: isFixed ? '1.5px solid #818cf8' : '1.5px solid #e2e8f0',
+                        background: isFixed ? 'rgba(99, 102, 241, 0.04)' : '#ffffff',
+                        cursor: 'pointer',
+                        transition: 'all 0.25s ease',
+                        userSelect: 'none' as const,
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{
+                            width: '36px', height: '36px', borderRadius: '10px',
+                            background: isFixed ? 'linear-gradient(135deg, #6366f1, #818cf8)' : '#f1f5f9',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.25s ease',
+                        }}>
+                            <Calendar size={16} color={isFixed ? 'white' : '#94a3b8'} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', display: 'block' }}>
+                                Lançamento Fixo
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                                Repete todo mês automaticamente
+                            </span>
+                        </div>
                     </div>
-                    <label htmlFor="isFixed" style={{ fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>
-                        Lançamento fixo (mensal)
-                    </label>
+                    <div style={{
+                        width: '48px', height: '26px',
+                        borderRadius: '999px',
+                        backgroundColor: isFixed ? '#6366f1' : '#e2e8f0',
+                        position: 'relative',
+                        transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        boxShadow: isFixed ? '0 0 12px rgba(99, 102, 241, 0.3)' : 'none',
+                        flexShrink: 0,
+                    }}>
+                        <div style={{
+                            width: '20px', height: '20px',
+                            borderRadius: '50%',
+                            backgroundColor: '#ffffff',
+                            position: 'absolute',
+                            top: '3px',
+                            left: isFixed ? '25px' : '3px',
+                            transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                        }} />
+                    </div>
                 </div>
 
                 <AttachmentManager attachments={attachments} onChange={setAttachments} />

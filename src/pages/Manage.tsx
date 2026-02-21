@@ -270,4 +270,3 @@ export const Manage: React.FC = () => {
         </div>
     );
 };
-

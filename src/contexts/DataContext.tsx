@@ -7,7 +7,7 @@ import { addMonths, parseISO } from 'date-fns';
 
 interface DataContextType {
     data: AppData;
-    addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number }) => void;
+    addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => void;
     updateTransaction: (id: string, tx: Partial<Transaction>) => void;
     deleteTransaction: (id: string) => void;
     addCategory: (cat: Omit<Category, 'id'>) => void;
@@ -64,10 +64,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setData(StorageService.load(user?.email));
     };
 
-    const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {
-        const { installments, ...baseTx } = tx;
-        const count = installments || 1;
-        const installmentId = count > 1 ? uuidv4() : undefined;
+    const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => {
+        const { installments, recurrenceCount, ...baseTx } = tx;
+
+        // Determine how many entries to generate:
+        // - Credit card installments (despesas parceladas)
+        // - Recurring income (receitas recorrentes)
+        const count = (baseTx.isRecurring && recurrenceCount && recurrenceCount > 1)
+            ? recurrenceCount
+            : (installments || 1);
+
+        const groupId = count > 1 ? uuidv4() : undefined;
 
         const newTransactions: Transaction[] = [];
         const baseDate = parseISO(baseTx.date);
@@ -81,9 +88,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 id: uuidv4(),
                 date,
                 description,
-                installmentId,
+                installmentId: groupId,
                 installmentNumber: i + 1,
                 totalInstallments: count > 1 ? count : undefined,
+                isRecurring: baseTx.isRecurring || false,
+                recurrenceCount: baseTx.isRecurring ? count : undefined,
                 createdAt: Date.now(),
                 updatedAt: Date.now()
             });

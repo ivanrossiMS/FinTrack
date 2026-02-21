@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import {
-    Home, DollarSign, PieChart, List, User, LogOut,
-    Settings, ShieldCheck, Calendar, Target, Crown
-} from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { ViewModeBanner } from '../admin/ViewModeBanner';
+import { GlobalVoiceModal } from '../voice/GlobalVoiceModal';
+import logoIcon from '/icon.svg';
 
 export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
     const navigate = useNavigate();
+    const [voiceOpen, setVoiceOpen] = React.useState(false);
 
     const handleLogout = () => {
         logout();
@@ -40,13 +40,23 @@ export const Layout: React.FC = () => {
 
     return (
         <div className="app-layout">
-            <aside className="sidebar">
+            {/* Desktop Sidebar / Mobile Bottom Nav Placeholder */}
+            <aside className="sidebar bottom-nav">
+                {/* ── Brand Top ── */}
+                <div className="sidebar-brand">
+                    <img src={logoIcon} alt="Finance+" className="sidebar-brand-icon" />
+                    <div className="sidebar-brand-text">
+                        <span className="sidebar-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
+                        <span className="sidebar-brand-slogan">O jeito moderno de controlar gastos.</span>
+                    </div>
+                </div>
+
                 <div className="sidebar-header">
                     <NavLink to="/profile" className="sidebar-avatar-container">
                         {user?.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            <img src={user.avatar} alt={user.name} />
                         ) : (
-                            <User size={40} className="text-text-light" />
+                            <User size={24} className="text-text-light" />
                         )}
                     </NavLink>
                     <div className="sidebar-user-info">
@@ -72,15 +82,17 @@ export const Layout: React.FC = () => {
 
                     <button
                         onClick={handleLogout}
-                        className="nav-item text-danger hover:bg-danger-light mt-auto border-none"
+                        className="nav-item nav-item-logout border-none"
                     >
                         <LogOut size={22} />
                         <span className="nav-label">SAIR</span>
                     </button>
 
-                    <div style={{ marginTop: '1rem', padding: '0 1rem', fontSize: '0.625rem', opacity: 0.4, textAlign: 'center' }}>
-                        @copyright by Ivan Rossi - <br /> todos direitos reservados
+                    {/* ── Copyright ── */}
+                    <div className="sidebar-copyright">
+                        © {new Date().getFullYear()} Ivan Rossi
                     </div>
+
                 </div>
             </aside>
 
@@ -96,6 +108,26 @@ export const Layout: React.FC = () => {
                     <Outlet />
                 </div>
             </main>
+
+            {/* ── Neural Pulse AI Button (FAB) ── */}
+            <button
+                className="ai-fab-neural"
+                onClick={() => setVoiceOpen(true)}
+                title="Assistente IA por Voz"
+            >
+                <div className="ai-fab-glow"></div>
+                <div className="ai-fab-rings">
+                    <div className="ring ring-1"></div>
+                    <div className="ring ring-2"></div>
+                </div>
+                <div className="ai-fab-core">
+                    <Mic size={24} strokeWidth={2.5} />
+                    <span className="ai-fab-label">IA</span>
+                </div>
+            </button>
+
+            {/* Global Voice Assistant Modal */}
+            <GlobalVoiceModal isOpen={voiceOpen} onClose={() => setVoiceOpen(false)} />
         </div>
     );
 };

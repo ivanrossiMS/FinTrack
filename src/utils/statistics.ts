@@ -11,8 +11,10 @@ export interface DashboardStats {
 }
 
 export interface DayBalance {
-    date: string; // ISO date
+    date: string; // formatted date
     balance: number;
+    income: number;
+    expense: number;
 }
 
 export interface CategoryExpense {
@@ -66,7 +68,16 @@ export const calculateStats = (transactions: Transaction[], startDate: Date, end
 
 export const getDailyBalance = (transactions: Transaction[], startDate: Date, endDate: Date): DayBalance[] => {
     const allDays = eachDayOfInterval({ start: startDate, end: endDate });
-    let currentBalance = 0;
+    const periodStart = startOfDay(startDate);
+
+    // Calculate the cumulative balance from ALL transactions BEFORE the period starts
+    let currentBalance = transactions.reduce((acc, t) => {
+        const txDate = toLocalDate(t.date);
+        if (txDate < periodStart) {
+            return t.type === 'INCOME' ? acc + t.amount : acc - t.amount;
+        }
+        return acc;
+    }, 0);
 
     const results: DayBalance[] = allDays.map(day => {
         const targetDay = startOfDay(day);
@@ -82,14 +93,16 @@ export const getDailyBalance = (transactions: Transaction[], startDate: Date, en
 
         return {
             date: format(day, 'dd/MM'),
-            balance: currentBalance
+            balance: currentBalance,
+            income: dayIncome,
+            expense: dayExpense,
         };
     });
 
     // If we only have one day (e.g., "Today" filter), AreaChart needs a point of origin to render a line/area.
     if (results.length === 1) {
         return [
-            { date: 'Início', balance: 0 },
+            { date: 'Início', balance: currentBalance - (results[0].income - results[0].expense), income: 0, expense: 0 },
             ...results
         ];
     }

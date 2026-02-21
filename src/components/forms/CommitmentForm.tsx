@@ -41,7 +41,8 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
             attachments
         };
 
-        if (editingCommitment) {
+        // Update only if there's an existing id; voice-prefill has no id, so creates new
+        if (editingCommitment?.id) {
             updateCommitment(editingCommitment.id, payload);
         } else {
             addCommitment(payload);
