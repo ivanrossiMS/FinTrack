@@ -146,14 +146,13 @@ export const Layout: React.FC = () => {
 
             {/* ── Mobile Floating Bottom Nav ── */}
             <nav className="mobile-bottom-nav">
-                {mainNavItems.slice(0, 5).map(({ path, icon: Icon, label }) => (
+                {mainNavItems.slice(0, 5).map(({ path, icon: Icon }) => (
                     <NavLink
                         key={path}
                         to={path}
                         className={({ isActive }) => clsx("mobile-nav-item", isActive && "active")}
                     >
-                        <Icon size={22} />
-                        <span className="mobile-nav-label">{label.split(' ')[0]}</span>
+                        <Icon size={26} strokeWidth={2.5} />
                     </NavLink>
                 ))}
             </nav>
