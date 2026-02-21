@@ -9,6 +9,7 @@ import { formatCurrency, formatDate } from '../utils/format';
 import { BalanceChart } from '../components/charts/BalanceChart';
 import { ExpensesPieChart } from '../components/charts/ExpensesPieChart';
 import { InsightsCard } from '../components/charts/InsightsCard';
+import { AICapitalAllocation } from '../components/dashboard/AICapitalAllocation';
 import { ArrowUpCircle, ArrowDownCircle, Wallet, AlertCircle, Calendar, Clock } from 'lucide-react';
 import './Dashboard.css';
 
@@ -165,7 +166,8 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Financial Insights Section */}
-            <div style={{ marginTop: '2rem' }}>
+            <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+                <AICapitalAllocation />
                 <InsightsCard
                     stats={stats}
                     categoryExpenses={categoryExpenses}

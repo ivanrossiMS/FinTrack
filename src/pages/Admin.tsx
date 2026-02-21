@@ -20,6 +20,7 @@ export const Admin: React.FC = () => {
     const [editAvatar, setEditAvatar] = useState('');
     const [editIsAuthorized, setEditIsAuthorized] = useState(true);
     const [editPlan, setEditPlan] = useState<'FREE' | 'PREMIUM'>('FREE');
+    const [editIsAdmin, setEditIsAdmin] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -38,6 +39,7 @@ export const Admin: React.FC = () => {
         setEditAvatar(user.avatar || '');
         setEditIsAuthorized(user.isAuthorized !== false);
         setEditPlan(user.plan || 'FREE');
+        setEditIsAdmin(user.isAdmin || false);
         setIsEditModalOpen(true);
     };
 
@@ -53,7 +55,8 @@ export const Admin: React.FC = () => {
             password: editPassword,
             avatar: editAvatar,
             isAuthorized: editIsAuthorized,
-            plan: editPlan
+            plan: editPlan,
+            isAdmin: editIsAdmin
         });
 
         setIsEditModalOpen(false);
@@ -330,6 +333,32 @@ export const Admin: React.FC = () => {
                                 </label>
                             </div>
                         </div>
+
+                        {/* Master Admin Only: Promote to Admin */}
+                        {currentUser?.email === 'ivanrossi@outlook.com' && editingUser?.email !== 'ivanrossi@outlook.com' && (
+                            <div className="space-y-3 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+                                <label className="text-[11px] font-black text-text-muted uppercase tracking-widest pl-1">Poder Administrativo</label>
+                                <div className="auth-toggle-control">
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <div
+                                            className={`custom-switch ${editIsAdmin ? 'active' : ''}`}
+                                            style={editIsAdmin ? { background: 'linear-gradient(135deg, #7C3AED, #3B82F6)' } : {}}
+                                            onClick={() => setEditIsAdmin(!editIsAdmin)}
+                                        >
+                                            <div className="switch-knob" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-text">
+                                                {editIsAdmin ? 'Administrador do Sistema' : 'Usuário Comum'}
+                                            </span>
+                                            <span className="text-[10px] text-text-muted font-semibold leading-tight">
+                                                Permite acesso ao Painel Admin e gestão de usuários.
+                                            </span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-4 pt-6 border-t border-gray-100">
