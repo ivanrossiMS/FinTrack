@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/format';
 import { Sparkles, TrendingUp, ArrowRight, Info } from 'lucide-react';
@@ -7,6 +8,7 @@ import { addDays, isBefore, isAfter, endOfDay } from 'date-fns';
 
 export const AICapitalAllocation: React.FC = () => {
     const { data } = useData();
+    const navigate = useNavigate();
 
     const insight = useMemo(() => {
         // 1. Calculate Current Balance
@@ -168,6 +170,7 @@ export const AICapitalAllocation: React.FC = () => {
                             e.currentTarget.style.transform = 'none';
                             e.currentTarget.style.background = '#1e293b';
                         }}
+                        onClick={() => navigate('/savings')}
                     >
                         Investir <ArrowRight size={14} />
                     </button>

@@ -167,12 +167,12 @@ export const Dashboard: React.FC = () => {
 
             {/* Financial Insights Section */}
             <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
-                <AICapitalAllocation />
                 <InsightsCard
                     stats={stats}
                     categoryExpenses={categoryExpenses}
                     transactionCount={data.transactions.length}
                 />
+                <AICapitalAllocation />
             </div>
 
             {/* ── Upcoming Commitments ── */}
