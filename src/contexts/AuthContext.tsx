@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (session?.user) {
                 // Fetch profile data
                 const { data: profile } = await supabase
-                    .from('profiles')
+                    .from('user_profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
                 const { data: profile } = await supabase
-                    .from('profiles')
+                    .from('user_profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (data.user) {
                 const { data: profile } = await supabase
-                    .from('profiles')
+                    .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 // Create profile in our custom table
                 const { error: profileError } = await supabase
-                    .from('profiles')
+                    .from('user_profiles')
                     .insert([
                         {
                             id: data.user.id,
@@ -207,7 +207,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!user?.id) return;
 
         const { error } = await supabase
-            .from('profiles')
+            .from('user_profiles')
             .update({
                 name: updatedUser.name,
                 avatar: updatedUser.avatar,
@@ -225,7 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const adminUpdateUserInfo = async (targetId: string, updates: any) => {
         const { error } = await supabase
-            .from('profiles')
+            .from('user_profiles')
             .update({
                 is_admin: updates.isAdmin,
                 is_authorized: updates.isAuthorized,
