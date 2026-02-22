@@ -14,18 +14,27 @@ export const Register: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
 
         if (password !== confirmPassword) {
             setError('As senhas não coincidem');
             return;
         }
 
-        const success = await register(name, email, password);
-        if (success) {
-            navigate('/');
+        setIsLoading(true);
+        try {
+            const success = await register(name, email, password);
+            if (success) {
+                navigate('/');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Erro ao criar conta.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -102,7 +111,9 @@ export const Register: React.FC = () => {
                         error={error}
                         required
                     />
-                    <Button type="submit" fullWidth>Cadastrar</Button>
+                    <Button type="submit" fullWidth disabled={loading}>
+                        {loading ? 'Criando conta...' : 'Cadastrar'}
+                    </Button>
                 </form>
 
                 <div className="text-center mt-4">

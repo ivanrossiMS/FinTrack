@@ -14,19 +14,24 @@ export const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
+    const [loading, setIsSubmitLoading] = useState(false);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setIsSubmitLoading(true);
 
         try {
             const success = await login(email, password);
             if (success) {
                 navigate('/');
             } else {
-                setError('E-mail ou senha incorretos ou conta não autorizada.');
+                setError('E-mail ou senha incorretos ou conta ainda não autorizada.');
             }
-        } catch (err) {
-            setError('Ocorreu um erro ao tentar entrar. Tente novamente.');
+        } catch (err: any) {
+            setError(err.message || 'Ocorreu um erro ao tentar entrar. Tente novamente.');
+        } finally {
+            setIsSubmitLoading(false);
         }
     };
 
@@ -68,7 +73,9 @@ export const Login: React.FC = () => {
                             Esqueceu a senha?
                         </Link>
                     </div>
-                    <Button type="submit" fullWidth size="lg">Entrar na conta</Button>
+                    <Button type="submit" fullWidth size="lg" disabled={loading}>
+                        {loading ? 'Entrando...' : 'Entrar na conta'}
+                    </Button>
                 </form>
 
                 <div className="register-footer">
