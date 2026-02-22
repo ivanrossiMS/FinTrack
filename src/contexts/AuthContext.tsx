@@ -138,6 +138,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     .eq('id', data.user.id)
                     .single();
 
+                if (profileError && profileError.code !== 'PGRST116') {
+                    console.error('Error fetching user profile:', profileError);
+                }
+
                 if (profile) {
                     // ... existing profile logic
                     if (!profile.is_authorized && profile.email !== 'ivanrossi@outlook.com') {
