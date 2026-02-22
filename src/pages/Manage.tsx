@@ -109,47 +109,96 @@ export const Manage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mng-grid-cards">
-                            {data.categories.map((cat) => {
-                                const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
-
-                                return (
-                                    <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
-                                        <div
-                                            className="mng-card-visual"
-                                            style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
-                                        >
-                                            <IconComponent size={24} strokeWidth={2.5} />
-                                        </div>
-
-                                        <div className="mng-card-body">
-                                            <div className="mng-card-main">
-                                                <h3>{cat.name}</h3>
-                                                <span className={`mng-type-pill ${cat.type === 'INCOME' ? 'income' : 'expense'}`}>
-                                                    {cat.type === 'INCOME' ? 'Receita' : 'Despesa'}
-                                                </span>
+                        <div className="mng-type-section">
+                            {/* --- SEÇÃO DE RECEITAS --- */}
+                            <div className="mng-section-header income">
+                                <div className="dot" />
+                                <h2>Receitas</h2>
+                            </div>
+                            <div className="mng-grid-cards">
+                                {data.categories.filter(c => c.type === 'INCOME').map((cat) => {
+                                    const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
+                                    return (
+                                        <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
+                                            <div
+                                                className="mng-card-visual"
+                                                style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                                            >
+                                                <IconComponent size={24} strokeWidth={2.5} />
                                             </div>
 
-                                            {cat.isDefault && (
-                                                <div className="mng-system-badge">
-                                                    <Icons.Lock size={10} /> <span>FIXO</span>
+                                            <div className="mng-card-body">
+                                                <div className="mng-card-main">
+                                                    <h3>{cat.name}</h3>
+                                                    <span className="mng-type-pill income">Receita</span>
                                                 </div>
-                                            )}
-                                        </div>
 
-                                        <div className="mng-card-footer">
-                                            <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
-                                                <Edit2 size={16} />
-                                            </button>
-                                            {!cat.isDefault && (
-                                                <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
-                                                    <Trash2 size={16} />
+                                                {cat.isDefault && (
+                                                    <div className="mng-system-badge">
+                                                        <Icons.Lock size={10} /> <span>FIXO</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mng-card-footer">
+                                                <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
+                                                    <Edit2 size={16} />
                                                 </button>
-                                            )}
+                                                {!cat.isDefault && (
+                                                    <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
+
+                            {/* --- SEÇÃO DE DESPESAS --- */}
+                            <div className="mng-section-header expense">
+                                <div className="dot" />
+                                <h2>Despesas</h2>
+                            </div>
+                            <div className="mng-grid-cards">
+                                {data.categories.filter(c => c.type === 'EXPENSE').map((cat) => {
+                                    const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
+                                    return (
+                                        <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
+                                            <div
+                                                className="mng-card-visual"
+                                                style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                                            >
+                                                <IconComponent size={24} strokeWidth={2.5} />
+                                            </div>
+
+                                            <div className="mng-card-body">
+                                                <div className="mng-card-main">
+                                                    <h3>{cat.name}</h3>
+                                                    <span className="mng-type-pill expense">Despesa</span>
+                                                </div>
+
+                                                {cat.isDefault && (
+                                                    <div className="mng-system-badge">
+                                                        <Icons.Lock size={10} /> <span>FIXO</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mng-card-footer">
+                                                <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                {!cat.isDefault && (
+                                                    <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 )}

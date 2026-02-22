@@ -57,6 +57,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [user?.email, user?.isAdmin]);
 
     useEffect(() => {
+        // --- AUTO-SYNC FIXED CATEGORIES ---
+        // Ensures all 30 elite categories from DEFAULT_CATEGORIES are present in the user's profile.
+        // Or just use the imported list if shared
+        // If StorageService.loadGlobalCategories() is null, we can fall back to the one in storage.ts
+        // Actually, it's safer to compare with the source of truth from storage.ts if accessible, 
+        // but here we can just use a helper to get them.
+
+        const currentCats = data.categories;
+        const missingDefaults = (StorageService as any).DEFAULT_CATEGORIES_SOURCE?.filter((def: Category) =>
+            !currentCats.find(c => c.id === def.id || c.name.toLowerCase() === def.name.toLowerCase())
+        ) || [];
+
+        if (missingDefaults.length > 0) {
+            setData(prev => ({
+                ...prev,
+                categories: [...prev.categories, ...missingDefaults]
+            }));
+        }
+    }, [data.categories.length]); // Track length to avoid infinite loops but catch additions
+
+    useEffect(() => {
         // Sincronizar qualquer mudança de estado com o localStorage relativo ao usuário
         StorageService.save(data, user?.email);
     }, [data, user?.email]);

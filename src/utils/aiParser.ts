@@ -118,8 +118,8 @@ const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
     },
     {
         keywords: ['investimento', 'ações', 'acoes', 'bolsa', 'fundo', 'tesouro', 'cdb',
-            'poupança', 'poupanca', 'renda fixa', 'cripto', 'bitcoin'],
-        themes: ['Rendimentos'],
+            'poupança', 'poupanca', 'renda fixa', 'cripto', 'bitcoin', 'aplicação', 'investir'],
+        themes: ['Rendimentos', 'Investimentos'],
     },
     {
         keywords: ['pet', 'cachorro', 'gato', 'ração', 'racao', 'veterinário', 'veterinario',

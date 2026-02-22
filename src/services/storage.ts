@@ -26,6 +26,7 @@ const DEFAULT_CATEGORIES: Category[] = [
     { id: 'cat_alimentacao', name: 'Alimentação', type: 'EXPENSE', color: '#fb7185', icon: 'Utensils', isDefault: true },
     { id: 'cat_lazer', name: 'Lazer', type: 'EXPENSE', color: '#a855f7', icon: 'Gamepad2', isDefault: true },
     { id: 'cat_saude', name: 'Saúde', type: 'EXPENSE', color: '#f43f5e', icon: 'Activity', isDefault: true },
+    { id: 'cat_investimentos', name: 'Investimentos', type: 'EXPENSE', color: '#06b6d4', icon: 'TrendingUp', isDefault: true },
     { id: 'cat_extras', name: 'Extras', type: 'EXPENSE', color: '#94a3b8', icon: 'MoreHorizontal', isDefault: true },
 
     // --- RECEITAS (Elite Palette: Growth, Success, Vibrant) ---
@@ -60,6 +61,7 @@ const INITIAL_DATA: AppData = {
 };
 
 export const StorageService = {
+    DEFAULT_CATEGORIES_SOURCE: DEFAULT_CATEGORIES,
     save(data: AppData, userEmail?: string) {
         const key = userEmail ? `${STORAGE_KEY}_${userEmail}` : STORAGE_KEY;
         localStorage.setItem(key, JSON.stringify(data));
