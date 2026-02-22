@@ -110,200 +110,206 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Login attempt started for:', email);
+        console.log('Login: Iniciando tentativa para', email);
         try {
             const loginPromise = supabase.auth.signInWithPassword({ email, password });
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido.')), 15000)
+                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Login (40s).')), 40000)
             );
 
+            console.log('Login: Aguardando resposta do Supabase Auth...');
             const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
 
             if (error) {
+                console.error('Login: Erro no Auth do Supabase:', error);
                 return { success: false, error: error.message };
             }
 
-            if (data.user) {
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .single();
+            console.log('Login: Auth OK! Buscando perfil do usuário...');
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .single();
 
-                if (profile) {
-                    const profileEmail = profile.email?.toLowerCase();
-                    const masterEmail = 'ivanrossi@outlook.com';
+            if (profile) {
+                const profileEmail = profile.email?.toLowerCase();
+                const masterEmail = 'ivanrossi@outlook.com';
 
-                    if (!profile.is_authorized && profileEmail !== masterEmail) {
-                        await supabase.auth.signOut();
-                        return { success: false, error: "Sua conta ainda não foi autorizada pelo administrador." };
-                    }
-
-                    setUser({
-                        id: data.user.id,
-                        name: profile.name,
-                        email: profile.email,
-                        avatar: profile.avatar,
-                        isAdmin: profile.is_admin,
-                        isAuthorized: profile.is_authorized,
-                        plan: profile.plan
-                    });
-                    setIsAuthenticated(true);
-                    return { success: true };
-                } else {
-                    const userEmail = data.user.email?.toLowerCase();
-                    const masterEmail = 'ivanrossi@outlook.com';
-                    const isMasterAdmin = userEmail === masterEmail;
-
-                    const { error: recoveryError } = await supabase
-                        .from('user_profiles')
-                        .insert([{
-                            id: data.user.id,
-                            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário',
-                            email: data.user.email,
-                            is_admin: isMasterAdmin,
-                            is_authorized: true,
-                            plan: 'FREE'
-                        }]);
-
-                    if (recoveryError) return { success: false, error: "Erro ao criar perfil: " + recoveryError.message };
-
-                    const { data: newProfile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
-                    if (newProfile) {
-                        setUser({
-                            id: data.user.id,
-                            name: newProfile.name,
-                            email: newProfile.email,
-                            isAdmin: newProfile.is_admin,
-                            isAuthorized: newProfile.is_authorized,
-                            plan: newProfile.plan
-                        });
-                        setIsAuthenticated(true);
-                        return { success: true };
-                    }
+                if (!profile.is_authorized && profileEmail !== masterEmail) {
+                    await supabase.auth.signOut();
+                    return { success: false, error: "Sua conta ainda não foi autorizada pelo administrador." };
                 }
-            }
-            return { success: false, error: "Usuário não encontrado." };
-        } catch (err: any) {
-            return { success: false, error: err.message || "Erro inesperado." };
-        }
-    };
 
-    const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Register attempt started for:', email);
-        try {
-            const registerPromise = supabase.auth.signUp({
-                email,
-                password,
-                options: { data: { name } }
-            });
-
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no cadastro.')), 15000)
-            );
-
-            const { data, error } = await Promise.race([registerPromise, timeoutPromise]) as any;
-
-            if (error) return { success: false, error: error.message };
-
-            if (data.user) {
-                const userEmail = email.toLowerCase();
+                setUser({
+                    id: data.user.id,
+                    name: profile.name,
+                    email: profile.email,
+                    avatar: profile.avatar,
+                    isAdmin: profile.is_admin,
+                    isAuthorized: profile.is_authorized,
+                    plan: profile.plan
+                });
+                setIsAuthenticated(true);
+                return { success: true };
+            } else {
+                const userEmail = data.user.email?.toLowerCase();
                 const masterEmail = 'ivanrossi@outlook.com';
                 const isMasterAdmin = userEmail === masterEmail;
 
-                await supabase.from('user_profiles').upsert([{
-                    id: data.user.id,
-                    name,
-                    email: email,
-                    is_admin: isMasterAdmin,
-                    is_authorized: isMasterAdmin,
-                    plan: 'FREE'
-                }]);
+                const { error: recoveryError } = await supabase
+                    .from('user_profiles')
+                    .insert([{
+                        id: data.user.id,
+                        name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário',
+                        email: data.user.email,
+                        is_admin: isMasterAdmin,
+                        is_authorized: true,
+                        plan: 'FREE'
+                    }]);
 
-                if (isMasterAdmin) {
-                    setUser({ id: data.user.id, name, email, isAdmin: true, isAuthorized: true, plan: 'FREE' });
+                if (recoveryError) return { success: false, error: "Erro ao criar perfil: " + recoveryError.message };
+
+                const { data: newProfile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
+                if (newProfile) {
+                    setUser({
+                        id: data.user.id,
+                        name: newProfile.name,
+                        email: newProfile.email,
+                        isAdmin: newProfile.is_admin,
+                        isAuthorized: newProfile.is_authorized,
+                        plan: newProfile.plan
+                    });
                     setIsAuthenticated(true);
                     return { success: true };
-                } else {
-                    return { success: true, error: "AUTORIZACAO_PENDENTE" };
                 }
             }
-            return { success: false, error: "Falha na criação do usuário." };
-        } catch (err: any) {
-            return { success: false, error: err.message || "Erro inesperado." };
         }
-    };
-
-    const logout = async () => {
-        await supabase.auth.signOut();
-        setIsAuthenticated(false);
-        setUser(null);
-    };
-
-    const updateUser = async (updatedUser: any) => {
-        if (!user?.id) return;
-        const { error } = await supabase.from('user_profiles').update({
-            name: updatedUser.name,
-            avatar: updatedUser.avatar,
-            phone: updatedUser.phone,
-            profession: updatedUser.profession
-        }).eq('id', user.id);
-        if (!error) setUser({ ...user, ...updatedUser });
-    };
-
-    const adminUpdateUserInfo = async (targetId: string, updates: any) => {
-        await supabase.from('user_profiles').update({
-            is_admin: updates.isAdmin,
-            is_authorized: updates.isAuthorized,
-            plan: updates.plan
-        }).eq('id', targetId);
-    };
-
-    const impersonateUser = (email: string) => {
-        if (!user || (!user.isAdmin && !isImpersonating)) return;
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const target = users.find((u: any) => u.email === email);
-        if (!target) return;
-        if (!isImpersonating) localStorage.setItem('fintrack_original_admin', JSON.stringify(user));
-        const userSession = {
-            name: target.name,
-            email: target.email,
-            avatar: target.avatar,
-            isAdmin: target.isAdmin || target.email === 'ivanrossi@outlook.com'
-        };
-        setUser(userSession);
-        setIsImpersonating(true);
-    };
-
-    const stopImpersonating = () => {
-        const originalAdmin = localStorage.getItem('fintrack_original_admin');
-        if (!originalAdmin) {
-            logout();
-            return;
-        }
-        setUser(JSON.parse(originalAdmin));
-        localStorage.removeItem('fintrack_impersonating');
-        localStorage.removeItem('fintrack_original_admin');
-        setIsImpersonating(false);
-    };
-
-    const changePassword = async (_currentPass: string, _newPass: string) => {
-        return { success: true, message: 'Senha alterada com sucesso!' };
-    };
-
-    if (loading) {
-        return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Carregando Finance+...</div>;
+            return { success: false, error: "Usuário não encontrado." };
+    } catch (err: any) {
+        return { success: false, error: err.message || "Erro inesperado." };
     }
+};
 
-    return (
-        <AuthContext.Provider value={{
-            isAuthenticated, user, login, register, logout, updateUser, adminUpdateUserInfo, impersonateUser, stopImpersonating, changePassword, isImpersonating, loading,
-            supabaseUrl: supUrl,
-            supabaseKeyMasked: maskedKey
-        }}>
-            {children}
-        </AuthContext.Provider>
-    );
+const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    console.log('Cadastro: Iniciando tentativa para', email);
+    try {
+        const registerPromise = supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { name } }
+        });
+
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Cadastro (40s).')), 40000)
+        );
+
+        console.log('Cadastro: Aguardando resposta do Supabase Auth...');
+        const { data, error } = await Promise.race([registerPromise, timeoutPromise]) as any;
+
+        if (error) {
+            console.error('Cadastro: Erro no Auth do Supabase:', error);
+            return { success: false, error: error.message };
+        }
+
+        console.log('Cadastro: Auth OK! Criando perfil no banco de dados...');
+        const userEmail = email.toLowerCase();
+        const masterEmail = 'ivanrossi@outlook.com';
+        const isMasterAdmin = userEmail === masterEmail;
+
+        await supabase.from('user_profiles').upsert([{
+            id: data.user.id,
+            name,
+            email: email,
+            is_admin: isMasterAdmin,
+            is_authorized: isMasterAdmin,
+            plan: 'FREE'
+        }]);
+
+        if (isMasterAdmin) {
+            setUser({ id: data.user.id, name, email, isAdmin: true, isAuthorized: true, plan: 'FREE' });
+            setIsAuthenticated(true);
+            return { success: true };
+        } else {
+            return { success: true, error: "AUTORIZACAO_PENDENTE" };
+        }
+    }
+            return { success: false, error: "Falha na criação do usuário." };
+} catch (err: any) {
+    return { success: false, error: err.message || "Erro inesperado." };
+}
+    };
+
+const logout = async () => {
+    await supabase.auth.signOut();
+    setIsAuthenticated(false);
+    setUser(null);
+};
+
+const updateUser = async (updatedUser: any) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from('user_profiles').update({
+        name: updatedUser.name,
+        avatar: updatedUser.avatar,
+        phone: updatedUser.phone,
+        profession: updatedUser.profession
+    }).eq('id', user.id);
+    if (!error) setUser({ ...user, ...updatedUser });
+};
+
+const adminUpdateUserInfo = async (targetId: string, updates: any) => {
+    await supabase.from('user_profiles').update({
+        is_admin: updates.isAdmin,
+        is_authorized: updates.isAuthorized,
+        plan: updates.plan
+    }).eq('id', targetId);
+};
+
+const impersonateUser = (email: string) => {
+    if (!user || (!user.isAdmin && !isImpersonating)) return;
+    const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+    const target = users.find((u: any) => u.email === email);
+    if (!target) return;
+    if (!isImpersonating) localStorage.setItem('fintrack_original_admin', JSON.stringify(user));
+    const userSession = {
+        name: target.name,
+        email: target.email,
+        avatar: target.avatar,
+        isAdmin: target.isAdmin || target.email === 'ivanrossi@outlook.com'
+    };
+    setUser(userSession);
+    setIsImpersonating(true);
+};
+
+const stopImpersonating = () => {
+    const originalAdmin = localStorage.getItem('fintrack_original_admin');
+    if (!originalAdmin) {
+        logout();
+        return;
+    }
+    setUser(JSON.parse(originalAdmin));
+    localStorage.removeItem('fintrack_impersonating');
+    localStorage.removeItem('fintrack_original_admin');
+    setIsImpersonating(false);
+};
+
+const changePassword = async (_currentPass: string, _newPass: string) => {
+    return { success: true, message: 'Senha alterada com sucesso!' };
+};
+
+if (loading) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Carregando Finance+...</div>;
+}
+
+return (
+    <AuthContext.Provider value={{
+        isAuthenticated, user, login, register, logout, updateUser, adminUpdateUserInfo, impersonateUser, stopImpersonating, changePassword, isImpersonating, loading,
+        supabaseUrl: supUrl,
+        supabaseKeyMasked: maskedKey
+    }}>
+        {children}
+    </AuthContext.Provider>
+);
 };
 
 export const useAuth = () => {
