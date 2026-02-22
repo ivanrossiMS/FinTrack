@@ -146,6 +146,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setUser(userSession);
                     setIsAuthenticated(true);
                     return true;
+                } else {
+                    alert("Aviso: Login efetuado, mas perfil não encontrado na tabela 'user_profiles'. Verifique o banco de dados.");
+                    return false;
                 }
             }
             return false;
@@ -189,6 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (profileError) {
                     console.error('Error creating profile:', profileError);
+                    alert(`O login foi criado, mas houve um erro ao criar o perfil: ${profileError.message}`);
                 }
 
                 if (isMasterAdmin) {
