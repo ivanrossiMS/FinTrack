@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { useData } from '../contexts/DataContext';
-import { Plus, Trash2, Truck, CreditCard, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Truck, CreditCard, Edit2, RotateCcw } from 'lucide-react';
 import { CategoryForm } from '../components/forms/CategoryForm';
 import { SupplierForm } from '../components/forms/SupplierForm';
 import { PaymentMethodForm } from '../components/forms/PaymentMethodForm';
@@ -11,7 +11,7 @@ import { Category, Supplier, PaymentMethod } from '../models/types';
 import './Manage.css';
 
 export const Manage: React.FC = () => {
-    const { data, deleteCategory, deleteSupplier, deletePaymentMethod } = useData();
+    const { data, deleteCategory, deleteSupplier, deletePaymentMethod, resetCategories } = useData();
     const [activeTab, setActiveTab] = useState<'categories' | 'suppliers' | 'methods'>('categories');
 
     // Modals state
@@ -94,9 +94,18 @@ export const Manage: React.FC = () => {
                                 <h2>Categorias</h2>
                                 <span>Categorização de lançamentos</span>
                             </div>
-                            <Button onClick={() => { setEditingCategory(undefined); setIsCategoryModalOpen(true); }} size="sm" className="rounded-full">
-                                <Plus size={18} /> <span>Novo</span>
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button onClick={() => {
+                                    if (confirm('Deseja restaurar as categorias padrão do Finance+? Isso não apagará suas categorias personalizadas.')) {
+                                        resetCategories();
+                                    }
+                                }} size="sm" variant="secondary" className="rounded-full">
+                                    <RotateCcw size={18} /> <span className="hidden md:inline">Restaurar Padrão</span>
+                                </Button>
+                                <Button onClick={() => { setEditingCategory(undefined); setIsCategoryModalOpen(true); }} size="sm" className="rounded-full">
+                                    <Plus size={18} /> <span>Novo</span>
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="mng-table-wrapper">

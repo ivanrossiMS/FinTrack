@@ -28,6 +28,7 @@ interface DataContextType {
     addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
     updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     deleteSavingsGoal: (id: string) => void;
+    resetCategories: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -396,6 +397,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     };
 
+    /**
+     * Resets categories to the new standardized Finance+ list.
+     * Merges current categories with defaults, ensuring all defaults are present and marked.
+     */
+    const resetCategories = () => {
+        setData(prev => {
+            const defaults = StorageService.loadGlobalCategories() || [];
+
+            // Start with a copy of existing non-default categories
+            const userCats = prev.categories.filter(c => !c.id.startsWith('cat_') && !c.isDefault);
+
+            // Merge defaults in
+            const merged = [...defaults, ...userCats];
+
+            // Remove potential duplicates by name (if user manually created one of the defaults)
+            const unique = merged.reduce((acc: Category[], current) => {
+                const x = acc.find(item => item.name === current.name);
+                if (!x) return acc.concat([current]);
+                return acc;
+            }, []);
+
+            return {
+                ...prev,
+                categories: unique
+            };
+        });
+    };
+
     return (
         <DataContext.Provider value={{
             data,
@@ -419,7 +448,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             refresh,
             addSavingsGoal,
             updateSavingsGoal,
-            deleteSavingsGoal
+            deleteSavingsGoal,
+            resetCategories
         }}>
             {children}
         </DataContext.Provider>

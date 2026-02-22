@@ -40,6 +40,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ onClose, initialData
                     autoFocus
                     placeholder="Ex: Alimentação, Salário..."
                     icon={<Layers size={16} />}
+                    disabled={initialData?.isDefault}
                 />
 
                 <Select
@@ -47,6 +48,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ onClose, initialData
                     value={type}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setType(e.target.value as 'INCOME' | 'EXPENSE' | 'BOTH')}
                     icon={<Info size={16} />}
+                    disabled={initialData?.isDefault}
                     options={[
                         { value: 'INCOME', label: 'Receita' },
                         { value: 'EXPENSE', label: 'Despesa' },
@@ -113,7 +115,13 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ onClose, initialData
             {/* Footer */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
                 <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-                <Button type="submit" variant="primary">{initialData ? 'Salvar' : 'Criar Categoria'}</Button>
+                {!initialData?.isDefault ? (
+                    <Button type="submit" variant="primary">{initialData ? 'Salvar' : 'Criar Categoria'}</Button>
+                ) : (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}>
+                        <i>Categoria de sistema (fixa)</i>
+                    </span>
+                )}
             </div>
         </form>
     );
