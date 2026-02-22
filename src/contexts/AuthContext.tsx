@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (data.user) {
-                const { data: profile, error: pError } = await supabase
+                const { data: profile } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
@@ -273,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsImpersonating(false);
     };
 
-    const changePassword = async (currentPass: string, newPass: string) => {
+    const changePassword = async (_currentPass: string, _newPass: string) => {
         // Simplified for this prototype
         return { success: true, message: 'Senha alterada com sucesso!' };
     };
