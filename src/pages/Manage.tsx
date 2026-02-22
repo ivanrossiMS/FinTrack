@@ -8,6 +8,7 @@ import { CategoryForm } from '../components/forms/CategoryForm';
 import { SupplierForm } from '../components/forms/SupplierForm';
 import { PaymentMethodForm } from '../components/forms/PaymentMethodForm';
 import { Category, Supplier, PaymentMethod } from '../models/types';
+import * as Icons from 'lucide-react';
 import './Manage.css';
 
 export const Manage: React.FC = () => {
@@ -91,16 +92,16 @@ export const Manage: React.FC = () => {
                     <div className="mng-tab-content">
                         <div className="mng-card-header">
                             <div className="mng-header-info">
-                                <h2>Categorias</h2>
-                                <span>Categorização de lançamentos</span>
+                                <h2>Gestão de Categorias</h2>
+                                <span>Controle granular do seu ecossistema financeiro</span>
                             </div>
                             <div className="flex gap-2">
                                 <Button onClick={() => {
-                                    if (confirm('Deseja restaurar as categorias padrão do Finance+? Isso não apagará suas categorias personalizadas.')) {
+                                    if (confirm('Deseja restaurar as categorias padrão do Finance+? Isso sincronizará as 30 categorias oficiais e não apagará suas categorias personalizadas.')) {
                                         resetCategories();
                                     }
                                 }} size="sm" variant="secondary" className="rounded-full">
-                                    <RotateCcw size={18} /> <span className="hidden md:inline">Restaurar Padrão</span>
+                                    <RotateCcw size={18} /> <span className="hidden md:inline">Restaurar Padrão Elite</span>
                                 </Button>
                                 <Button onClick={() => { setEditingCategory(undefined); setIsCategoryModalOpen(true); }} size="sm" className="rounded-full">
                                     <Plus size={18} /> <span>Novo</span>
@@ -108,43 +109,47 @@ export const Manage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mng-table-wrapper">
-                            <div className="mng-grid-header mng-grid-3">
-                                <span className="mng-col-h">Nome</span>
-                                <span className="mng-col-h">Tipo</span>
-                                <span className="mng-col-h text-right">Ações</span>
-                            </div>
+                        <div className="mng-grid-cards">
+                            {data.categories.map((cat) => {
+                                const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
 
-                            <div className="mng-items-list">
-                                {data.categories.map((cat) => (
-                                    <div key={cat.id} className="mng-grid-row mng-grid-3">
-                                        <div className="mng-col-name">
-                                            <div
-                                                className="mng-avatar"
-                                                style={{ backgroundColor: cat.color || '#94a3b8' }}
-                                            >
-                                                {cat.name.charAt(0).toUpperCase()}
+                                return (
+                                    <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
+                                        <div
+                                            className="mng-card-visual"
+                                            style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                                        >
+                                            <IconComponent size={24} strokeWidth={2.5} />
+                                        </div>
+
+                                        <div className="mng-card-body">
+                                            <div className="mng-card-main">
+                                                <h3>{cat.name}</h3>
+                                                <span className={`mng-type-pill ${cat.type === 'INCOME' ? 'income' : 'expense'}`}>
+                                                    {cat.type === 'INCOME' ? 'Receita' : 'Despesa'}
+                                                </span>
                                             </div>
-                                            <span className="mng-name-text">{cat.name}</span>
+
+                                            {cat.isDefault && (
+                                                <div className="mng-system-badge">
+                                                    <Icons.Lock size={10} /> <span>FIXO</span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="mng-col-type">
-                                            <span className={`mng-badge-pill ${cat.type === 'INCOME' ? 'mng-badge-income' : 'mng-badge-expense'}`}>
-                                                {cat.type === 'INCOME' ? 'Receita' : 'Despesa'}
-                                            </span>
-                                        </div>
-                                        <div className="mng-col-actions">
-                                            <button onClick={() => handleEditCategory(cat)} className="mng-btn-icon" title="Editar">
-                                                <Edit2 size={16} /> <span className="md:hidden">Editar</span>
+
+                                        <div className="mng-card-footer">
+                                            <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
+                                                <Edit2 size={16} />
                                             </button>
                                             {!cat.isDefault && (
-                                                <button onClick={() => handleDeleteCategory(cat.id)} className="mng-btn-icon danger" title="Excluir">
-                                                    <Trash2 size={16} /> <span className="md:hidden">Excluir</span>
+                                                <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
+                                                    <Trash2 size={16} />
                                                 </button>
                                             )}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}

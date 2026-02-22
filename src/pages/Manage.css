@@ -1,13 +1,161 @@
-/* ===== Manage (Cadastros) Page Refined UI ===== */
+/* ── Elite Grid Cards ── */
+.mng-grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+}
 
-.mng-page {
+.mng-elite-card {
+    background: var(--color-surface);
+    border-radius: 20px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    border: 1px solid var(--color-border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.mng-elite-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-primary-light);
+}
+
+.mng-elite-card.is-system {
+    background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+}
+
+.mng-card-visual {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.mng-elite-card:hover .mng-card-visual {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.mng-card-body {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    padding-bottom: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.mng-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.mng-card-main h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mng-type-pill {
+    font-size: 0.625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: fit-content;
+}
+
+.mng-type-pill.expense {
+    color: var(--color-danger);
+}
+
+.mng-type-pill.income {
+    color: var(--color-success);
+}
+
+.mng-system-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    font-weight: 800;
+    width: fit-content;
+    margin-top: 0.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.mng-card-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.2s ease;
+}
+
+.mng-elite-card:hover .mng-card-footer {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.mng-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.mng-action-btn.edit {
+    color: var(--color-primary);
+}
+
+.mng-action-btn.edit:hover {
+    background: var(--color-primary-light);
+    color: white;
+}
+
+.mng-action-btn.delete {
+    color: var(--color-danger);
+}
+
+.mng-action-btn.delete:hover {
+    background: var(--color-danger-light);
+    color: white;
+}
+
+/* ── Responsive Elite ── */
+@media (max-width: 640px) {
+    .mng-grid-cards {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .mng-card-footer {
+        opacity: 1;
+        transform: none;
+        flex-direction: row;
+        margin-top: 0.5rem;
+    }
 }
 
 /* ── Header ── */
