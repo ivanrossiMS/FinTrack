@@ -103,6 +103,30 @@
 }
 
 /* Variants */
+.tx-summary-card {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tx-summary-card:active {
+    transform: scale(0.98);
+}
+
+.tx-summary-card.active {
+    background: rgba(255, 255, 255, 0.9);
+    border-width: 2px !important;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+}
+
+.tx-summary-card.inactive {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    background: rgba(255, 255, 255, 0.4);
+}
+
 .tx-summary-card.income .tx-summ-icon {
     color: var(--color-success);
 }
@@ -111,8 +135,13 @@
     background: var(--color-success);
 }
 
-.tx-summary-card.income:hover {
+.tx-summary-card.income:hover,
+.tx-summary-card.income.active {
     border-color: var(--color-success);
+}
+
+.tx-summary-card.income.active {
+    box-shadow: 0 10px 25px -10px rgba(34, 197, 94, 0.4);
 }
 
 .tx-summary-card.expense .tx-summ-icon {
@@ -123,8 +152,13 @@
     background: var(--color-danger);
 }
 
-.tx-summary-card.expense:hover {
+.tx-summary-card.expense:hover,
+.tx-summary-card.expense.active {
     border-color: var(--color-danger);
+}
+
+.tx-summary-card.expense.active {
+    box-shadow: 0 10px 25px -10px rgba(239, 68, 68, 0.4);
 }
 
 .tx-summary-card.balance.positive .tx-summ-icon {

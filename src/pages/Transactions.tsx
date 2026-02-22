@@ -360,7 +360,11 @@ export const Transactions: React.FC = () => {
 
             {/* ── Summary Cards ── */}
             <div className="tx-summary-grid">
-                <div className="tx-summary-card income">
+                <div
+                    className={`tx-summary-card income ${filterType === 'INCOME' ? 'active' : ''}`}
+                    onClick={() => setFilterType(filterType === 'INCOME' ? 'ALL' : 'INCOME')}
+                    title={filterType === 'INCOME' ? "Limpar filtro de Receitas" : "Filtrar apenas Receitas"}
+                >
                     <div className="tx-summ-header">
                         <span className="tx-summ-label">Receitas</span>
                         <TrendingUp size={20} className="tx-summ-icon" />
@@ -369,7 +373,11 @@ export const Transactions: React.FC = () => {
                     <div className="tx-summ-indicator"></div>
                 </div>
 
-                <div className="tx-summary-card expense">
+                <div
+                    className={`tx-summary-card expense ${filterType === 'EXPENSE' ? 'active' : ''}`}
+                    onClick={() => setFilterType(filterType === 'EXPENSE' ? 'ALL' : 'EXPENSE')}
+                    title={filterType === 'EXPENSE' ? "Limpar filtro de Despesas" : "Filtrar apenas Despesas"}
+                >
                     <div className="tx-summ-header">
                         <span className="tx-summ-label">Despesas</span>
                         <TrendingDown size={20} className="tx-summ-icon" />
@@ -378,7 +386,11 @@ export const Transactions: React.FC = () => {
                     <div className="tx-summ-indicator"></div>
                 </div>
 
-                <div className={`tx-summary-card balance ${summaryStats.balance >= 0 ? 'positive' : 'negative'}`}>
+                <div
+                    className={`tx-summary-card balance ${summaryStats.balance >= 0 ? 'positive' : 'negative'} ${filterType === 'ALL' ? '' : 'inactive'}`}
+                    onClick={() => setFilterType('ALL')}
+                    title="Mostrar todos os lançamentos"
+                >
                     <div className="tx-summ-header">
                         <span className="tx-summ-label">Resultado</span>
                         <Target size={20} className="tx-summ-icon" />
