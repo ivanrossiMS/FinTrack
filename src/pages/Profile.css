@@ -1,37 +1,60 @@
-/* Profile Page - Premium Absolute Isolation V4 */
+/* Profile Page - Elite Glass Tiles (V5 Absolute Isolation) */
 
-/* Desktop Base Layout - Minimalist since TSX handles original inline styles */
+/* ── Desktop Base Classes ──────────────────────────────
+   We keep these minimal to allow Profile.tsx inline styles 
+   to define the original stable desktop look. 
+   ────────────────────────────────────────────────────── */
 .prof-hero-card-container {
-    /* Base hooks for desktop, actual styles in s.card in Profile.tsx */
+    /* Stability Hook */
 }
 
-/* Mobile Overrides (Absolute Isolation V4) */
+/* ── Mobile Elite Redesign (Absolute Isolation) ── */
 @media (max-width: 768px) {
+
+    /* 1. Main Container Transition */
     .prof-hero-card-container {
-        /* This div has a child with display: grid in Profile.tsx */
+        border: none !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
     }
 
-    /* Target the inner grid div that has styles inline */
+    /* Target the inner grid div from Profile.tsx */
     .prof-hero-card-container>div {
-        display: block !important;
-        /* Stack columns vertically */
+        display: flex !important;
+        flex-direction: column !important;
         grid-template-columns: 1fr !important;
-        min-height: auto !important;
+        gap: 1.5rem !important;
     }
 
+    /* 2. Elite Identity Card (Avatar + Name) */
     .prof-avatar-col {
-        border-right: none !important;
-        border-bottom: 1px solid rgba(226, 232, 240, 0.4) !important;
-        padding: 3.5rem 1.5rem 2.5rem !important;
-        background: radial-gradient(circle at center, rgba(99, 102, 241, 0.06) 0%, transparent 70%) !important;
         width: 100% !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        border-radius: 32px !important;
+        padding: 3rem 1.5rem !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03) !important;
+        box-sizing: border-box !important;
+        animation: eliteFadeIn 0.6s ease-out;
+    }
+
+    /* 3. Elite Glass Tiles Section (Contact Info) */
+    .prof-info-col {
+        width: 100% !important;
+        padding: 0 !important;
         box-sizing: border-box !important;
     }
 
-    .prof-info-col {
-        padding: 2rem 1.25rem 3rem !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
+    .prof-info-col>h3 {
+        padding-left: 1.25rem !important;
+        margin-bottom: 1rem !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        color: #94a3b8 !important;
     }
 
     .prof-contact-box {
@@ -39,42 +62,84 @@
         border: none !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 1rem !important;
-        border-radius: 0 !important;
+        gap: 0.75rem !important;
     }
 
+    /* The "Glass Tile" */
     .prof-contact-item {
+        background: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 24px !important;
+        padding: 1.25rem 1.5rem !important;
         flex-direction: column !important;
         align-items: flex-start !important;
-        padding: 1.25rem !important;
-        background: rgba(255, 255, 255, 0.7) !important;
-        backdrop-filter: blur(8px) !important;
-        border: 1px solid rgba(226, 232, 240, 0.6) !important;
-        border-radius: 20px !important;
         gap: 0.5rem !important;
-        margin-bottom: 0 !important;
-        /* Managed by gap in contact-box */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+        animation: eliteSlideUp 0.5s ease-out both;
     }
 
-    .prof-contact-item>div:first-child {
+    .prof-contact-item:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .prof-contact-item:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .prof-contact-item:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .prof-contact-label-box {
         width: 100% !important;
-        /* Label box */
+        gap: 0.75rem !important;
     }
 
+    /* 4. Refined Typography */
     .prof-name {
         font-size: 1.6rem !important;
-        margin-top: 0.5rem !important;
+        margin-top: 0.75rem !important;
+        color: #1e293b !important;
+        letter-spacing: -0.04em !important;
     }
 
     .prof-value {
         word-break: break-all !important;
         font-size: 0.95rem !important;
-        color: #1e293b !important;
         font-weight: 700 !important;
+        color: #334155 !important;
+        padding-left: 2rem !important;
+        /* Align with icon text */
     }
 
-    /* Page Padding Adjustment for Mobile */
+    /* 5. Entrance Animations */
+    @keyframes eliteFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes eliteSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Page Padding Adjustment */
     div[style*="maxWidth: 960px"] {
-        padding: 1.5rem 0.75rem 3rem !important;
+        padding: 1.5rem 1.25rem 4rem !important;
     }
 }
