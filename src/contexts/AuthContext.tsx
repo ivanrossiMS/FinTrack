@@ -132,19 +132,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             console.log('Login successful, checking profile...');
             if (data.user) {
-                const { data: profile, error: profileError } = await supabase
+                const { data: profile, error: pError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
 
-                if (profileError && profileError.code !== 'PGRST116') {
-                    console.error('Error fetching user profile:', profileError);
+                if (pError && pError.code !== 'PGRST116') {
+                    console.error('Error fetching user profile:', pError);
                 }
 
                 if (profile) {
-                    // ... existing profile logic
-                    if (!profile.is_authorized && profile.email !== 'ivanrossi@outlook.com') {
+                    const profileEmail = profile.email?.toLowerCase();
+                    const masterEmail = 'ivanrossi@outlook.com';
+
+                    if (!profile.is_authorized && profileEmail !== masterEmail) {
                         alert("Sua conta ainda não foi autorizada pelo administrador.");
                         await supabase.auth.signOut();
                         return false;
@@ -166,16 +168,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     // ... exists in next chunks
                     // AUTO-RECOVERY: If login works but profile is missing, create it!
                     console.log('Profile missing, attempting auto-recovery...');
-                    const isMasterAdmin = data.user.email === 'ivanrossi@outlook.com';
+                    const userEmail = data.user.email?.toLowerCase();
+                    const masterEmail = 'ivanrossi@outlook.com';
+                    const isMasterAdmin = userEmail === masterEmail;
+
                     const { error: recoveryError } = await supabase
                         .from('user_profiles')
                         .insert([
                             {
                                 id: data.user.id,
-                                name: data.user.email?.split('@')[0] || 'Usuário',
+                                name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário',
                                 email: data.user.email,
                                 is_admin: isMasterAdmin,
-                                is_authorized: true, // Auto-authorize if they could login
+                                is_authorized: true,
                                 plan: 'FREE'
                             }
                         ]);
@@ -229,7 +234,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (data.user) {
-                const isMasterAdmin = email === 'ivanrossi@outlook.com';
+                const userEmail = email.toLowerCase();
+                const masterEmail = 'ivanrossi@outlook.com';
+                const isMasterAdmin = userEmail === masterEmail;
 
                 // Create or update profile in our custom table
                 const { error: profileError } = await supabase
@@ -238,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         {
                             id: data.user.id,
                             name,
-                            email,
+                            email: email,
                             is_admin: isMasterAdmin,
                             is_authorized: isMasterAdmin,
                             plan: 'FREE'
