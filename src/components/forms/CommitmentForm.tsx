@@ -30,7 +30,7 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
     const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
     const [newSupplierName, setNewSupplierName] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!description || !amount || (!categoryId && !isCreatingCategory)) {
@@ -43,7 +43,7 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
 
         // 1. Handle Inline Category Creation
         if (isCreatingCategory && newCategoryName.trim()) {
-            finalCategoryId = addCategory({
+            finalCategoryId = await addCategory({
                 name: newCategoryName.trim(),
                 type: 'EXPENSE',
                 color: newCategoryColor,
@@ -53,7 +53,7 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
 
         // 2. Handle Inline Supplier Creation
         if (isCreatingSupplier && newSupplierName.trim()) {
-            finalSupplierId = addSupplier({
+            finalSupplierId = await addSupplier({
                 name: newSupplierName.trim()
             });
         }
@@ -70,9 +70,9 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
 
         // Update only if there's an existing id; voice-prefill has no id, so creates new
         if (editingCommitment?.id) {
-            updateCommitment(editingCommitment.id, payload);
+            await updateCommitment(editingCommitment.id, payload);
         } else {
-            addCommitment(payload);
+            await addCommitment(payload);
         }
 
         onClose();
