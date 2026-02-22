@@ -86,22 +86,28 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     {period === 'custom' && (
-                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }} className="flex gap-2 items-center backdrop-blur-md p-2 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-right-4 w-full sm:w-auto">
-                            <Calendar size={18} className="text-primary ml-2" />
-                            <div className="flex gap-1 items-center px-2">
-                                <input
-                                    type="date"
-                                    value={customStart}
-                                    onChange={e => setCustomStart(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
-                                <span className="text-text-muted font-black opacity-30">/</span>
-                                <input
-                                    type="date"
-                                    value={customEnd}
-                                    onChange={e => setCustomEnd(e.target.value)}
-                                    className="bg-transparent text-sm font-bold text-text focus:outline-none cursor-pointer"
-                                />
+                        <div className="custom-range-picker">
+                            <Calendar size={18} className="text-primary" />
+                            <div className="date-inputs">
+                                <div className="date-input-group">
+                                    <span className="date-input-label">De</span>
+                                    <input
+                                        type="date"
+                                        value={customStart}
+                                        onChange={e => setCustomStart(e.target.value)}
+                                        className="date-field"
+                                    />
+                                </div>
+                                <div className="date-input-separator">/</div>
+                                <div className="date-input-group">
+                                    <span className="date-input-label">Até</span>
+                                    <input
+                                        type="date"
+                                        value={customEnd}
+                                        onChange={e => setCustomEnd(e.target.value)}
+                                        className="date-field"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
