@@ -34,8 +34,6 @@ export const Login: React.FC = () => {
         }
     };
 
-    // Obter URL do Supabase para debug visual
-    const supabaseUrl = (useAuth() as any).supabaseUrl || 'Supabase (configurado)';
 
     return (
         <div className="login-page">
