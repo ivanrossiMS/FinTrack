@@ -160,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (data?.user) {
                 console.log('Login: [3/4] Auth OK! Carregando perfil...');
-                const { data: profile, error: pError } = await supabase
+                const { data: profile } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
