@@ -176,10 +176,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (data.user) {
                 const isMasterAdmin = email === 'ivanrossi@outlook.com';
 
-                // Create profile in our custom table
+                // Create or update profile in our custom table
                 const { error: profileError } = await supabase
                     .from('user_profiles')
-                    .insert([
+                    .upsert([
                         {
                             id: data.user.id,
                             name,
