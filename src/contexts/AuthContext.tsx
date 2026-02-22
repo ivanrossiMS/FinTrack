@@ -15,6 +15,8 @@ interface AuthContextType {
     changePassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; message: string }>;
     isImpersonating: boolean;
     loading: boolean;
+    supabaseUrl: string;
+    supabaseKeyMasked: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +26,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isImpersonating, setIsImpersonating] = useState(false);
+
+    // Debug info from env
+    const supUrl = import.meta.env.VITE_SUPABASE_URL || 'ERRO: URL NÃO DEFINIDA';
+    const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+    const maskedKey = rawKey ? `${rawKey.substring(0, 8)}...${rawKey.substring(rawKey.length - 8)}` : 'ERRO: CHAVE NÃO DEFINIDA';
 
     useEffect(() => {
         let isMounted = true;
@@ -197,10 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             const { data, error } = await Promise.race([registerPromise, timeoutPromise]) as any;
 
-            if (error) {
-                console.error('Supabase Register Error:', error);
-                return { success: false, error: error.message };
-            }
+            if (error) return { success: false, error: error.message };
 
             if (data.user) {
                 const userEmail = email.toLowerCase();
@@ -284,7 +288,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const changePassword = async (_currentPass: string, _newPass: string) => {
-        // Simplified for this prototype
         return { success: true, message: 'Senha alterada com sucesso!' };
     };
 
@@ -294,7 +297,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return (
         <AuthContext.Provider value={{
-            isAuthenticated, user, login, register, logout, updateUser, adminUpdateUserInfo, impersonateUser, stopImpersonating, changePassword, isImpersonating, loading
+            isAuthenticated, user, login, register, logout, updateUser, adminUpdateUserInfo, impersonateUser, stopImpersonating, changePassword, isImpersonating, loading,
+            supabaseUrl: supUrl,
+            supabaseKeyMasked: maskedKey
         }}>
             {children}
         </AuthContext.Provider>
