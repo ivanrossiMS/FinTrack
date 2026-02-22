@@ -128,7 +128,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="kpi-card card-income col-span-12 sm:col-span-6 lg:col-span-4" onClick={() => navigate('/transactions', { state: { type: 'INCOME' } })} style={{ cursor: 'pointer' }}>
+                <Card className="kpi-card card-income col-span-6 lg:col-span-4" onClick={() => navigate('/transactions', { state: { type: 'INCOME' } })} style={{ cursor: 'pointer' }}>
                     <div className="kpi-icon-wrapper">
                         <ArrowUpCircle size={32} strokeWidth={2.5} />
                     </div>
@@ -140,7 +140,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="kpi-card card-expense col-span-12 sm:col-span-6 lg:col-span-4" onClick={() => navigate('/transactions', { state: { type: 'EXPENSE' } })} style={{ cursor: 'pointer' }}>
+                <Card className="kpi-card card-expense col-span-6 lg:col-span-4" onClick={() => navigate('/transactions', { state: { type: 'EXPENSE' } })} style={{ cursor: 'pointer' }}>
                     <div className="kpi-icon-wrapper">
                         <ArrowDownCircle size={32} strokeWidth={2.5} />
                     </div>

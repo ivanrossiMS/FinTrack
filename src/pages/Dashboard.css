@@ -253,6 +253,7 @@
     font-weight: 900;
     letter-spacing: -0.02em;
     line-height: 1.1;
+    transition: font-size 0.3s ease;
 }
 
 @media (min-width: 1280px) {
@@ -299,6 +300,69 @@
     border: 1px solid var(--glass-border) !important;
     box-shadow: var(--glass-shadow);
     border-radius: var(--radius-lg) !important;
+}
+
+/* KPI Mobile Specific Harmony (1+2 Layout) */
+@media (max-width: 640px) {
+    .kpi-grid {
+        gap: 0.75rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .kpi-card {
+        padding: 1rem !important;
+        border-radius: 1.25rem !important;
+        min-height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Balance (Top Full Width) */
+    .card-total {
+        padding: 1.25rem !important;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    }
+
+    .card-total .kpi-value {
+        font-size: 1.75rem !important;
+    }
+
+    /* Income & Expenses (Side-by-Side) */
+    .card-income,
+    .card-expense {
+        padding: 0.875rem !important;
+    }
+
+    .card-income .kpi-value,
+    .card-expense .kpi-value {
+        font-size: 1.15rem !important;
+        margin-top: 2px;
+    }
+
+    .card-income .kpi-label,
+    .card-expense .kpi-label {
+        font-size: 0.6rem !important;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+    }
+
+    .kpi-icon-wrapper {
+        width: 32px !important;
+        height: 32px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .kpi-icon-wrapper svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    /* Hide extra info on very small cards to save space */
+    .card-expense div[style*="font-size: 11px"] {
+        display: none !important;
+    }
 }
 
 .chart-card-title {
