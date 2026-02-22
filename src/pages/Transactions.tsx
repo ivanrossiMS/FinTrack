@@ -747,8 +747,13 @@ export const Transactions: React.FC = () => {
                                                         )}
                                                     </div>
                                                     <span
-                                                        className={`tx - category - badge - mini`}
-                                                        style={{ color: catColor, backgroundColor: `${catColor} 15` }}
+                                                        className="tx-category-badge-mini"
+                                                        style={{
+                                                            color: catColor,
+                                                            backgroundColor: `${catColor}15`,
+                                                            borderColor: `${catColor}40`,
+                                                            border: '1px solid'
+                                                        }}
                                                     >
                                                         {catName}
                                                     </span>

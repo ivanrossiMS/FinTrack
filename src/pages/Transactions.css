@@ -915,14 +915,12 @@
     .tx-category-badge-mini,
     .tx-method-badge-mini {
         display: inline-flex !important;
-        padding: 0.2rem 0.5rem !important;
+        padding: 0.2rem 0.6rem !important;
         border-radius: 99px !important;
         font-size: 0.65rem !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.04em !important;
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        /* Subtle Moldura */
         white-space: nowrap !important;
     }
 
