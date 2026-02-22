@@ -323,7 +323,7 @@
     }
 
     /* Force explicit grid positions to avoid any overlapping */
-    .card-total {
+    .card-balance {
         grid-column: 1 / span 2 !important;
         padding: 1.5rem 1.25rem !important;
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
@@ -337,7 +337,7 @@
         grid-column: 2 / span 1 !important;
     }
 
-    .card-total .kpi-value {
+    .card-balance .kpi-value {
         font-size: 1.75rem !important;
     }
 
