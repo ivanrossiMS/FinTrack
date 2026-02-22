@@ -27,12 +27,19 @@ export const Register: React.FC = () => {
 
         setIsLoading(true);
         try {
-            const success = await register(name, email, password);
-            if (success) {
-                navigate('/');
+            const result = await register(name, email, password);
+            if (result.success) {
+                if (result.error === 'AUTORIZACAO_PENDENTE') {
+                    alert("Conta criada com sucesso! Aguarde a autorização do administrador.");
+                    navigate('/login');
+                } else {
+                    navigate('/');
+                }
+            } else {
+                setError(result.error || 'Erro ao criar conta.');
             }
         } catch (err: any) {
-            setError(err.message || 'Erro ao criar conta.');
+            setError(err.message || 'Erro inesperado.');
         } finally {
             setIsLoading(false);
         }

@@ -14,26 +14,27 @@ export const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const [loading, setIsSubmitLoading] = useState(false);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsSubmitLoading(true);
 
         try {
-            const success = await login(email, password);
-            if (success) {
+            const result = await login(email, password);
+            if (result.success) {
                 navigate('/');
             } else {
-                setError('E-mail ou senha incorretos ou conta ainda não autorizada.');
+                setError(result.error || 'Erro ao entrar.');
             }
         } catch (err: any) {
-            setError(err.message || 'Ocorreu um erro ao tentar entrar. Tente novamente.');
+            setError(err.message || 'Ocorreu um erro inesperado.');
         } finally {
             setIsSubmitLoading(false);
         }
     };
+
+    // Obter URL do Supabase para debug visual
+    const supabaseUrl = (useAuth() as any).supabaseUrl || (import.meta.env.VITE_SUPABASE_URL || 'Não configurado');
 
     return (
         <div className="login-page">
@@ -82,7 +83,22 @@ export const Login: React.FC = () => {
                     <p>
                         Ainda não tem conta? <Link to="/register" className="register-link">Criar conta grátis</Link>
                     </p>
-                    <p style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.5 }}>
+
+                    <div style={{
+                        marginTop: '2rem',
+                        padding: '1rem',
+                        backgroundColor: 'rgba(0,0,0,0.03)',
+                        borderRadius: '8px',
+                        fontSize: '10px',
+                        color: '#94a3b8',
+                        textAlign: 'left'
+                    }}>
+                        <strong>DEBUG INFO:</strong><br />
+                        Supabase: {supabaseUrl}<br />
+                        Status: {error ? '🔴 Erro' : '🟢 Online'}
+                    </div>
+
+                    <p style={{ marginTop: '1rem', fontSize: '0.75rem', opacity: 0.5 }}>
                         @copyright by Ivan Rossi - todos direitos reservados
                     </p>
                 </div>
