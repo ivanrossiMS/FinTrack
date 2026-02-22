@@ -117,10 +117,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Login: [1/4] Iniciando limpeza de sessão anterior...');
+        console.log('Login: [1/4] Limpando vestígios de sessões anteriores...');
         try {
-            // Tenta limpar sessão antes, mas sem travar se der erro
-            try { await supabase.auth.signOut(); } catch (e) { }
+            // Tenta limpar sessão antes com um timeout curto (2s) para não travar o login
+            try {
+                const signOutPromise = supabase.auth.signOut();
+                const signOutTimeout = new Promise((resolve) => setTimeout(() => resolve({ error: 'timeout' }), 2000));
+                await Promise.race([signOutPromise, signOutTimeout]);
+            } catch (e) {
+                console.warn('Login: Erro ou timeout na limpeza inicial (ignorado).');
+            }
+
+            // Limpeza bruta do localStorage (remove todas as chaves do Supabase)
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-')) localStorage.removeItem(key);
+            });
 
             console.log('Login: [2/4] Enviando credenciais para Supabase:', email);
             const loginPromise = supabase.auth.signInWithPassword({ email, password });
@@ -132,18 +143,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (error) {
                 console.error('Login: Erro no Auth do Supabase:', error);
+                // Se o erro for "session_not_found" ou similar, limpamos novamente para garantir
+                localStorage.clear();
                 return { success: false, error: error.message };
             }
 
             if (data?.user) {
                 console.log('Login: [3/4] Auth OK! Buscando perfil do usuário...');
+
+                // Tentativa de buscar perfil com timeout também
                 const { data: profile, error: pError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
 
-                if (pError) console.error('Login: Erro ao buscar perfil (talvez precise de auto-recovery):', pError);
+                if (pError) console.error('Login: Erro ao buscar perfil:', pError);
 
                 if (profile) {
                     console.log('Login: [4/4] Perfil encontrado. Validando autorização...');
@@ -271,9 +286,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
+        console.log('Logout: Saindo e limpando estado...');
+        // Limpa estado local imediatamente da UI
         setIsAuthenticated(false);
         setUser(null);
+        localStorage.clear();
+
+        // Tenta deslogar do servidor em background (não trava a UI)
+        try {
+            await supabase.auth.signOut();
+        } catch (e) {
+            console.warn('Logout: Erro ao avisar servidor, mas estado local já foi limpo.');
+        }
     };
 
     const updateUser = async (updatedUser: any) => {
