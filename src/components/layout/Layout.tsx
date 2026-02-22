@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -13,7 +13,6 @@ export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
     const navigate = useNavigate();
     const [voiceOpen, setVoiceOpen] = React.useState(false);
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
     const handleLogout = () => {
         logout();
@@ -24,9 +23,6 @@ export const Layout: React.FC = () => {
         stopImpersonating();
         navigate('/admin');
     };
-
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-    const closeMenu = () => setIsMenuOpen(false);
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: Home },
@@ -43,22 +39,26 @@ export const Layout: React.FC = () => {
         ] : []),
     ];
 
+    // Mobile specific nav items (Bottom Bar) - Top 5 for cleaner UI
+    const mobileBottomItems = [
+        { path: '/', icon: Home },
+        { path: '/transactions', icon: DollarSign },
+        { path: '/commitments', icon: Calendar },
+        { path: '/savings', icon: Target },
+        { path: '/profile', icon: User },
+    ];
+
     const firstName = user?.name ? user.name.split(' ')[0] : 'Usuário';
 
     return (
         <div className="app-layout">
-            {/* ── NEW Premium Mobile Header (V3 Absolute Isolation) ── */}
+            {/* ── NEW Premium Mobile Header (V4 - Simple & Clean) ── */}
             <header className="mob-prem-header">
-                <div className="mob-prem-header-left">
-                    <button className="mob-prem-hamburger-btn" onClick={toggleMenu} aria-label="Menu">
-                        <Menu size={26} strokeWidth={2.5} />
-                    </button>
-                    <div className="mob-prem-brand">
-                        <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
-                        <span className="mob-prem-brand-name">
-                            Finance<span className="sidebar-brand-plus">+</span>
-                        </span>
-                    </div>
+                <div className="mob-prem-brand">
+                    <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
+                    <span className="mob-prem-brand-name">
+                        Finance<span className="sidebar-brand-plus">+</span>
+                    </span>
                 </div>
 
                 <div className="mob-prem-header-right">
@@ -80,47 +80,26 @@ export const Layout: React.FC = () => {
                 </div>
             </header>
 
-            {/* ── NEW Mobile Drawer (V3 Absolute Isolation) ── */}
-            <div className={clsx("mob-prem-drawer-overlay", isMenuOpen && "active")} onClick={closeMenu}>
-                <aside className={clsx("mob-prem-drawer", isMenuOpen && "active")} onClick={e => e.stopPropagation()}>
-                    <div className="mob-prem-drawer-header">
-                        <div className="mob-prem-brand">
-                            <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
-                            <span className="mob-prem-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
-                        </div>
-                        <button className="mob-prem-drawer-close" onClick={closeMenu}>
-                            <X size={26} />
-                        </button>
-                    </div>
+            {/* ── NEW Premium Mobile Bottom Nav (V4 - Horizontal Icons Only) ── */}
+            <nav className="mob-prem-bottom-bar">
+                <div className="mob-prem-bottom-inner">
+                    {mobileBottomItems.map(({ path, icon: Icon }) => (
+                        <NavLink
+                            key={path}
+                            to={path}
+                            className={({ isActive }: { isActive: boolean }) =>
+                                clsx("mob-prem-bottom-item", isActive && "active")
+                            }
+                        >
+                            <Icon size={24} strokeWidth={2.5} />
+                            <div className="mob-prem-active-dot" />
+                        </NavLink>
+                    ))}
+                </div>
+            </nav>
 
-                    <nav className="mob-prem-drawer-nav">
-                        {navItems.map(({ path, icon: Icon, label }) => (
-                            <NavLink
-                                key={path}
-                                to={path}
-                                className={({ isActive }: { isActive: boolean }) =>
-                                    clsx("mob-prem-drawer-item", isActive && "active")
-                                }
-                                onClick={closeMenu}
-                            >
-                                <Icon size={22} />
-                                <span>{label}</span>
-                            </NavLink>
-                        ))}
-                    </nav>
-
-                    <div className="mob-prem-drawer-footer">
-                        <button onClick={handleLogout} className="mob-prem-drawer-logout">
-                            <LogOut size={22} />
-                            <span>FINALIZAR SESSÃO</span>
-                        </button>
-                    </div>
-                </aside>
-            </div>
-
-            {/* OLD Sidebar (DESKTOP) - DO NOT CHANGE STRUCTURE */}
+            {/* Sidebar (DESKTOP) - DO NOT CHANGE STRUCTURE */}
             <aside className="sidebar bottom-nav">
-                {/* ── Brand Top ── */}
                 <div className="sidebar-brand">
                     <img src={logoIcon} alt="Finance+" className="sidebar-brand-icon" />
                     <div className="sidebar-brand-text">
@@ -166,11 +145,9 @@ export const Layout: React.FC = () => {
                         <span className="nav-label">SAIR</span>
                     </button>
 
-                    {/* ── Copyright ── */}
                     <div className="sidebar-copyright">
                         © {new Date().getFullYear()} Ivan Rossi
                     </div>
-
                 </div>
             </aside>
 
