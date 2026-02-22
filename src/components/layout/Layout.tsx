@@ -75,7 +75,7 @@ export const Layout: React.FC = () => {
                         <div className="mob-prem-profile-info">
                             <span className="mob-prem-user-firstname">{firstName}</span>
                             <span className={`mob-prem-plan-tag ${user?.plan?.toLowerCase() || 'free'}`}>
-                                {user?.plan === 'PREMIUM' ? 'PREMIUM' : 'FREE'}
+                                {user?.plan === 'PREMIUM' ? 'PLANO PREMIUM' : 'PLANO FREE'}
                             </span>
                         </div>
                         {user?.avatar ? (
