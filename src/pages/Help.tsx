@@ -1,5 +1,5 @@
 import React from 'react';
-import { HelpCircle, Mic, DollarSign, Calendar, Target, ShieldCheck, Zap, Info, ArrowRight } from 'lucide-react';
+import { HelpCircle, Mic, DollarSign, Calendar, Target, ShieldCheck, Zap, Info, ArrowRight, TrendingUp } from 'lucide-react';
 import './Help.css';
 
 export const Help: React.FC = () => {
@@ -14,28 +14,59 @@ export const Help: React.FC = () => {
 
     return (
         <div className="help-page">
-            <div className="help-header">
-                <div className="help-header-icon">
-                    <HelpCircle size={40} />
+            <div className="help-hero">
+                <div className="hero-content">
+                    <div className="hero-visual">
+                        <div className="glass-circle principal">
+                            <HelpCircle size={80} strokeWidth={1} />
+                        </div>
+                        <div className="glass-circle float-1">
+                            <DollarSign size={32} />
+                        </div>
+                        <div className="glass-circle float-2">
+                            <Zap size={24} />
+                        </div>
+                        <div className="hero-mesh-blob"></div>
+                    </div>
+                    <h1>Central de Ajuda</h1>
+                    <p className="hero-subtitle">Aprenda a dominar o <span>Finance+</span> e transforme sua vida financeira com inteligência.</p>
                 </div>
-                <h1>Central de Ajuda</h1>
-                <p>Aprenda a dominar o FinTrack e transformar sua vida financeira.</p>
             </div>
 
             <div className="help-grid">
-                {/* Section: Getting Started */}
-                <section className="help-card intro">
+                {/* Section: Dashboard */}
+                <section className="help-card">
                     <div className="help-card-header">
                         <Zap className="icon-pulse" size={24} />
-                        <h2>Guia Rápido</h2>
+                        <h2>Dashboard</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>O FinTrack foi desenhado para ser intuitivo. Veja como aproveitar cada parte:</p>
-                        <ul>
-                            <li><strong>Dashboard:</strong> Sua central de comando. Acompanhe o balanço geral e o gráfico de evolução mensal. Passe o mouse ou toque nas barras do gráfico para ver detalhes por categoria.</li>
-                            <li><strong>Lançamentos:</strong> Onde você registra sua vida financeira. Clique em "+" para abrir o formulário. Preencha o valor, a descrição e selecione uma categoria. Você também pode anexar observações e definir o fornecedor.</li>
-                            <li><strong>Filtros Rápidos:</strong> Na tela de Lançamentos, clique nos cards coloridos de Resumo (Receita ou Despesa) para filtrar a lista instantaneamente. Clique novamente para limpar o filtro.</li>
-                        </ul>
+                        <p><strong>O que faz:</strong> Sua central de comando financeira para uma visão global e rápida.</p>
+                        <p><strong>Como usar:</strong> Acompanhe o balanço geral e o gráfico de evolução mensal. Passe o mouse ou toque nas barras do gráfico para ver detalhes por categoria e identificar para onde seu dinheiro está indo.</p>
+                    </div>
+                </section>
+
+                {/* Section: Transactions */}
+                <section className="help-card">
+                    <div className="help-card-header">
+                        <DollarSign size={24} />
+                        <h2>Lançamentos</h2>
+                    </div>
+                    <div className="help-card-content">
+                        <p><strong>O que faz:</strong> O local onde você registra toda a sua movimentação financeira diária.</p>
+                        <p><strong>Como usar:</strong> Clique no botão "+" para abrir o formulário. Preencha o valor, a descrição e selecione uma categoria. Você também pode anexar comprovantes e definir fornecedores.</p>
+                    </div>
+                </section>
+
+                {/* Section: Quick Filters */}
+                <section className="help-card">
+                    <div className="help-card-header">
+                        <Info size={24} />
+                        <h2>Filtros Rápidos</h2>
+                    </div>
+                    <div className="help-card-content">
+                        <p><strong>O que faz:</strong> Ferramenta de agilidade para visualizar fatias específicas das suas finanças.</p>
+                        <p><strong>Como usar:</strong> Na tela de Lançamentos, clique nos cards coloridos de Resumo (Receita ou Despesa) para filtrar a lista instantaneamente. Clique novamente para limpar o filtro.</p>
                     </div>
                 </section>
 
@@ -46,7 +77,7 @@ export const Help: React.FC = () => {
                         <h2>Assistente IA Ninja</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>Nosso assistente de voz é o seu melhor amigo. Você pode ser direto:</p>
+                        <p>O assistente de voz do Finance+ é seu melhor amigo. Você pode ser direto:</p>
                         <div className="ai-commands-list">
                             {aiCommands.map((item, i) => (
                                 <div key={i} className="ai-command-item">
@@ -87,7 +118,7 @@ export const Help: React.FC = () => {
 
                 <section className="help-card">
                     <div className="help-card-header">
-                        <DollarSign size={24} />
+                        <TrendingUp size={24} />
                         <h2>Investimentos</h2>
                     </div>
                     <div className="help-card-content">
@@ -102,14 +133,14 @@ export const Help: React.FC = () => {
                         <h2>Privacidade</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>Seus dados são criptografados e sua voz é processada de forma segura. Nós nunca vendemos seus dados para terceiros.</p>
+                        <p>Seus dados no Finance+ são criptografados e sua voz é processada de forma segura. Nós nunca vendemos seus dados para terceiros.</p>
                     </div>
                 </section>
             </div>
 
             <footer className="help-footer">
                 <p>Ainda tem dúvidas? Explore as outras seções ou contate o suporte.</p>
-                <button className="help-contact-btn" onClick={() => window.location.href = 'mailto:suporte@fintrack.com'}>
+                <button className="help-contact-btn" onClick={() => window.location.href = 'mailto:suporte@financeplus.com'}>
                     Contatar Suporte <ArrowRight size={18} />
                 </button>
             </footer>
