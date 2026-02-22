@@ -110,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string): Promise<boolean> => {
         console.log('Login attempt started for:', email);
+        console.log('Supabase URL being used:', (supabase as any).supabaseUrl);
         try {
             // Failsafe: if no response in 10s
             const loginPromise = supabase.auth.signInWithPassword({
