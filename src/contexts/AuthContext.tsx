@@ -26,67 +26,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isImpersonating, setIsImpersonating] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+
         // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (session?.user) {
-                // Fetch profile data
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
+                try {
+                    const { data: profile } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
 
-                if (profile) {
-                    const userSession = {
-                        id: session.user.id,
-                        name: profile.name,
-                        email: profile.email,
-                        avatar: profile.avatar,
-                        isAdmin: profile.is_admin,
-                        isAuthorized: profile.is_authorized,
-                        plan: profile.plan || 'FREE'
-                    };
-                    setUser(userSession);
-                    setIsAuthenticated(true);
+                    if (profile && isMounted) {
+                        setUser({
+                            id: session.user.id,
+                            name: profile.name,
+                            email: profile.email,
+                            avatar: profile.avatar,
+                            isAdmin: profile.is_admin,
+                            isAuthorized: profile.is_authorized,
+                            plan: profile.plan || 'FREE'
+                        });
+                        setIsAuthenticated(true);
+                    }
+                } catch (err) {
+                    console.error('onAuthStateChange profile fetch error:', err);
                 }
-            } else {
+            } else if (isMounted) {
                 setUser(null);
                 setIsAuthenticated(false);
             }
-            setLoading(false);
+            if (isMounted) setLoading(false);
         });
 
         // Check initial session
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    const { data: profile } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
 
-                if (profile) {
-                    const userSession = {
-                        id: session.user.id,
-                        name: profile.name,
-                        email: profile.email,
-                        avatar: profile.avatar,
-                        isAdmin: profile.is_admin,
-                        isAuthorized: profile.is_authorized,
-                        plan: profile.plan || 'FREE'
-                    };
-                    setUser(userSession);
-                    setIsAuthenticated(true);
+                    if (profile && isMounted) {
+                        setUser({
+                            id: session.user.id,
+                            name: profile.name,
+                            email: profile.email,
+                            avatar: profile.avatar,
+                            isAdmin: profile.is_admin,
+                            isAuthorized: profile.is_authorized,
+                            plan: profile.plan || 'FREE'
+                        });
+                        setIsAuthenticated(true);
+                    }
                 }
+            } catch (err) {
+                console.error('Initial session check error:', err);
+            } finally {
+                if (isMounted) setLoading(false);
             }
-            setLoading(false);
         };
 
         checkSession();
 
+        // Failsafe: force stop loading after 5 seconds if still stuck
+        const timeout = setTimeout(() => {
+            if (isMounted && loading) {
+                console.warn('Auth loading timed out - forcing continue');
+                setLoading(false);
+            }
+        }, 5000);
+
         return () => {
+            isMounted = false;
             subscription.unsubscribe();
+            clearTimeout(timeout);
         };
     }, []);
 
@@ -303,7 +321,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true, message: 'Senha alterada com sucesso!' };
     };
 
-    if (loading) return null;
+    if (loading) {
+        return (
+            <div style={{
+                height: '100vh',
+                width: '100vw',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f8fafc',
+                fontFamily: 'sans-serif'
+            }}>
+                <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '4px solid #e2e8f0',
+                    borderTopColor: '#3b82f6',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    marginBottom: '1rem'
+                }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <p style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Iniciando Finance+...</p>
+                <noscript>Você precisa ativar o JavaScript para rodar este site.</noscript>
+                {/* Fallback caso demore demais */}
+                <button
+                    onClick={() => setLoading(false)}
+                    style={{ marginTop: '20px', padding: '10px', fontSize: '12px', color: '#94a3b8', border: 'none', background: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                    Ainda carregando? Clique aqui para tentar forçar.
+                </button>
+            </div>
+        );
+    }
 
     return (
         <AuthContext.Provider value={{
