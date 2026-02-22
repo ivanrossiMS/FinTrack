@@ -8,7 +8,7 @@ import logoFull from '../assets/logo-full.svg';
 import './Login.css';
 
 export const Login: React.FC = () => {
-    const { login } = useAuth();
+    const { login, resetAppCache } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -33,7 +33,6 @@ export const Login: React.FC = () => {
             setIsSubmitLoading(false);
         }
     };
-
 
     return (
         <div className="login-page">
@@ -96,7 +95,22 @@ export const Login: React.FC = () => {
                         <strong>DEBUG INFO:</strong><br />
                         URL: {(useAuth() as any).supabaseUrl}<br />
                         Key: {(useAuth() as any).supabaseKeyMasked}<br />
-                        Status: {error ? '🔴 Verifique o erro' : '🟢 Online'}
+                        Status: {error ? '🔴 Verifique o erro' : '🟢 Online'}<br />
+                        <button
+                            onClick={() => resetAppCache()}
+                            style={{
+                                marginTop: '10px',
+                                padding: '4px 8px',
+                                backgroundColor: '#fee2e2',
+                                color: '#ef4444',
+                                borderRadius: '4px',
+                                border: '1px solid #fca5a5',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            Limpar Tudo & Recarregar Site
+                        </button>
                     </div>
 
                     <p style={{ marginTop: '1rem', fontSize: '0.75rem', opacity: 0.5 }}>

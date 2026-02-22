@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 import { UserPlus } from 'lucide-react';
 
 export const Register: React.FC = () => {
-    const { register } = useAuth();
+    const { register, resetAppCache } = useAuth();
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -141,7 +141,22 @@ export const Register: React.FC = () => {
                         <strong>DEBUG INFO:</strong><br />
                         URL: {(useAuth() as any).supabaseUrl}<br />
                         Key: {(useAuth() as any).supabaseKeyMasked}<br />
-                        Status: {error ? '🔴 Erro' : '🟢 Online'}
+                        Status: {error ? '🔴 Erro' : '🟢 Online'}<br />
+                        <button
+                            onClick={() => resetAppCache()}
+                            style={{
+                                marginTop: '10px',
+                                padding: '4px 8px',
+                                backgroundColor: '#fee2e2',
+                                color: '#ef4444',
+                                borderRadius: '4px',
+                                border: '1px solid #fca5a5',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            Limpar Tudo & Recarregar Site
+                        </button>
                     </div>
                 </div>
             </div>
