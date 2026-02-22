@@ -4,7 +4,7 @@ import { Transaction, TransactionType } from '../../models/types';
 import { Button } from '../ui/Button';
 import { Input, Select } from '../ui/Input';
 import { format } from 'date-fns';
-import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight, ArrowDownLeft, Repeat, Sparkles, Plus, Palette } from 'lucide-react';
+import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight, ArrowDownLeft, Repeat, Plus, Palette } from 'lucide-react';
 import { formatCurrency } from '../../utils/format';
 import { AttachmentManager } from '../ui/AttachmentManager';
 import { Attachment } from '../../models/types';

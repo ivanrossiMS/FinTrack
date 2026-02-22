@@ -14,14 +14,12 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import { isToday, isBefore, parseISO, startOfDay } from 'date-fns';
-import { useLocation } from 'react-router-dom';
 import './Commitments.css';
 
 import { Pagination } from '../components/ui/Pagination';
 
 export const Commitments: React.FC = () => {
     const { data, deleteCommitment } = useData();
-    const location = useLocation();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [supplierFilter, setSupplierFilter] = useState('ALL');

@@ -615,8 +615,8 @@ export const Transactions: React.FC = () => {
                                 <button className="tx-header-col sortable" onClick={() => handleSort('description')}>
                                     Descrição <SortIcon column="description" />
                                 </button>
-                                <button className="tx-header-col sortable tx-centered" onClick={() => handleSort('category_id')}>
-                                    Categoria <SortIcon column="category_id" />
+                                <button className="tx-header-col sortable tx-centered" onClick={() => handleSort('category')}>
+                                    Categoria <SortIcon column="category" />
                                 </button>
                                 <button className="tx-header-col sortable tx-centered" onClick={() => handleSort('date')}>
                                     Data <SortIcon column="date" />
