@@ -6,13 +6,39 @@ const GLOBAL_CATEGORIES_KEY = 'fintrack_global_categories';
 const GLOBAL_METHODS_KEY = 'fintrack_global_payment_methods';
 
 const DEFAULT_CATEGORIES: Category[] = [
+    // --- DESPESAS ---
+    { id: 'cat_contas_casa', name: 'Contas da Casa', type: 'EXPENSE', color: '#3b82f6', isDefault: true },
+    { id: 'cat_impostos', name: 'Impostos & Taxas', type: 'EXPENSE', color: '#94a3b8', isDefault: true },
+    { id: 'cat_seguros', name: 'Seguros', type: 'EXPENSE', color: '#64748b', isDefault: true },
+    { id: 'cat_dividas', name: 'Dívidas & Empréstimos', type: 'EXPENSE', color: '#ef4444', isDefault: true },
+    { id: 'cat_cartao', name: 'Cartão de Crédito', type: 'EXPENSE', color: '#f43f5e', isDefault: true },
+    { id: 'cat_mercado', name: 'Compras / Mercado Extra', type: 'EXPENSE', color: '#10b981', isDefault: true },
+    { id: 'cat_vestuario', name: 'Vestuário', type: 'EXPENSE', color: '#ec4899', isDefault: true },
+    { id: 'cat_beleza', name: 'Beleza & Autocuidado', type: 'EXPENSE', color: '#f472b6', isDefault: true },
+    { id: 'cat_casa_manut', name: 'Casa & Manutenção', type: 'EXPENSE', color: '#06b6d4', isDefault: true },
+    { id: 'cat_tecnologia', name: 'Tecnologia', type: 'EXPENSE', color: '#6366f1', isDefault: true },
+    { id: 'cat_viagens', name: 'Viagens', type: 'EXPENSE', color: '#8b5cf6', isDefault: true },
+    { id: 'cat_presentes', name: 'Presentes & Doações', type: 'EXPENSE', color: '#d946ef', isDefault: true },
+    { id: 'cat_assinaturas', name: 'Assinaturas', type: 'EXPENSE', color: '#0ea5e9', isDefault: true },
+    { id: 'cat_educacao', name: 'Educação & Livros', type: 'EXPENSE', color: '#f59e0b', isDefault: true },
+    { id: 'cat_pets', name: 'Pets & Cuidado', type: 'EXPENSE', color: '#14b8a6', isDefault: true },
+    { id: 'cat_transporte', name: 'Transporte / Manutenção Véiculo', type: 'EXPENSE', color: '#fbbf24', isDefault: true },
+    { id: 'cat_alimentacao', name: 'Alimentação', type: 'EXPENSE', color: '#f87171', isDefault: true },
+    { id: 'cat_lazer', name: 'Lazer', type: 'EXPENSE', color: '#a855f7', isDefault: true },
+    { id: 'cat_saude', name: 'Saúde', type: 'EXPENSE', color: '#fb7185', isDefault: true },
+    { id: 'cat_extras', name: 'Extras', type: 'EXPENSE', color: '#475569', isDefault: true },
+
+    // --- RECEITAS ---
     { id: 'cat_salario', name: 'Salário', type: 'INCOME', color: '#10b981', isDefault: true },
-    { id: 'cat_alimentacao', name: 'Alimentação', type: 'EXPENSE', color: '#ef4444', isDefault: true },
-    { id: 'cat_transporte', name: 'Transporte', type: 'EXPENSE', color: '#f59e0b', isDefault: true },
-    { id: 'cat_moradia', name: 'Moradia', type: 'EXPENSE', color: '#6366f1', isDefault: true },
-    { id: 'cat_lazer', name: 'Lazer', type: 'EXPENSE', color: '#8b5cf6', isDefault: true },
-    { id: 'cat_saude', name: 'Saúde', type: 'EXPENSE', color: '#ec4899', isDefault: true },
-    { id: 'cat_extras', name: 'Extras', type: 'EXPENSE', color: '#64748b', isDefault: true },
+    { id: 'cat_bonus', name: 'Bônus / 13º', type: 'INCOME', color: '#059669', isDefault: true },
+    { id: 'cat_comissoes', name: 'Comissões', type: 'INCOME', color: '#14b8a6', isDefault: true },
+    { id: 'cat_aluguel', name: 'Renda de Aluguel', type: 'INCOME', color: '#0d9488', isDefault: true },
+    { id: 'cat_rendimentos', name: 'Rendimentos', type: 'INCOME', color: '#0891b2', isDefault: true },
+    { id: 'cat_reembolsos', name: 'Reembolsos', type: 'INCOME', color: '#2dd4bf', isDefault: true },
+    { id: 'cat_restituicao', name: 'Restituição / Devoluções', type: 'INCOME', color: '#4ade80', isDefault: true },
+    { id: 'cat_premios', name: 'Prêmios / Sorteios', type: 'INCOME', color: '#facc15', isDefault: true },
+    { id: 'cat_servicos', name: 'Serviços / Consultorias', type: 'INCOME', color: '#3b82f6', isDefault: true },
+    { id: 'cat_vendas', name: 'Vendas', type: 'INCOME', color: '#2563eb', isDefault: true },
 ];
 
 const DEFAULT_METHODS: PaymentMethod[] = [
@@ -104,13 +130,9 @@ export const StorageService = {
 
         // 1. Categorias Expandidas e Criativas
         const newDemoCats: Category[] = [
-            { id: uuidv4(), name: 'Educação & Livros', type: 'EXPENSE', color: '#f97316' },
             { id: uuidv4(), name: 'Investimentos', type: 'EXPENSE', color: '#06b6d4' },
             { id: uuidv4(), name: 'Hobbies & Games', type: 'EXPENSE', color: '#f43f5e' },
             { id: uuidv4(), name: 'Assinaturas Cloud', type: 'EXPENSE', color: '#3b82f6' },
-            { id: uuidv4(), name: 'Pets & Cuidado', type: 'EXPENSE', color: '#8b5cf6' },
-            { id: uuidv4(), name: 'Manutenção Véiculo', type: 'EXPENSE', color: '#fbbf24' },
-            { id: uuidv4(), name: 'Rendas Freelance', type: 'INCOME', color: '#10b981' },
             { id: uuidv4(), name: 'Vendas Online', type: 'INCOME', color: '#14b8a6' },
         ];
 

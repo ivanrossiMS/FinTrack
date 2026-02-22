@@ -60,10 +60,36 @@ const INCOME_KEYWORDS = [
 // Maps broad theme → keywords that imply that theme in Portuguese speech
 const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
     {
+        keywords: ['aluguel', 'condomínio', 'condominio', 'luz', 'energia',
+            'água', 'agua', 'internet', 'wifi', 'gás', 'gas', 'reforma',
+            'iptu', 'imóvel', 'imovel', 'casa', 'apartamento', 'apto',
+            'manutenção', 'manutencao', 'encanador', 'eletricista', 'limpeza'],
+        themes: ['Contas da Casa', 'Casa & Manutenção'],
+    },
+    {
+        keywords: ['farmácia', 'farmacia', 'médico', 'medico', 'exame', 'dentista',
+            'remédio', 'remedio', 'hospital', 'consulta', 'plano de saúde', 'plano saúde',
+            'plano saude', 'psicólogo', 'psicologo', 'psiquiatra', 'nutricionista',
+            'academia', 'gym', 'personal', 'cirurgia', 'check-up'],
+        themes: ['Saúde', 'Beleza & Autocuidado'],
+    },
+    {
+        keywords: ['cinema', 'viagem', 'show', 'bar', 'festa', 'netflix', 'amazon prime',
+            'disney', 'hbo', 'spotify', 'jogo', 'jogos', 'ingresso', 'parque', 'teatro',
+            'balada', 'clube', 'hobbie', 'hobby', 'photoshop', 'adobé', 'adobe'],
+        themes: ['Lazer', 'Viagens', 'Assinaturas'],
+    },
+    {
+        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade escolar',
+            'aula', 'matrícula', 'matricula', 'pós', 'pos', 'mba',
+            'idioma', 'inglês', 'ingles', 'espanhol', 'treinamento', 'workshop'],
+        themes: ['Educação & Livros'],
+    },
+    {
         keywords: ['uber', '99', 'táxi', 'taxi', 'ônibus', 'onibus', 'metrô', 'metro',
             'gasolina', 'combustível', 'combustivel', 'carro', 'estacionamento',
             'pedágio', 'pedagio', 'moto', 'bicicleta', 'passagem', 'transporte'],
-        themes: ['transporte', 'transport', 'veículo', 'veiculo', 'mobilidade'],
+        themes: ['Transporte / Manutenção Véiculo'],
     },
     {
         keywords: ['mercado', 'supermercado', 'almoço', 'almoco', 'jantar', 'ifood',
@@ -71,65 +97,51 @@ const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
             'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira',
             'churrasco', 'açaí', 'acai', 'sorvete', 'refeição', 'refeicao',
             'marmita', 'delivery', 'a praça', 'praça', 'china'],
-        themes: ['alimentação', 'alimentacao', 'comida', 'refeição', 'refeicao', 'food', 'gastro'],
-    },
-    {
-        keywords: ['aluguel', 'condomínio', 'condominio', 'luz', 'energia',
-            'água', 'agua', 'internet', 'wifi', 'gás', 'gas', 'reforma',
-            'iptu', 'imóvel', 'imovel', 'casa', 'apartamento', 'apto',
-            'manutenção', 'manutencao', 'encanador', 'eletricista', 'limpeza'],
-        themes: ['moradia', 'habitação', 'habitacao', 'casa', 'residência', 'residencia', 'home', 'imóvel'],
-    },
-    {
-        keywords: ['farmácia', 'farmacia', 'médico', 'medico', 'exame', 'dentista',
-            'remédio', 'remedio', 'hospital', 'consulta', 'plano de saúde', 'plano saúde',
-            'plano saude', 'psicólogo', 'psicologo', 'psiquiatra', 'nutricionista',
-            'academia', 'gym', 'personal', 'cirurgia', 'check-up'],
-        themes: ['saúde', 'saude', 'health', 'médico', 'medico', 'bem-estar'],
-    },
-    {
-        keywords: ['cinema', 'viagem', 'show', 'bar', 'festa', 'netflix', 'amazon prime',
-            'disney', 'hbo', 'spotify', 'jogo', 'jogos', 'ingresso', 'parque', 'teatro',
-            'balada', 'clube', 'hobbie', 'hobby', 'photoshop', 'adobé', 'adobe'],
-        themes: ['lazer', 'entretenimento', 'diversão', 'diversao', 'recreation', 'leisure'],
-    },
-    {
-        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade escolar',
-            'aula', 'matrícula', 'matricula', 'pós', 'pos', 'mba',
-            'idioma', 'inglês', 'ingles', 'espanhol', 'treinamento', 'workshop'],
-        themes: ['educação', 'educacao', 'education', 'escola', 'ensino', 'aprendizado'],
+        themes: ['Alimentação', 'Compras / Mercado Extra'],
     },
     {
         keywords: ['roupa', 'clothes', 'tênis', 'tenis', 'camisa', 'calça', 'calca',
             'sapato', 'sandália', 'sandalia', 'bolsa', 'acessório', 'acessorio',
             'loja', 'shopping', 'moda', 'vestido', 'jaqueta', 'jeans'],
-        themes: ['vestuário', 'vestuario', 'roupas', 'moda', 'clothing'],
+        themes: ['Vestuário'],
     },
     {
         keywords: ['assinatura', 'streaming', 'plano mensal', 'mensalidade',
             'apple', 'google', 'microsoft', 'adobe', 'canva', 'dropbox',
             'icloud', 'antivírus', 'antivirus', 'vpn'],
-        themes: ['assinatura', 'subscricão', 'subscription', 'serviço digital', 'servico digital'],
+        themes: ['Assinaturas', 'Tecnologia'],
     },
     {
         keywords: ['salário', 'salario', 'ordenado', 'pagamento', 'holerite', 'pró-labore',
             'prolabore', 'freelance', 'consultoria', 'serviços prestados', 'renda extra'],
-        themes: ['salário', 'salario', 'renda', 'receita', 'income', 'salary'],
+        themes: ['Salário', 'Serviços / Consultorias'],
     },
     {
         keywords: ['investimento', 'ações', 'acoes', 'bolsa', 'fundo', 'tesouro', 'cdb',
             'poupança', 'poupanca', 'renda fixa', 'cripto', 'bitcoin'],
-        themes: ['investimento', 'investimentos', 'poupança', 'poupanca', 'finanças', 'financas'],
+        themes: ['Rendimentos'],
     },
     {
         keywords: ['pet', 'cachorro', 'gato', 'ração', 'racao', 'veterinário', 'veterinario',
             'banho tosa', 'petshop'],
-        themes: ['pet', 'animal', 'animais'],
+        themes: ['Pets & Cuidado'],
+    },
+    {
+        keywords: ['imposto', 'taxa', 'irpf', 'iptu', 'ipva', 'juros', 'iof'],
+        themes: ['Impostos & Taxas'],
+    },
+    {
+        keywords: ['seguro', 'apólice', 'porto seguro', 'liberty', 'allianz'],
+        themes: ['Seguros'],
+    },
+    {
+        keywords: ['presente', 'doação', 'aniversário', 'ajuda', 'caridade'],
+        themes: ['Presentes & Doações'],
     },
     {
         keywords: ['cartão', 'cartao', 'fatura', 'boleto', 'empréstimo', 'emprestimo',
             'financiamento', 'parcela', 'juros', 'dívida', 'divida'],
-        themes: ['dívida', 'divida', 'financiamento', 'crédito', 'credito'],
+        themes: ['Dívidas & Empréstimos', 'Cartão de Crédito'],
     },
 ];
 
