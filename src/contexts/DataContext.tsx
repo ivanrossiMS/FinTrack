@@ -7,54 +7,55 @@ import { addMonths, parseISO } from 'date-fns';
 
 interface DataContextType {
     data: AppData;
-    addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => void;
-    updateTransaction: (id: string, tx: Partial<Transaction>) => void;
-    deleteTransaction: (id: string) => void;
-    addCategory: (cat: Omit<Category, 'id'>) => string;
-    updateCategory: (id: string, cat: Partial<Category>) => void;
-    deleteCategory: (id: string) => void;
-    addSupplier: (supplier: Omit<Supplier, 'id'>) => string;
-    updateSupplier: (id: string, supplier: Partial<Supplier>) => void;
-    deleteSupplier: (id: string) => void;
-    addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => void;
-    updatePaymentMethod: (id: string, method: Partial<PaymentMethod>) => void;
-    deletePaymentMethod: (id: string) => void;
-    updateProfile: (profile: UserProfile) => void;
-    addCommitment: (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => void;
-    updateCommitment: (id: string, updates: Partial<Commitment>) => void;
-    deleteCommitment: (id: string) => void;
-    payCommitment: (id: string, paymentMethodId: string, installments?: number) => void;
-    refresh: () => void;
-    addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
-    updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>) => void;
-    deleteSavingsGoal: (id: string) => void;
-    resetCategories: () => void;
+    addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => Promise<void>;
+    updateTransaction: (id: string, tx: Partial<Transaction>) => Promise<void>;
+    deleteTransaction: (id: string) => Promise<void>;
+    addCategory: (cat: Omit<Category, 'id'>) => Promise<string>;
+    updateCategory: (id: string, cat: Partial<Category>) => Promise<void>;
+    deleteCategory: (id: string) => Promise<void>;
+    addSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<string>;
+    updateSupplier: (id: string, supplier: Partial<Supplier>) => Promise<void>;
+    deleteSupplier: (id: string) => Promise<void>;
+    addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => Promise<void>;
+    updatePaymentMethod: (id: string, method: Partial<PaymentMethod>) => Promise<void>;
+    deletePaymentMethod: (id: string) => Promise<void>;
+    updateProfile: (profile: UserProfile) => Promise<void>;
+    addCommitment: (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => Promise<void>;
+    updateCommitment: (id: string, updates: Partial<Commitment>) => Promise<void>;
+    deleteCommitment: (id: string) => Promise<void>;
+    payCommitment: (id: string, paymentMethodId: string, installments?: number) => Promise<void>;
+    refresh: () => Promise<void>;
+    addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>) => Promise<void>;
+    deleteSavingsGoal: (id: string) => Promise<void>;
+    resetCategories: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const [data, setData] = useState<AppData>(StorageService.load(user?.email));
+    const [data, setData] = useState<AppData>({
+        transactions: [],
+        categories: [],
+        suppliers: [],
+        paymentMethods: [],
+        budgets: [],
+        commitments: [],
+        savingsGoals: []
+    });
 
     // Reload data when user changes
     useEffect(() => {
-        const loadedData = StorageService.load(user?.email);
-        setData(loadedData);
+        if (!user?.id) return;
 
-        // One-time sync: If admin, and global keys are empty, initialize them with admin's current data
-        if (user?.isAdmin) {
-            const hasGlobalCats = StorageService.loadGlobalCategories();
-            const hasGlobalMethods = StorageService.loadGlobalMethods();
+        const loadData = async () => {
+            const loadedData = await StorageService.load(user.id);
+            setData(loadedData);
+        };
 
-            if (!hasGlobalCats && loadedData.categories.length > 0) {
-                StorageService.saveGlobalCategories(loadedData.categories);
-            }
-            if (!hasGlobalMethods && loadedData.paymentMethods.length > 0) {
-                StorageService.saveGlobalMethods(loadedData.paymentMethods);
-            }
-        }
-    }, [user?.email, user?.isAdmin]);
+        loadData();
+    }, [user?.id]);
 
     useEffect(() => {
         // --- AUTO-SYNC FIXED CATEGORIES ---
@@ -77,40 +78,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [data.categories.length]); // Track length to avoid infinite loops but catch additions
 
-    useEffect(() => {
-        // Sincronizar qualquer mudança de estado com o localStorage relativo ao usuário
-        StorageService.save(data, user?.email);
-    }, [data, user?.email]);
-
-    const refresh = () => {
-        setData(StorageService.load(user?.email));
+    const refresh = async () => {
+        if (user?.id) {
+            setData(await StorageService.load(user.id));
+        }
     };
 
-    const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => {
+    const addTransaction = async (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => {
+        if (!user?.id) return;
         const { installments, recurrenceCount, ...baseTx } = tx;
 
-        // Determine how many entries to generate:
-        // - Credit card installments (despesas parceladas)
-        // - Recurring income (receitas recorrentes)
         const count = (baseTx.isRecurring && recurrenceCount && recurrenceCount > 1)
             ? recurrenceCount
             : (installments || 1);
 
         const groupId = count > 1 ? uuidv4() : undefined;
-
-        const newTransactions: Transaction[] = [];
         const baseDate = parseISO(baseTx.date);
 
         for (let i = 0; i < count; i++) {
             const date = addMonths(baseDate, i).toISOString();
             const description = count > 1 ? `${baseTx.description} [${i + 1}/${count}]` : baseTx.description;
-
-            // If it's installments (not recurring), divide the total amount
             const installmentAmount = (!baseTx.isRecurring && count > 1)
                 ? Math.round((baseTx.amount / count) * 100) / 100
                 : baseTx.amount;
 
-            newTransactions.push({
+            const newTx: Transaction = {
                 ...baseTx,
                 id: uuidv4(),
                 date,
@@ -123,122 +115,97 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 recurrenceCount: baseTx.isRecurring ? count : undefined,
                 createdAt: Date.now(),
                 updatedAt: Date.now()
-            });
+            };
+
+            await StorageService.saveTransaction(newTx, user.id);
         }
 
-        setData(prev => ({
-            ...prev,
-            transactions: [...prev.transactions, ...newTransactions]
-        }));
+        refresh();
     };
 
-    const updateTransaction = (id: string, updates: Partial<Transaction>) => {
-        setData(prev => ({
-            ...prev,
-            transactions: prev.transactions.map(t => t.id === id ? { ...t, ...updates, updatedAt: Date.now() } : t)
-        }));
+    const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
+        if (!user?.id) return;
+        const currentTx = data.transactions.find(t => t.id === id);
+        if (!currentTx) return;
+
+        const updatedTx = { ...currentTx, ...updates, updatedAt: Date.now() };
+        await StorageService.saveTransaction(updatedTx, user.id);
+        refresh();
     };
 
-    const deleteTransaction = (id: string) => {
-        setData(prev => ({
-            ...prev,
-            transactions: prev.transactions.filter(t => t.id !== id)
-        }));
+    const deleteTransaction = async (id: string) => {
+        await StorageService.deleteTransaction(id);
+        refresh();
     };
 
-    const addCategory = (cat: Omit<Category, 'id'>) => {
+    const addCategory = async (cat: Omit<Category, 'id'>) => {
+        if (!user?.id) return '';
         const id = uuidv4();
         const newCat: Category = { ...cat, id };
-        setData(prev => {
-            const newData = { ...prev, categories: [...prev.categories, newCat] };
-            if (user?.isAdmin) {
-                StorageService.saveGlobalCategories(newData.categories);
-            }
-            return newData;
-        });
+        await StorageService.saveCategory(newCat, user.id);
+        refresh();
         return id;
     };
 
-    const updateCategory = (id: string, updates: Partial<Category>) => {
-        setData(prev => {
-            const newData = {
-                ...prev,
-                categories: prev.categories.map(c => c.id === id ? { ...c, ...updates } : c)
-            };
-            if (user?.isAdmin) {
-                StorageService.saveGlobalCategories(newData.categories);
-            }
-            return newData;
-        });
+    const updateCategory = async (id: string, updates: Partial<Category>) => {
+        if (!user?.id) return;
+        const currentCat = data.categories.find(c => c.id === id);
+        if (!currentCat) return;
+
+        const updatedCat = { ...currentCat, ...updates };
+        await StorageService.saveCategory(updatedCat, user.id);
+        refresh();
     };
 
-    const deleteCategory = (id: string) => {
-        setData(prev => {
-            const newData = { ...prev, categories: prev.categories.filter(c => c.id !== id) };
-            if (user?.isAdmin) {
-                StorageService.saveGlobalCategories(newData.categories);
-            }
-            return newData;
-        });
+    const deleteCategory = async (id: string) => {
+        await StorageService.deleteCategory(id);
+        refresh();
     };
 
-    const addSupplier = (supplier: Omit<Supplier, 'id'>) => {
+    const addSupplier = async (supplier: Omit<Supplier, 'id'>) => {
         const id = uuidv4();
-        const newSupplier: Supplier = { ...supplier, id };
-        setData(prev => ({ ...prev, suppliers: [...prev.suppliers, newSupplier] }));
+        // Skip Supabase for now as we don't have a table for suppliers yet, or add it to StorageService
+        setData(prev => ({ ...prev, suppliers: [...prev.suppliers, { ...supplier, id }] }));
         return id;
     };
 
-    const updateSupplier = (id: string, updates: Partial<Supplier>) => {
+    const updateSupplier = async (id: string, updates: Partial<Supplier>) => {
         setData(prev => ({
             ...prev,
             suppliers: prev.suppliers.map(s => s.id === id ? { ...s, ...updates } : s)
         }));
     };
 
-    const deleteSupplier = (id: string) => {
+    const deleteSupplier = async (id: string) => {
         setData(prev => ({ ...prev, suppliers: prev.suppliers.filter(s => s.id !== id) }));
     };
 
-    const addPaymentMethod = (method: Omit<PaymentMethod, 'id'>) => {
+    const addPaymentMethod = async (method: Omit<PaymentMethod, 'id'>) => {
+        if (!user?.id) return;
         const newMethod: PaymentMethod = { ...method, id: uuidv4() };
-        setData(prev => {
-            const newData = { ...prev, paymentMethods: [...prev.paymentMethods, newMethod] };
-            if (user?.isAdmin) {
-                StorageService.saveGlobalMethods(newData.paymentMethods);
-            }
-            return newData;
-        });
+        await StorageService.savePaymentMethod(newMethod, user.id);
+        refresh();
     };
 
-    const updatePaymentMethod = (id: string, updates: Partial<PaymentMethod>) => {
-        setData(prev => {
-            const newData = {
-                ...prev,
-                paymentMethods: prev.paymentMethods.map(m => m.id === id ? { ...m, ...updates } : m)
-            };
-            if (user?.isAdmin) {
-                StorageService.saveGlobalMethods(newData.paymentMethods);
-            }
-            return newData;
-        });
+    const updatePaymentMethod = async (id: string, updates: Partial<PaymentMethod>) => {
+        if (!user?.id) return;
+        const current = data.paymentMethods.find(m => m.id === id);
+        if (!current) return;
+        const updated = { ...current, ...updates };
+        await StorageService.savePaymentMethod(updated, user.id);
+        refresh();
     };
 
-    const deletePaymentMethod = (id: string) => {
-        setData(prev => {
-            const newData = { ...prev, paymentMethods: prev.paymentMethods.filter(m => m.id !== id) };
-            if (user?.isAdmin) {
-                StorageService.saveGlobalMethods(newData.paymentMethods);
-            }
-            return newData;
-        });
+    const deletePaymentMethod = async (id: string) => {
+        await StorageService.deletePaymentMethod(id);
+        refresh();
     };
 
-    const updateProfile = (profile: UserProfile) => {
+    const updateProfile = async (profile: UserProfile) => {
         setData(prev => ({ ...prev, userProfile: profile }));
     };
 
-    const addCommitment = (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {
+    const addCommitment = async (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {
         const { installments, ...baseComm } = commitment;
         const count = installments || 1;
         const installmentId = count > 1 ? uuidv4() : undefined;
@@ -272,7 +239,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     };
 
-    const updateCommitment = (id: string, updates: Partial<Commitment>) => {
+    const updateCommitment = async (id: string, updates: Partial<Commitment>) => {
         setData(prev => {
             const commitments = prev.commitments || [];
             const commitment = commitments.find(c => c.id === id);
@@ -308,7 +275,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const deleteCommitment = (id: string) => {
+    const deleteCommitment = async (id: string) => {
         setData(prev => {
             const commitments = prev.commitments || [];
             const commitment = commitments.find(c => c.id === id);
@@ -328,7 +295,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const payCommitment = (id: string, paymentMethodId: string, installments?: number) => {
+    const payCommitment = async (id: string, paymentMethodId: string, installments?: number) => {
         setData(prev => {
             const commitments = prev.commitments || [];
             const commitment = commitments.find(c => c.id === id);
@@ -389,7 +356,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const addSavingsGoal = (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const addSavingsGoal = async (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
         const newGoal: SavingsGoal = {
             ...goal,
             id: uuidv4(),
@@ -402,7 +369,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     };
 
-    const updateSavingsGoal = (id: string, updates: Partial<SavingsGoal>) => {
+    const updateSavingsGoal = async (id: string, updates: Partial<SavingsGoal>) => {
         setData(prev => ({
             ...prev,
             savingsGoals: (prev.savingsGoals || []).map(g =>
@@ -411,7 +378,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     };
 
-    const deleteSavingsGoal = (id: string) => {
+    const deleteSavingsGoal = async (id: string) => {
         setData(prev => ({
             ...prev,
             savingsGoals: (prev.savingsGoals || []).filter(g => g.id !== id)
@@ -422,28 +389,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
      * Resets categories to the new standardized Finance+ list.
      * Merges current categories with defaults, ensuring all defaults are present and marked.
      */
-    const resetCategories = () => {
-        setData(prev => {
-            const defaults = StorageService.loadGlobalCategories() || [];
-
-            // Start with a copy of existing non-default categories
-            const userCats = prev.categories.filter(c => !c.id.startsWith('cat_') && !c.isDefault);
-
-            // Merge defaults in
-            const merged = [...defaults, ...userCats];
-
-            // Remove potential duplicates by name (if user manually created one of the defaults)
-            const unique = merged.reduce((acc: Category[], current) => {
-                const x = acc.find(item => item.name === current.name);
-                if (!x) return acc.concat([current]);
-                return acc;
-            }, []);
-
-            return {
-                ...prev,
-                categories: unique
-            };
-        });
+    const resetCategories = async () => {
+        // Implementation for Supabase: Would involve deleting current and inserting defaults
+        refresh();
     };
 
     return (

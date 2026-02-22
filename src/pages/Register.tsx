@@ -15,7 +15,7 @@ export const Register: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
@@ -23,10 +23,9 @@ export const Register: React.FC = () => {
             return;
         }
 
-        if (register(name, email, password)) {
+        const success = await register(name, email, password);
+        if (success) {
             navigate('/');
-        } else {
-            setError('E-mail já cadastrado');
         }
     };
 

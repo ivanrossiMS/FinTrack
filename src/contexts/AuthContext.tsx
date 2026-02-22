@@ -1,19 +1,20 @@
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { StorageService } from '../services/storage';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthContextType {
     isAuthenticated: boolean;
     user: any;
-    login: (email: string, pass: string) => boolean;
-    register: (name: string, email: string, pass: string) => boolean;
-    logout: () => void;
-    updateUser: (user: any) => void;
-    adminUpdateUserInfo: (targetEmail: string, updates: any) => void;
+    login: (email: string, pass: string) => Promise<boolean>;
+    register: (name: string, email: string, pass: string) => Promise<boolean>;
+    logout: () => Promise<void>;
+    updateUser: (user: any) => Promise<void>;
+    adminUpdateUserInfo: (targetEmail: string, updates: any) => Promise<void>;
     impersonateUser: (email: string) => void;
     stopImpersonating: () => void;
     changePassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; message: string }>;
     isImpersonating: boolean;
+    loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,183 +26,215 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isImpersonating, setIsImpersonating] = useState(false);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('fintrack_current_user');
-        const impersonating = localStorage.getItem('fintrack_impersonating') === 'true';
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-            setIsImpersonating(impersonating);
-        }
-        setLoading(false);
+        // Listen for auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                // Fetch profile data
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile) {
+                    const userSession = {
+                        id: session.user.id,
+                        name: profile.name,
+                        email: profile.email,
+                        avatar: profile.avatar,
+                        isAdmin: profile.is_admin,
+                        isAuthorized: profile.is_authorized,
+                        plan: profile.plan || 'FREE'
+                    };
+                    setUser(userSession);
+                    setIsAuthenticated(true);
+                }
+            } else {
+                setUser(null);
+                setIsAuthenticated(false);
+            }
+            setLoading(false);
+        });
+
+        // Check initial session
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile) {
+                    const userSession = {
+                        id: session.user.id,
+                        name: profile.name,
+                        email: profile.email,
+                        avatar: profile.avatar,
+                        isAdmin: profile.is_admin,
+                        isAuthorized: profile.is_authorized,
+                        plan: profile.plan || 'FREE'
+                    };
+                    setUser(userSession);
+                    setIsAuthenticated(true);
+                }
+            }
+            setLoading(false);
+        };
+
+        checkSession();
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
-    const login = (email: string, password: string): boolean => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+    const login = async (email: string, password: string): Promise<boolean> => {
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        // Check for Master Admin fallback
-        const isMasterAdminEmail = email === 'ivanrossi@outlook.com';
-        const isMasterPassword = password === 'ivanross';
-        const exists = users.some((u: any) => u.email === 'ivanrossi@outlook.com');
-
-        if (isMasterAdminEmail && isMasterPassword && !exists) {
-            const masterAdmin = {
-                name: 'Ivan Rossi',
-                email: 'ivanrossi@outlook.com',
-                password: 'ivanross',
-                avatar: '',
-                isAdmin: true,
-                isAuthorized: true,
-                plan: 'PREMIUM'
-            };
-            users.push(masterAdmin);
-            localStorage.setItem('fintrack_users', JSON.stringify(users));
-        }
-
-        const foundUser = users.find((u: any) => u.email === email && u.password === password);
-
-        if (foundUser) {
-            const isMasterAdmin = foundUser.email === 'ivanrossi@outlook.com';
-
-            // Check authorization
-            if (!isMasterAdmin && foundUser.isAuthorized === false) {
-                alert("Acesso negado. Aguarde a autorização do administrador.");
+            if (error) {
+                alert(`Erro no login: ${error.message}`);
                 return false;
             }
 
-            const userSession = {
-                name: foundUser.name,
-                email: foundUser.email,
-                avatar: foundUser.avatar,
-                isAdmin: isMasterAdmin || foundUser.isAdmin,
-                isAuthorized: foundUser.isAuthorized !== false, // default true if missing for legacy
-                plan: foundUser.plan || 'FREE'
-            };
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-            setUser(userSession);
-            setIsAuthenticated(true);
-            return true;
+            if (data.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+
+                if (profile) {
+                    if (!profile.is_authorized && profile.email !== 'ivanrossi@outlook.com') {
+                        alert("Sua conta ainda não foi autorizada pelo administrador.");
+                        await supabase.auth.signOut();
+                        return false;
+                    }
+
+                    const userSession = {
+                        id: data.user.id,
+                        name: profile.name,
+                        email: profile.email,
+                        avatar: profile.avatar,
+                        isAdmin: profile.is_admin,
+                        isAuthorized: profile.is_authorized,
+                        plan: profile.plan
+                    };
+                    setUser(userSession);
+                    setIsAuthenticated(true);
+                    return true;
+                }
+            }
+            return false;
+        } catch (err) {
+            console.error(err);
+            return false;
         }
-        return false;
     };
 
-    const register = (name: string, email: string, password: string): boolean => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const existingUserIndex = users.findIndex((u: any) => u.email === email);
-
-        if (existingUserIndex >= 0) {
-            // User exists: Update the record (Password Recovery / Fix)
-            const existingUser = users[existingUserIndex];
-            const updatedUser = { ...existingUser, name, password }; // Update name and password
-            users[existingUserIndex] = updatedUser;
-            localStorage.setItem('fintrack_users', JSON.stringify(users));
-
-            // Auto login
-            const userSession = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatar,
-                phone: updatedUser.phone
-            };
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-            setUser(userSession);
-            setIsAuthenticated(true);
-            return true;
-        }
-
-        const isMasterAdmin = email === 'ivanrossi@outlook.com';
-        const newUser = {
-            name,
-            email,
-            password,
-            avatar: '',
-            isAdmin: isMasterAdmin,
-            isAuthorized: isMasterAdmin ? true : false,
-            plan: 'FREE'
-        };
-        users.push(newUser);
-        localStorage.setItem('fintrack_users', JSON.stringify(users));
-
-        // Auto login ONLY if auto-authorized (master admin)
-        if (newUser.isAuthorized) {
-            const userSession = {
-                name,
+    const register = async (name: string, email: string, password: string): Promise<boolean> => {
+        try {
+            const { data, error } = await supabase.auth.signUp({
                 email,
-                avatar: '',
-                isAdmin: isMasterAdmin,
-                isAuthorized: true,
-                plan: 'FREE'
-            };
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-            setUser(userSession);
-            setIsAuthenticated(true);
-            return true;
-        }
+                password,
+                options: {
+                    data: { name }
+                }
+            });
 
-        alert("Conta criada! Aguarde a autorização do administrador para acessar o sistema.");
-        return true;
+            if (error) {
+                alert(`Erro no cadastro: ${error.message}`);
+                return false;
+            }
+
+            if (data.user) {
+                const isMasterAdmin = email === 'ivanrossi@outlook.com';
+
+                // Create profile in our custom table
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        {
+                            id: data.user.id,
+                            name,
+                            email,
+                            is_admin: isMasterAdmin,
+                            is_authorized: isMasterAdmin,
+                            plan: 'FREE'
+                        }
+                    ]);
+
+                if (profileError) {
+                    console.error('Error creating profile:', profileError);
+                }
+
+                if (isMasterAdmin) {
+                    const userSession = {
+                        id: data.user.id,
+                        name,
+                        email,
+                        isAdmin: true,
+                        isAuthorized: true,
+                        plan: 'FREE'
+                    };
+                    setUser(userSession);
+                    setIsAuthenticated(true);
+                    return true;
+                } else {
+                    alert("Conta criada com sucesso! Aguarde a autorização do administrador.");
+                    return true;
+                }
+            }
+            return false;
+        } catch (err) {
+            console.error(err);
+            return false;
+        }
     };
 
-    const logout = () => {
-        localStorage.removeItem('fintrack_current_user');
+    const logout = async () => {
+        await supabase.auth.signOut();
         setIsAuthenticated(false);
         setUser(null);
     };
 
-    const updateUser = (updatedUser: any) => {
-        // Read the authoritative user record from registered users to get admin-set fields
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const registeredUser = users.find((u: any) => u.email === updatedUser.email);
+    const updateUser = async (updatedUser: any) => {
+        if (!user?.id) return;
 
-        const userSession = {
-            name: updatedUser.name,
-            email: updatedUser.email,
-            avatar: updatedUser.avatar,
-            phone: updatedUser.phone,
-            profession: updatedUser.profession,
-            isAdmin: updatedUser.isAdmin || updatedUser.email === 'ivanrossi@outlook.com',
-            isAuthorized: registeredUser?.isAuthorized ?? updatedUser.isAuthorized ?? true,
-            plan: registeredUser?.plan || updatedUser.plan || 'FREE',
-        };
-        setUser(userSession);
-        localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                name: updatedUser.name,
+                avatar: updatedUser.avatar,
+                phone: updatedUser.phone,
+                profession: updatedUser.profession
+            })
+            .eq('id', user.id);
 
-        // Also update the user in the registered users list, preserving existing fields like password & plan
-        const newUsers = users.map((u: any) =>
-            u.email === updatedUser.email
-                ? { ...u, name: updatedUser.name, avatar: updatedUser.avatar, phone: updatedUser.phone, profession: updatedUser.profession }
-                : u
-        );
-        localStorage.setItem('fintrack_users', JSON.stringify(newUsers));
+        if (!error) {
+            setUser({ ...user, ...updatedUser });
+        } else {
+            console.error('Error updating user:', error);
+        }
     };
 
-    const adminUpdateUserInfo = (targetEmail: string, updates: any) => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const userIndex = users.findIndex((u: any) => u.email === targetEmail);
-        if (userIndex === -1) return;
+    const adminUpdateUserInfo = async (targetId: string, updates: any) => {
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                is_admin: updates.isAdmin,
+                is_authorized: updates.isAuthorized,
+                plan: updates.plan
+            })
+            .eq('id', targetId);
 
-        const oldUser = users[userIndex];
-        const updatedUser = { ...oldUser, ...updates };
-
-        // Handle email change and migration
-        if (updates.email && updates.email !== targetEmail) {
-            StorageService.renameUserKey(targetEmail, updates.email);
-        }
-
-        users[userIndex] = updatedUser;
-        localStorage.setItem('fintrack_users', JSON.stringify(users));
-
-        // If currently impersonating this user, update session
-        if (user?.email === targetEmail) {
-            const userSession = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatar,
-                isAdmin: updatedUser.isAdmin || updatedUser.email === 'ivanrossi@outlook.com',
-                isAuthorized: updatedUser.isAuthorized,
-                plan: updatedUser.plan
-            };
-            setUser(userSession);
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
+        if (error) {
+            console.error('Error in adminUpdateUserInfo:', error);
         }
     };
 
@@ -284,7 +317,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             impersonateUser,
             stopImpersonating,
             changePassword,
-            isImpersonating
+            isImpersonating,
+            loading
         }}>
             {children}
         </AuthContext.Provider>
