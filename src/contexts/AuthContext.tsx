@@ -109,25 +109,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (email: string, password: string): Promise<boolean> => {
+        console.log('Login attempt started for:', email);
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            // Failsafe: if no response in 10s
+            const loginPromise = supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido.')), 10000)
+            );
+
+            const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
+
             if (error) {
+                console.error('Supabase Login Error:', error);
                 alert(`Erro no login: ${error.message}`);
                 return false;
             }
 
+            console.log('Login successful, checking profile...');
             if (data.user) {
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
 
                 if (profile) {
+                    // ... existing profile logic
                     if (!profile.is_authorized && profile.email !== 'ivanrossi@outlook.com') {
                         alert("Sua conta ainda não foi autorizada pelo administrador.");
                         await supabase.auth.signOut();
@@ -147,6 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setIsAuthenticated(true);
                     return true;
                 } else {
+                    // ... exists in next chunks
                     // AUTO-RECOVERY: If login works but profile is missing, create it!
                     console.log('Profile missing, attempting auto-recovery...');
                     const isMasterAdmin = data.user.email === 'ivanrossi@outlook.com';
