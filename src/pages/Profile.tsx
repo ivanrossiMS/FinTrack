@@ -277,237 +277,198 @@ export const Profile: React.FC = () => {
                 {/* ══════════════════════════════════════════════
                     HERO CARD — Avatar + Contact Info
                    ══════════════════════════════════════════════ */}
-                <div style={s.card}>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'minmax(200px, 300px) 1fr',
-                        minHeight: 320,
-                    }}>
-                        {/* Left — Avatar Column */}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '2.5rem 1.5rem',
-                            background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(14,165,233,0.04) 100%)',
-                            borderRight: '1px solid rgba(226,232,240,0.6)',
-                            gap: '0.75rem',
-                        }}>
-                            {/* Avatar */}
-                            <div style={{ position: 'relative' }}>
-                                <div style={{
-                                    width: 120,
-                                    height: 120,
+                <div className="profile-hero-card">
+                    {/* Left — Avatar Column */}
+                    <div className="profile-avatar-container">
+                        {/* Avatar */}
+                        <div style={{ position: 'relative' }}>
+                            <div style={{
+                                width: 120,
+                                height: 120,
+                                borderRadius: '50%',
+                                background: 'white',
+                                padding: 4,
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                            }}>
+                                {avatar ? (
+                                    <img src={avatar} alt="Profile" style={{
+                                        width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
+                                    }} />
+                                ) : (
+                                    <User size={52} color="#cbd5e1" />
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => document.getElementById('avatar-upload')?.click()}
+                                title="Alterar foto"
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 2,
+                                    right: 2,
+                                    width: 36,
+                                    height: 36,
+                                    background: '#6366f1',
+                                    color: 'white',
                                     borderRadius: '50%',
-                                    background: 'white',
-                                    padding: 4,
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-                                    border: '1px solid #e2e8f0',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    overflow: 'hidden',
-                                }}>
-                                    {avatar ? (
-                                        <img src={avatar} alt="Profile" style={{
-                                            width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
-                                        }} />
-                                    ) : (
-                                        <User size={52} color="#cbd5e1" />
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => document.getElementById('avatar-upload')?.click()}
-                                    title="Alterar foto"
-                                    style={{
-                                        position: 'absolute',
-                                        bottom: 2,
-                                        right: 2,
-                                        width: 36,
-                                        height: 36,
-                                        background: '#6366f1',
-                                        color: 'white',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: '3px solid white',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
-                                        transition: 'transform 0.2s',
-                                    }}
-                                    onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.12)')}
-                                    onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                                >
-                                    <Camera size={16} />
-                                </button>
-                                <input
-                                    id="avatar-upload"
-                                    type="file"
-                                    style={{ display: 'none' }}
-                                    accept="image/*"
-                                    onChange={handleAvatarChange}
-                                />
-                            </div>
-
-                            <h2 style={{
-                                fontSize: '1.25rem',
-                                fontWeight: 800,
-                                color: '#0f172a',
-                                letterSpacing: '-0.03em',
-                                margin: 0,
-                                textAlign: 'center',
-                            }}>{name || 'Usuário'}</h2>
-
-                            {profession && (
-                                <span style={{
-                                    fontSize: '0.65rem',
-                                    fontWeight: 700,
-                                    color: '#6366f1',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.12em',
-                                    background: 'rgba(99,102,241,0.08)',
-                                    padding: '0.3rem 0.8rem',
-                                    borderRadius: 999,
-                                    border: '1px solid rgba(99,102,241,0.12)',
-                                }}>{profession}</span>
-                            )}
-
-                            <span style={{
-                                fontSize: '0.6rem',
-                                fontWeight: 600,
-                                color: '#94a3b8',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em',
-                                marginTop: '0.5rem',
-                            }}>JPG, PNG, WEBP · MÁX 2MB</span>
-
-                            {/* Save Avatar Button — only shows after picking a new photo */}
-                            {avatarDirty && (
-                                <button
-                                    type="button"
-                                    onClick={handleSaveAvatar}
-                                    style={{
-                                        marginTop: '0.5rem',
-                                        height: 36,
-                                        padding: '0 1.25rem',
-                                        border: 'none',
-                                        borderRadius: 10,
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        color: 'white',
-                                        background: '#059669',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.4rem',
-                                        boxShadow: '0 4px 12px rgba(5,150,105,0.25)',
-                                        transition: 'background 0.2s, transform 0.15s',
-                                    }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = '#047857'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                >
-                                    <Save size={14} />
-                                    Salvar Imagem
-                                </button>
-                            )}
+                                    border: '3px solid white',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
+                                    transition: 'transform 0.2s',
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.12)')}
+                                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                            >
+                                <Camera size={16} />
+                            </button>
+                            <input
+                                id="avatar-upload"
+                                type="file"
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                onChange={handleAvatarChange}
+                            />
                         </div>
 
-                        {/* Right — Contact Info */}
-                        <div style={{
-                            padding: '2.5rem 2rem',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                        }}>
-                            <h3 style={{
-                                fontSize: '1.05rem',
+                        <h2 style={{
+                            fontSize: '1.25rem',
+                            fontWeight: 800,
+                            color: '#0f172a',
+                            letterSpacing: '-0.03em',
+                            margin: 0,
+                            textAlign: 'center',
+                        }}>{name || 'Usuário'}</h2>
+
+                        {profession && (
+                            <span style={{
+                                fontSize: '0.65rem',
                                 fontWeight: 700,
-                                color: '#0f172a',
-                                margin: '0 0 1.5rem 0',
-                            }}>Informações de Contato</h3>
+                                color: '#6366f1',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.12em',
+                                background: 'rgba(99,102,241,0.08)',
+                                padding: '0.3rem 0.8rem',
+                                borderRadius: 999,
+                                border: '1px solid rgba(99,102,241,0.12)',
+                            }}>{profession}</span>
+                        )}
 
-                            <div style={{
-                                border: '1px solid #f1f5f9',
-                                borderRadius: 14,
-                                overflow: 'hidden',
-                                background: 'rgba(255,255,255,0.4)',
-                            }}>
-                                {/* Email */}
-                                <div style={{
+                        <span style={{
+                            fontSize: '0.6rem',
+                            fontWeight: 600,
+                            color: '#94a3b8',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            marginTop: '0.5rem',
+                        }}>JPG, PNG, WEBP · MÁX 2MB</span>
+
+                        {/* Save Avatar Button — only shows after picking a new photo */}
+                        {avatarDirty && (
+                            <button
+                                type="button"
+                                onClick={handleSaveAvatar}
+                                style={{
+                                    marginTop: '0.5rem',
+                                    height: 36,
+                                    padding: '0 1.25rem',
+                                    border: 'none',
+                                    borderRadius: 10,
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    background: '#059669',
+                                    cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    padding: '1rem 1.25rem',
-                                    borderBottom: '1px solid #f1f5f9',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: 160, flexShrink: 0 }}>
-                                        <Mail size={16} color="#6366f1" style={{ opacity: 0.7 }} />
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>E-mail</span>
-                                    </div>
-                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>{email}</span>
-                                </div>
+                                    gap: '0.4rem',
+                                    boxShadow: '0 4px 12px rgba(5,150,105,0.25)',
+                                    transition: 'background 0.2s, transform 0.15s',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#047857'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                            >
+                                <Save size={14} />
+                                Salvar Imagem
+                            </button>
+                        )}
+                    </div>
 
-                                {/* Phone */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '1rem 1.25rem',
-                                    borderBottom: '1px solid #f1f5f9',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: 160, flexShrink: 0 }}>
-                                        <Phone size={16} color="#6366f1" style={{ opacity: 0.7 }} />
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Telefone</span>
-                                    </div>
-                                    <span style={{
-                                        fontSize: '0.9rem',
-                                        fontWeight: phone ? 600 : 400,
-                                        color: phone ? '#0f172a' : '#94a3b8',
-                                        fontStyle: phone ? 'normal' : 'italic',
-                                    }}>{phone || 'Não informado'}</span>
-                                </div>
+                    {/* Right — Contact Info */}
+                    <div className="profile-contact-container">
+                        <h3 style={{
+                            fontSize: '1.05rem',
+                            fontWeight: 700,
+                            color: '#0f172a',
+                            margin: '0 0 1rem 0',
+                        }}>Informações de Contato</h3>
 
-                                {/* Plan */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '1rem 1.25rem',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: 160, flexShrink: 0 }}>
-                                        <Sparkles size={16} color="#6366f1" style={{ opacity: 0.7 }} />
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plano</span>
-                                    </div>
-                                    <span style={{
-                                        fontSize: '0.7rem',
-                                        fontWeight: 700,
-                                        color: user?.plan === 'PREMIUM' ? '#fff' : '#6366f1',
-                                        background: user?.plan === 'PREMIUM' ? 'linear-gradient(135deg, #6366f1, #0d9488)' : 'rgba(99,102,241,0.08)',
-                                        padding: '0.25rem 0.7rem',
-                                        borderRadius: 999,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.05em',
-                                    }}>{user?.plan === 'PREMIUM' ? '✦ Premium' : 'Free'}</span>
+                        <div className="profile-contact-list">
+                            {/* Email */}
+                            <div className="profile-contact-row">
+                                <div className="profile-contact-label">
+                                    <Mail size={16} color="#6366f1" style={{ opacity: 0.7 }} />
+                                    <span className="profile-contact-label-text">E-mail</span>
                                 </div>
+                                <span className="profile-contact-value">{email}</span>
                             </div>
 
-                            {/* Status Banner */}
-                            <div style={{
-                                marginTop: '1.5rem',
-                                padding: '0.9rem 1rem',
-                                background: 'rgba(16,185,129,0.05)',
-                                border: '1px solid rgba(16,185,129,0.15)',
-                                borderRadius: 12,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.65rem',
-                                color: '#059669',
-                            }}>
-                                <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
-                                <span style={{ fontSize: '0.75rem', fontWeight: 600, lineHeight: 1.4 }}>
-                                    Perfil verificado e ativo. Suas informações de contato são usadas para suporte e faturamento.
-                                </span>
+                            {/* Phone */}
+                            <div className="profile-contact-row">
+                                <div className="profile-contact-label">
+                                    <Phone size={16} color="#6366f1" style={{ opacity: 0.7 }} />
+                                    <span className="profile-contact-label-text">Telefone</span>
+                                </div>
+                                <span className="profile-contact-value" style={{
+                                    fontWeight: phone ? 700 : 400,
+                                    color: phone ? '#0f172a' : '#94a3b8',
+                                    fontStyle: phone ? 'normal' : 'italic',
+                                }}>{phone || 'Não informado'}</span>
                             </div>
+
+                            {/* Plan */}
+                            <div className="profile-contact-row">
+                                <div className="profile-contact-label">
+                                    <Sparkles size={16} color="#6366f1" style={{ opacity: 0.7 }} />
+                                    <span className="profile-contact-label-text">Plano</span>
+                                </div>
+                                <span style={{
+                                    fontSize: '0.7rem',
+                                    fontWeight: 800,
+                                    color: user?.plan === 'PREMIUM' ? '#fff' : '#6366f1',
+                                    background: user?.plan === 'PREMIUM' ? 'linear-gradient(135deg, #6366f1, #0d9488)' : 'rgba(99,102,241,0.08)',
+                                    padding: '0.35rem 0.8rem',
+                                    borderRadius: 999,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    alignSelf: 'flex-start'
+                                }}>{user?.plan === 'PREMIUM' ? '✦ Premium' : 'Free'}</span>
+                            </div>
+                        </div>
+
+                        {/* Status Banner */}
+                        <div style={{
+                            marginTop: '0.5rem',
+                            padding: '0.9rem 1rem',
+                            background: 'rgba(16,185,129,0.05)',
+                            border: '1px solid rgba(16,185,129,0.15)',
+                            borderRadius: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.65rem',
+                            color: '#059669',
+                        }}>
+                            <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, lineHeight: 1.4 }}>
+                                Perfil verificado e ativo. Suas informações são usadas para suporte.
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -515,11 +476,7 @@ export const Profile: React.FC = () => {
                 {/* ══════════════════════════════════════════════
                     FORMS ROW — Personal Data + Security
                    ══════════════════════════════════════════════ */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-                    gap: '1.5rem',
-                }}>
+                <div className="profile-forms-grid">
                     {/* ── Personal Data ── */}
                     <div style={{ ...s.card, padding: '2rem' }}>
                         <div style={s.sectionHeader}>
@@ -528,7 +485,7 @@ export const Profile: React.FC = () => {
                             </div>
                             <div>
                                 <h3 style={s.sectionTitle}>Dados Pessoais</h3>
-                                <p style={s.sectionSubtitle}>Atualize seu nome, telefone e ocupação</p>
+                                <p style={s.sectionSubtitle}>Atualize seu nome e detalhes</p>
                             </div>
                         </div>
 
@@ -597,7 +554,7 @@ export const Profile: React.FC = () => {
                             </div>
                             <div>
                                 <h3 style={s.sectionTitle}>Segurança</h3>
-                                <p style={s.sectionSubtitle}>Aumente a segurança alterando sua senha</p>
+                                <p style={s.sectionSubtitle}>Altere sua senha de acesso</p>
                             </div>
                         </div>
 
@@ -647,7 +604,7 @@ export const Profile: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label style={s.label}>Confirmar Senha</label>
+                                    <label style={s.label}>Confirmar</label>
                                     <input
                                         type={showPasswords ? 'text' : 'password'}
                                         value={confirmPassword}
@@ -657,20 +614,6 @@ export const Profile: React.FC = () => {
                                         onBlur={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
                                     />
                                 </div>
-                            </div>
-
-                            {/* Security hint */}
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                background: '#f8fafc',
-                                border: '1px dashed #e2e8f0',
-                                borderRadius: 10,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                gap: '1.5rem',
-                            }}>
-                                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>🔒 6+ Caracteres</span>
-                                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>🔤 Letras e Números</span>
                             </div>
 
                             <div style={{ paddingTop: '0.5rem' }}>
