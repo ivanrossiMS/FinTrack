@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { formatCurrency, formatDate } from '../utils/format';
 import { exportToCSV, printReport } from '../utils/export';
-import { Download, Printer, TrendingUp, TrendingDown, Target, Filter, CheckCircle, Clock, AlertTriangle, ListChecks, CalendarDays, Calendar } from 'lucide-react';
+import { Download, Printer, TrendingUp, TrendingDown, Target, Filter, CheckCircle, Clock, AlertTriangle, ListChecks, CalendarDays, Calendar, Lightbulb } from 'lucide-react';
 import { startOfMonth, endOfMonth, startOfDay, subDays, parseISO, isWithinInterval, format } from 'date-fns';
 import { ExpensesPieChart } from '../components/charts/ExpensesPieChart';
 import { getCategoryExpenses } from '../utils/statistics';
@@ -460,12 +460,17 @@ export const Reports: React.FC = () => {
 
                     {/* Insight Card */}
                     <div className="rep-card rep-insight-card">
-                        <h3 className="rep-card-title rep-insight-title">Insight Mensal</h3>
-                        <p className="rep-insight-text">
-                            {totals.balance >= 0
-                                ? "Excelente! Suas receitas superaram as despesas este mês. Considere investir o excedente."
-                                : "Atenção: Suas despesas superaram as receitas. Revise seus gastos em categorias não essenciais."}
-                        </p>
+                        <div className="rep-insight-icon-wrapper">
+                            <Lightbulb size={24} strokeWidth={2.5} />
+                        </div>
+                        <div className="rep-insight-content">
+                            <h3 className="rep-insight-title">Insight Mensal</h3>
+                            <p className="rep-insight-text">
+                                {totals.balance >= 0
+                                    ? "Excelente! Suas receitas superaram as despesas este mês. Considere investir o excedente."
+                                    : "Atenção: Suas despesas superaram as receitas. Revise seus gastos em categorias não essenciais."}
+                            </p>
+                        </div>
                     </div>
 
                 </aside>

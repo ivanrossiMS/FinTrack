@@ -845,3 +845,96 @@
         display: none !important;
     }
 }
+
+/* ===== Monthly Insight Card Premium Styling ===== */
+.rep-insight-card {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+    color: white !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 1.25rem !important;
+    padding: 1.75rem !important;
+    position: relative;
+    overflow: hidden;
+    border: none !important;
+    box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.4) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.rep-insight-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.rep-insight-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 20px 45px -10px rgba(99, 102, 241, 0.5) !important;
+}
+
+.rep-insight-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.2);
+    animation: pulseGlow 3s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    from {
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+
+    to {
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    }
+}
+
+.rep-insight-content {
+    flex: 1;
+}
+
+.rep-insight-title {
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin: 0 0 0.5rem 0 !important;
+}
+
+.rep-insight-text {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+    .rep-insight-card {
+        margin: 0 0.5rem !important;
+        padding: 1.5rem !important;
+        gap: 1rem !important;
+    }
+
+    .rep-insight-icon-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+
+    .rep-insight-text {
+        font-size: 0.875rem !important;
+    }
+}
