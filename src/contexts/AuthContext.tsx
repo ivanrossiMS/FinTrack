@@ -48,10 +48,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         let isMounted = true;
+        let isInitialCheckDone = false;
 
         // Listeners de mudança de estado (Supabase)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('onAuthStateChange:', event);
+            console.log('onAuthStateChange:', event, !!session);
+
             if (session?.user) {
                 try {
                     const { data: profile } = await supabase
@@ -75,26 +77,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 } catch (err) {
                     console.error('onAuthStateChange profile fetch error:', err);
                 }
-            } else if (isMounted) {
+            } else if (isMounted && isInitialCheckDone) {
+                // Somente limpa se já tivermos feito o check inicial e realmente não houver sessão
                 setUser(null);
                 setIsAuthenticated(false);
             }
-            if (isMounted) setLoading(false);
+
+            // Se for o evento de retorno do login ou session inicial, paramos o loading
+            if (isMounted && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+                // Pequeno delay para garantir que o perfil foi buscado antes de liberar a UI
+                setTimeout(() => { if (isMounted) setLoading(false); }, 500);
+            }
         });
 
-        // Verificação Inicial com Auto-Cura (Timeout de 3s)
+        // Verificação Inicial com Timeout Generoso (15s) para evitar "falsos positivos" de deadlock
         const checkSession = async () => {
             console.log('Auth: Iniciando verificação de sessão...');
             try {
                 const sessionPromise = supabase.auth.getSession();
                 const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('SESSION_DEADLOCK')), 3000)
+                    setTimeout(() => reject(new Error('INIT_TIMEOUT')), 15000)
                 );
 
                 const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
 
-                if (session?.user) {
-                    console.log('Auth: Sessão encontrada para', session.user.email);
+                if (session?.user && isMounted) {
+                    console.log('Auth: Sessão restaurada para', session.user.email);
                     const { data: profile } = await supabase
                         .from('user_profiles')
                         .select('*')
@@ -114,17 +122,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setIsAuthenticated(true);
                     }
                 } else {
-                    console.log('Auth: Nenhuma sessão ativa.');
+                    console.log('Auth: Nenhuma sessão recuperada no início.');
                 }
             } catch (err: any) {
-                console.error('Auth Init Error:', err.message);
-                if (err.message === 'SESSION_DEADLOCK') {
-                    console.warn('Auth: Detectado travamento de sessão! Executando auto-limpeza...');
-                    localStorage.clear();
-                    // Se estiver travado, recarrega para limpar o estado do Singleton do Supabase
-                    if (isMounted) window.location.reload();
-                }
+                console.error('Auth Init Warning:', err.message);
+                // Não limpamos mais o localStorage aqui, apenas avisamos no log
             } finally {
+                isInitialCheckDone = true;
                 if (isMounted) setLoading(false);
             }
         };
