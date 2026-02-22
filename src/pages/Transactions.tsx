@@ -713,16 +713,8 @@ export const Transactions: React.FC = () => {
                                                 {(() => {
                                                     const method = tx.paymentMethodId ? paymentMethodMap.get(tx.paymentMethodId) : null;
                                                     const mName = method?.name || 'Geral';
-                                                    const mColor = method?.color || '#94a3b8';
                                                     return (
-                                                        <span
-                                                            className="tx-method-badge"
-                                                            style={{
-                                                                color: mColor,
-                                                                backgroundColor: `${mColor}12`,
-                                                                borderColor: `${mColor}30`
-                                                            }}
-                                                        >
+                                                        <span className="tx-method-badge">
                                                             {mName}
                                                         </span>
                                                     );
@@ -778,7 +770,7 @@ export const Transactions: React.FC = () => {
                                                         {(() => {
                                                             const method = tx.paymentMethodId ? paymentMethodMap.get(tx.paymentMethodId) : null;
                                                             return method && (
-                                                                <span className="tx-method-badge-mini" style={{ color: method.color, backgroundColor: `${method.color} 15` }}>
+                                                                <span className="tx-method-badge-mini">
                                                                     {method.name}
                                                                 </span>
                                                             );

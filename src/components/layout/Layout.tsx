@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X, HelpCircle } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, Shield, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X, HelpCircle } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -76,7 +76,17 @@ export const Layout: React.FC = () => {
                         <div className="mob-prem-profile-info">
                             <span className="mob-prem-user-firstname">{firstName}</span>
                             <span className={`mob-prem-plan-tag ${user?.plan?.toLowerCase() || 'free'}`}>
-                                {user?.plan === 'PREMIUM' ? 'PLANO PREMIUM' : 'PLANO FREE'}
+                                {user?.plan === 'PREMIUM' ? (
+                                    <>
+                                        <Crown size={12} className="plan-icon" />
+                                        <span>PLANO PREMIUM</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Shield size={12} className="plan-icon" />
+                                        <span>PLANO FREE</span>
+                                    </>
+                                )}
                             </span>
                         </div>
                         {user?.avatar ? (
@@ -167,8 +177,17 @@ export const Layout: React.FC = () => {
                     <div className="sidebar-user-info">
                         <span className="sidebar-user-name" title={user?.name}>{user?.name || 'Usuário'}</span>
                         <span className={`sidebar-user-tag ${user?.plan?.toLowerCase() || 'free'}`}>
-                            {user?.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
-                            Plano {user?.plan === 'PREMIUM' ? 'Premium' : 'Free'}
+                            {user?.plan === 'PREMIUM' ? (
+                                <>
+                                    <Crown size={12} className="plan-icon-sidebar" />
+                                    <span>Plano Premium</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Shield size={12} className="plan-icon-sidebar" />
+                                    <span>Plano Free</span>
+                                </>
+                            )}
                         </span>
                     </div>
                 </div>

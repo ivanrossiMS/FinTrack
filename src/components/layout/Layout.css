@@ -191,18 +191,34 @@
 }
 
 .sidebar-user-tag {
-    font-size: 0.6rem;
-    font-weight: 700;
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 99px;
     width: fit-content;
-    background: rgba(100, 116, 139, 0.1);
-    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+
+.mob-prem-plan-tag.premium {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.mob-prem-plan-tag.free {
+    background: rgba(148, 163, 184, 0.15);
+    color: #64748b;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.plan-icon {
+    flex-shrink: 0;
 }
 
 .sidebar-user-tag.premium {
@@ -533,23 +549,28 @@
     }
 
     .mob-prem-plan-tag {
-        font-size: 0.52rem;
-        /* Adjusted for full text */
-        font-weight: 900;
-        letter-spacing: 0.05em;
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 99px;
         text-transform: uppercase;
-        white-space: nowrap;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        line-height: normal;
     }
 
     .mob-prem-plan-tag.premium {
-        color: #6366f1;
-        background: linear-gradient(135deg, #6366f1, #a855f7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
     }
 
     .mob-prem-plan-tag.free {
-        color: #94a3b8;
+        background: rgba(148, 163, 184, 0.15);
+        color: #64748b;
+        border: 1px solid rgba(148, 163, 184, 0.2);
     }
 
     .mob-prem-avatar-pill {
