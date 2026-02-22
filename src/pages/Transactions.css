@@ -744,7 +744,7 @@
     }
 }
 
-/* ══════════════ RESPONSIVE (V1 ELITE MOBILE) ══════════════ */
+/* ══════════════ RESPONSIVE (V2 ELITE MOBILE) ══════════════ */
 
 @media (max-width: 768px) {
     .tx-page {
@@ -764,7 +764,7 @@
         order: -1 !important;
     }
 
-    /* 1. Summary Grid: Resultado Top + Side-by-Side below */
+    /* 1. Summary Grid: Resultado Top (Centered) + Side-by-Side */
     .tx-summary-grid {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
@@ -775,25 +775,36 @@
     .tx-summary-card.balance {
         grid-column: span 2 !important;
         grid-row: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        /* Center horizontally */
+        justify-content: center !important;
+        /* Center vertically */
         text-align: center !important;
-        padding: 1.5rem !important;
+        padding: 1.25rem !important;
+        /* Slightly more compact */
+        min-height: 110px !important;
+    }
+
+    .tx-summary-card.income,
+    .tx-summary-card.expense {
+        padding: 0.85rem !important;
     }
 
     .tx-summary-card.income {
         grid-column: 1 !important;
         grid-row: 2 !important;
-        padding: 1rem !important;
     }
 
     .tx-summary-card.expense {
         grid-column: 2 !important;
         grid-row: 2 !important;
-        padding: 1rem !important;
     }
 
     .tx-summ-header {
         justify-content: center !important;
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.4rem !important;
     }
 
     .tx-summary-card.income .tx-summ-header,
@@ -802,18 +813,19 @@
     }
 
     .tx-summ-value {
-        font-size: 1.2rem !important;
+        font-size: 1.15rem !important;
     }
 
     .tx-summary-card.balance .tx-summ-value {
-        font-size: 1.8rem !important;
+        font-size: 1.7rem !important;
+        font-weight: 900 !important;
     }
 
-    /* 2. Compact Filters (Horizontal Optimization) */
+    /* 2. Compact Filters */
     .tx-filters-card {
-        padding: 1rem !important;
-        border-radius: 20px !important;
-        gap: 0.75rem !important;
+        padding: 0.85rem !important;
+        border-radius: 18px !important;
+        gap: 0.6rem !important;
     }
 
     .tx-filters-grid {
@@ -823,7 +835,7 @@
     .tx-filters-row {
         flex-direction: row !important;
         flex-wrap: wrap !important;
-        gap: 0.5rem !important;
+        gap: 0.4rem !important;
     }
 
     .tx-filter-group {
@@ -848,18 +860,21 @@
         font-size: 0.75rem !important;
     }
 
-    /* 3. Modern Transaction List (Elite Glass Tiles) */
+    /* 3. Minimalist Transaction Cards (V2) */
     .tx-mobile-card {
         display: flex !important;
         flex-direction: column !important;
-        background: rgba(255, 255, 255, 0.7) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.5) !important;
-        border-radius: 20px !important;
-        padding: 1rem !important;
-        gap: 0.75rem !important;
-        margin-bottom: 1rem !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+        background: rgba(255, 255, 255, 0.75) !important;
+        backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        border-radius: 18px !important;
+        padding: 0.75rem !important;
+        /* Reduced padding for density */
+        gap: 0.6rem !important;
+        /* Tighter gap */
+        margin-bottom: 0.75rem !important;
+        /* Reduced margin */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
         animation: txCardSlide 0.4s ease-out both;
     }
 
@@ -890,22 +905,24 @@
 
     /* Mobile specific text items */
     .tx-card-description {
-        font-size: 0.95rem !important;
+        font-size: 0.9rem !important;
         font-weight: 800 !important;
         color: #1e293b !important;
         letter-spacing: -0.01em !important;
     }
 
+    /* Molduras (Borders) on Badges */
     .tx-category-badge-mini,
     .tx-method-badge-mini {
         display: inline-flex !important;
-        padding: 0.25rem 0.6rem !important;
+        padding: 0.2rem 0.5rem !important;
         border-radius: 99px !important;
-        /* Rounded badges as requested */
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
+        letter-spacing: 0.04em !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        /* Subtle Moldura */
         white-space: nowrap !important;
     }
 
@@ -916,8 +933,9 @@
     }
 
     .tx-card-amount {
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
+        font-size: 1.05rem !important;
+        font-weight: 900 !important;
+        /* Intense Bold */
         font-family: inherit !important;
     }
 
@@ -929,25 +947,25 @@
         color: var(--color-danger) !important;
     }
 
-    /* Action buttons in mobile card */
+    /* Actions area even more discrete */
     .tx-card-actions {
         display: flex !important;
-        gap: 0.5rem !important;
-        padding-top: 0.75rem !important;
-        border-top: 1px solid rgba(0, 0, 0, 0.04) !important;
+        gap: 0.4rem !important;
+        padding-top: 0.6rem !important;
+        border-top: 1px solid rgba(0, 0, 0, 0.03) !important;
     }
 
     .tx-card-actions .tx-btn-icon {
         flex: 1 !important;
-        height: 2.5rem !important;
+        height: 2.25rem !important;
         background: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         opacity: 1 !important;
         gap: 0.5rem !important;
         color: #475569 !important;
         font-weight: 600 !important;
-        font-size: 0.8rem !important;
+        font-size: 0.75rem !important;
     }
 
     .tx-card-actions .tx-btn-icon.danger {
@@ -959,7 +977,7 @@
     @keyframes txCardSlide {
         from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(8px);
         }
 
         to {
