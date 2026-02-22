@@ -341,31 +341,37 @@
     /* Income & Expenses (Side-by-Side) */
     .card-income,
     .card-expense {
-        padding: 0.875rem !important;
+        padding: 0.75rem 0.5rem !important;
+        overflow: hidden;
     }
 
     .card-income .kpi-value,
     .card-expense .kpi-value {
-        font-size: 1.15rem !important;
+        font-size: 1rem !important;
         margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .card-income .kpi-label,
     .card-expense .kpi-label {
-        font-size: 0.6rem !important;
+        font-size: 0.55rem !important;
         margin-bottom: 0 !important;
         white-space: nowrap;
+        letter-spacing: 0.02em;
     }
 
     .kpi-icon-wrapper {
-        width: 32px !important;
-        height: 32px !important;
+        width: 28px !important;
+        height: 28px !important;
         margin-bottom: 0 !important;
+        border-radius: 8px !important;
     }
 
     .kpi-icon-wrapper svg {
-        width: 18px !important;
-        height: 18px !important;
+        width: 16px !important;
+        height: 16px !important;
     }
 
     /* Hide extra info on very small cards to save space */
