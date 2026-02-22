@@ -147,8 +147,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setIsAuthenticated(true);
                     return true;
                 } else {
-                    alert("Aviso: Login efetuado, mas perfil não encontrado na tabela 'user_profiles'. Verifique o banco de dados.");
-                    return false;
+                    // AUTO-RECOVERY: If login works but profile is missing, create it!
+                    console.log('Profile missing, attempting auto-recovery...');
+                    const isMasterAdmin = data.user.email === 'ivanrossi@outlook.com';
+                    const { error: recoveryError } = await supabase
+                        .from('user_profiles')
+                        .insert([
+                            {
+                                id: data.user.id,
+                                name: data.user.email?.split('@')[0] || 'Usuário',
+                                email: data.user.email,
+                                is_admin: isMasterAdmin,
+                                is_authorized: true, // Auto-authorize if they could login
+                                plan: 'FREE'
+                            }
+                        ]);
+
+                    if (recoveryError) {
+                        alert("Erro ao recuperar perfil: " + recoveryError.message);
+                        return false;
+                    }
+
+                    // Refresh and try to set session again
+                    const { data: newProfile } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', data.user.id)
+                        .single();
+
+                    if (newProfile) {
+                        setUser({
+                            id: data.user.id,
+                            name: newProfile.name,
+                            email: newProfile.email,
+                            isAdmin: newProfile.is_admin,
+                            isAuthorized: newProfile.is_authorized,
+                            plan: newProfile.plan
+                        });
+                        setIsAuthenticated(true);
+                        return true;
+                    }
                 }
             }
             return false;
