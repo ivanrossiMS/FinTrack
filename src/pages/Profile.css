@@ -1,28 +1,28 @@
-/* Profile Page - Absolute Vertical Redesign (V7 Isolation) */
+/* Profile Page - Minimalist Premium Refinement (V8 Isolation) */
 
 /* ── Desktop Stability Hooks ─────────────────────────── */
 .prof-hero-card-container {
     /* Desktop uses inline s.card and inner grid from TSX */
 }
 
-/* ── Mobile Vertical Overdrive (Absolute Isolation V7) ── */
+/* ── Mobile Minimalist Overdrive (Absolute Isolation V8) ── */
 @media (max-width: 768px) {
 
-    /* 1. Main Unified Card Wrapper */
+    /* 1. Main Unified Card Wrapper - Tightened */
     .prof-hero-card-container {
         display: block !important;
-        background: rgba(255, 255, 255, 0.8) !important;
-        backdrop-filter: blur(20px) saturate(180%) !important;
+        background: rgba(255, 255, 255, 0.82) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
         border: 1px solid rgba(255, 255, 255, 0.5) !important;
-        border-radius: 32px !important;
+        border-radius: 28px !important;
         padding: 0 !important;
         margin: 0 !important;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.03) !important;
         overflow: hidden !important;
-        animation: v7Entrance 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: v8Entrance 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Transform the internal TSX grid into a single vertical column */
+    /* Vertical stack */
     .prof-hero-card-container>div {
         display: flex !important;
         flex-direction: column !important;
@@ -30,13 +30,13 @@
         min-height: auto !important;
     }
 
-    /* 2. LAYER 1: Integrated Identity (TOP) */
+    /* 2. LAYER 1: Integrated Identity (TOP) - More Compact */
     .prof-avatar-col {
         width: 100% !important;
-        background: radial-gradient(circle at top, rgba(99, 102, 241, 0.08) 0%, transparent 80%) !important;
+        background: radial-gradient(circle at top, rgba(99, 102, 241, 0.06) 0%, transparent 85%) !important;
         border-right: none !important;
-        border-bottom: 1px solid rgba(226, 232, 240, 0.4) !important;
-        padding: 3.5rem 1.5rem 2.5rem !important;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.3) !important;
+        padding: 2.5rem 1.5rem 2rem !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -45,82 +45,86 @@
     }
 
     .prof-avatar-col h2.prof-name {
-        font-size: 1.75rem !important;
-        margin-top: 1.25rem !important;
-        margin-bottom: 0.5rem !important;
+        font-size: 1.4rem !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.25rem !important;
         color: #1e293b !important;
         font-weight: 800 !important;
-        letter-spacing: -0.04em !important;
+        letter-spacing: -0.03em !important;
         text-align: center !important;
     }
 
-    /* 3. LAYER 2: Contact Information (BOTTOM) */
+    /* 3. LAYER 2: Contact Information (BOTTOM) - Elegant Density */
     .prof-info-col {
         width: 100% !important;
-        padding: 2rem 1.5rem 3rem !important;
+        padding: 1.5rem 1.25rem 2.5rem !important;
         box-sizing: border-box !important;
     }
 
-    /* Keep the header on mobile for vertical flow */
+    /* Small, sophisticated header */
     .prof-info-col>h3 {
-        font-size: 0.85rem !important;
+        font-size: 0.7rem !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.12em !important;
+        letter-spacing: 0.15em !important;
         color: #94a3b8 !important;
-        margin-bottom: 1.5rem !important;
+        margin-bottom: 1.25rem !important;
         text-align: center !important;
+        font-weight: 700 !important;
+        opacity: 0.8 !important;
     }
 
-    /* Vertical stack for contact boxes */
+    /* Vertical stack for contact boxes with tighter gap */
     .prof-contact-box {
         display: flex !important;
         flex-direction: column !important;
-        gap: 0.75rem !important;
+        gap: 0.5rem !important;
         border: none !important;
         background: transparent !important;
         padding: 0 !important;
     }
 
     .prof-contact-item {
-        background: white !important;
-        border: 1px solid rgba(226, 232, 240, 0.6) !important;
-        border-radius: 20px !important;
-        padding: 1.25rem !important;
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(226, 232, 240, 0.45) !important;
+        border-radius: 16px !important;
+        padding: 0.8rem 1rem !important;
         display: flex !important;
         flex-direction: column !important;
-        /* Forces label over value for max readability */
         align-items: flex-start !important;
-        gap: 0.5rem !important;
+        gap: 0.3rem !important;
         box-sizing: border-box !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01) !important;
     }
 
     .prof-contact-label-box {
         width: 100% !important;
         display: flex !important;
         align-items: center !important;
-        gap: 0.75rem !important;
+        gap: 0.6rem !important;
     }
 
     .prof-contact-label-box span {
-        font-size: 0.75rem !important;
-        opacity: 0.9 !important;
+        font-size: 0.65rem !important;
+        font-weight: 700 !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
     }
 
     .prof-value {
-        font-size: 1rem !important;
-        font-weight: 700 !important;
-        color: #0f172a !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        color: #334155 !important;
         word-break: break-all !important;
-        padding-left: 2.25rem !important;
-        /* Offset for icons */
+        padding-left: 1.85rem !important;
+        /* Adjusted for smaller icons */
     }
 
     /* Entrance Animation */
-    @keyframes v7Entrance {
+    @keyframes v8Entrance {
         from {
             opacity: 0;
-            transform: translateY(15px);
+            transform: translateY(10px);
         }
 
         to {
@@ -131,6 +135,6 @@
 
     /* Screen edge spacing fix */
     div[style*="maxWidth: 960px"] {
-        padding: 1rem 0.75rem 4rem !important;
+        padding: 1rem 0.75rem 3rem !important;
     }
 }
