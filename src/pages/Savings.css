@@ -284,11 +284,35 @@
 }
 
 @media (max-width: 768px) {
+    .sav-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+
     .sav-summary-grid {
         grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .sav-summary-card {
+        padding: 1.25rem;
+        border-radius: 20px;
     }
 
     .sav-goals-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .sav-goal-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+
+    .sav-progress-current {
+        font-size: 1.25rem;
     }
 }

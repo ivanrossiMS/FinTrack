@@ -10,10 +10,10 @@ interface DataContextType {
     addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => void;
     updateTransaction: (id: string, tx: Partial<Transaction>) => void;
     deleteTransaction: (id: string) => void;
-    addCategory: (cat: Omit<Category, 'id'>) => void;
+    addCategory: (cat: Omit<Category, 'id'>) => string;
     updateCategory: (id: string, cat: Partial<Category>) => void;
     deleteCategory: (id: string) => void;
-    addSupplier: (supplier: Omit<Supplier, 'id'>) => void;
+    addSupplier: (supplier: Omit<Supplier, 'id'>) => string;
     updateSupplier: (id: string, supplier: Partial<Supplier>) => void;
     deleteSupplier: (id: string) => void;
     addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => void;
@@ -125,7 +125,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const addCategory = (cat: Omit<Category, 'id'>) => {
-        const newCat: Category = { ...cat, id: uuidv4() };
+        const id = uuidv4();
+        const newCat: Category = { ...cat, id };
         setData(prev => {
             const newData = { ...prev, categories: [...prev.categories, newCat] };
             if (user?.isAdmin) {
@@ -133,6 +134,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return newData;
         });
+        return id;
     };
 
     const updateCategory = (id: string, updates: Partial<Category>) => {
@@ -159,8 +161,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const addSupplier = (supplier: Omit<Supplier, 'id'>) => {
-        const newSupplier: Supplier = { ...supplier, id: uuidv4() };
+        const id = uuidv4();
+        const newSupplier: Supplier = { ...supplier, id };
         setData(prev => ({ ...prev, suppliers: [...prev.suppliers, newSupplier] }));
+        return id;
     };
 
     const updateSupplier = (id: string, updates: Partial<Supplier>) => {

@@ -10,7 +10,7 @@ import {
     Calendar, AlertCircle, CheckCircle2,
     Plus, Search, Trash2,
     Edit, CreditCard, Clock, Paperclip,
-    ArrowUpDown, ArrowUp, ArrowDown, Anchor
+    ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import { isToday, isBefore, parseISO, startOfDay } from 'date-fns';
@@ -45,21 +45,18 @@ export const Commitments: React.FC = () => {
         setCurrentPage(1);
     }, [searchTerm, statusFilter, supplierFilter, startDate, endDate]);
 
-    // Handle voice assistant prefill
-    useEffect(() => {
-        if (location.state?.openForm && location.state?.voicePrefill) {
-            const vp = location.state.voicePrefill;
-            setEditingCommitment({
-                description: vp.description || '',
-                amount: vp.amount || 0,
-                dueDate: vp.dueDate || new Date().toISOString().split('T')[0],
-                supplierId: vp.supplierId || '',
-                categoryId: vp.categoryId || '',
-            });
-            setIsFormOpen(true);
-            window.history.replaceState({}, document.title);
-        }
-    }, [location.state]);
+    // ── Lookup maps (memoised) ──
+    const categoryMap = useMemo(() => {
+        const map = new Map<string, { name: string; color: string }>();
+        data.categories.forEach(c => map.set(c.id, { name: c.name, color: c.color || '#94a3b8' }));
+        return map;
+    }, [data.categories]);
+
+    const paymentMethodMap = useMemo(() => {
+        const map = new Map<string, { name: string; color: string }>();
+        data.paymentMethods.forEach(m => map.set(m.id, { name: m.name, color: m.color || '#94a3b8' }));
+        return map;
+    }, [data.paymentMethods]);
 
     const commitments = data.commitments || [];
 
@@ -224,16 +221,19 @@ export const Commitments: React.FC = () => {
                     <div className="cm-summ-icon"><Clock size={24} /></div>
                     <span className="cm-summ-label">Total Pendente</span>
                     <span className="cm-summ-value">{formatCurrency(stats.totalPending)}</span>
+                    <div className="cm-summ-indicator"></div>
                 </div>
                 <div className="cm-summary-card today">
                     <div className="cm-summ-icon"><AlertCircle size={24} /></div>
                     <span className="cm-summ-label">Vencendo Hoje</span>
                     <span className="cm-summ-value">{formatCurrency(stats.amountToday)}</span>
+                    <div className="cm-summ-indicator"></div>
                 </div>
                 <div className="cm-summary-card paid">
                     <div className="cm-summ-icon"><CheckCircle2 size={24} /></div>
                     <span className="cm-summ-label">Total Pago</span>
                     <span className="cm-summ-value">{formatCurrency(stats.totalPaid)}</span>
+                    <div className="cm-summ-indicator"></div>
                 </div>
             </div>
 
@@ -322,7 +322,7 @@ export const Commitments: React.FC = () => {
 
                             {displayedCommitments.map(c => {
                                 const shortId = c.id.substring(0, 6).toUpperCase();
-                                const cat = data.categories.find(cat => cat.id === c.categoryId);
+                                const cat = categoryMap.get(c.categoryId);
                                 const catColor = cat?.color || '#94a3b8';
 
                                 return (
@@ -331,21 +331,18 @@ export const Commitments: React.FC = () => {
                                             <span className="cm-id-text">#{shortId}</span>
                                         </div>
                                         <div className="cm-col-name">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '4px' }}>
-                                                <div className="tx-status-indicator" style={{ backgroundColor: catColor, width: '4px', height: '14px', borderRadius: '2px', marginRight: '4px' }} />
-                                                <div className="cm-name-text">
-                                                    {c.description}
-                                                    {c.attachments && c.attachments.length > 0 && (
-                                                        <button
-                                                            className="tx-att-indicator"
-                                                            onClick={(e) => { e.stopPropagation(); setViewingAttachments(c.attachments!); }}
-                                                            title={`${c.attachments.length} anexo(s)`}
-                                                            style={{ marginLeft: '8px', opacity: 0.6 }}
-                                                        >
-                                                            <Paperclip size={11} />
-                                                        </button>
-                                                    )}
-                                                </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '2px' }}>
+                                                <div className="cm-status-indicator" style={{ backgroundColor: catColor }} />
+                                                <div className="cm-name-text">{c.description}</div>
+                                                {c.attachments && c.attachments.length > 0 && (
+                                                    <button
+                                                        className="tx-att-indicator"
+                                                        onClick={(e) => { e.stopPropagation(); setViewingAttachments(c.attachments!); }}
+                                                        title={`${c.attachments.length} anexo(s)`}
+                                                    >
+                                                        <Paperclip size={11} />
+                                                    </button>
+                                                )}
                                             </div>
                                             <span className="cm-supplier-text">
                                                 {c.supplierId ? (data.suppliers.find(s => s.id === c.supplierId)?.name || '') : ''}
@@ -357,30 +354,33 @@ export const Commitments: React.FC = () => {
                                         <div className="cm-col-value">{formatCurrency(c.amount)}</div>
                                         <div className="cm-col-status">{getStatusLabel(c)}</div>
                                         <div className="cm-col-method">
-                                            <span
-                                                className="tx-category-badge"
-                                                style={{
-                                                    backgroundColor: `${catColor}15`,
-                                                    color: catColor,
-                                                    fontSize: '0.65rem',
-                                                    padding: '2px 8px',
-                                                    borderRadius: '6px',
-                                                    fontWeight: 700,
-                                                    textTransform: 'uppercase'
-                                                }}
-                                            >
-                                                {c.paymentMethodId
-                                                    ? (data.paymentMethods.find(m => m.id === c.paymentMethodId)?.name || '-')
-                                                    : '-'}
-                                            </span>
+                                            {(() => {
+                                                const method = c.paymentMethodId ? paymentMethodMap.get(c.paymentMethodId) : null;
+                                                const mName = method?.name || '-';
+                                                const mColor = method?.color || '#94a3b8';
+                                                if (!c.paymentMethodId) return <span className="text-text-light opacity-40">-</span>;
+                                                return (
+                                                    <span
+                                                        className="cm-method-badge"
+                                                        style={{
+                                                            color: mColor,
+                                                            backgroundColor: `${mColor}12`,
+                                                            borderColor: `${mColor}30`
+                                                        }}
+                                                    >
+                                                        {mName}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                         <div className="cm-col-paydate">
                                             {c.paymentDate ? (
-                                                <span className="text-xs font-bold text-success flex items-center gap-1">
-                                                    {formatDate(c.paymentDate)}
-                                                </span>
+                                                <div className="cm-paid-at">
+                                                    <CheckCircle2 size={12} className="text-success" />
+                                                    <span>{formatDate(c.paymentDate)}</span>
+                                                </div>
                                             ) : (
-                                                <span className="text-xs font-medium text-text-light opacity-30">-</span>
+                                                <span className="text-text-light opacity-30">-</span>
                                             )}
                                         </div>
                                         <div className="cm-col-edit flex gap-2">

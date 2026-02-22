@@ -4,7 +4,7 @@ import { Transaction, TransactionType } from '../../models/types';
 import { Button } from '../ui/Button';
 import { Input, Select } from '../ui/Input';
 import { format } from 'date-fns';
-import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight, ArrowDownLeft, Repeat } from 'lucide-react';
+import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight, ArrowDownLeft, Repeat, Sparkles, Plus, Palette } from 'lucide-react';
 import { formatCurrency } from '../../utils/format';
 import { AttachmentManager } from '../ui/AttachmentManager';
 import { Attachment } from '../../models/types';
@@ -15,7 +15,7 @@ interface TransactionFormProps {
 }
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
-    const { data, addTransaction, updateTransaction } = useData();
+    const { data, addTransaction, updateTransaction, addCategory, addSupplier } = useData();
 
     const [type, setType] = useState<TransactionType>(initialData?.type || 'EXPENSE');
     const [amount, setAmount] = useState(initialData?.amount?.toString() || '');
@@ -29,6 +29,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
     const [isRecurring, setIsRecurring] = useState(initialData?.isRecurring || false);
     const [recurrenceCount, setRecurrenceCount] = useState(initialData?.recurrenceCount?.toString() || '2');
     const [attachments, setAttachments] = useState<Attachment[]>(initialData?.attachments || []);
+
+    // Inline Creation States
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategoryColor, setNewCategoryColor] = useState('#3b82f6');
+    const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
+    const [newSupplierName, setNewSupplierName] = useState('');
 
     const availableCategories = data.categories.filter(c => c.type === type || c.type === 'BOTH');
 
@@ -44,19 +51,39 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         }
     }, [data.paymentMethods]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const val = parseFloat(amount.replace(',', '.'));
         if (isNaN(val) || val <= 0) return;
         if (!description.trim()) return;
+
+        let finalCategoryId = categoryId;
+        let finalSupplierId = supplierId;
+
+        // 1. Handle Inline Category Creation
+        if (isCreatingCategory && newCategoryName.trim()) {
+            finalCategoryId = addCategory({
+                name: newCategoryName.trim(),
+                type: type as 'INCOME' | 'EXPENSE',
+                color: newCategoryColor,
+                isDefault: false
+            });
+        }
+
+        // 2. Handle Inline Supplier Creation
+        if (isCreatingSupplier && newSupplierName.trim()) {
+            finalSupplierId = addSupplier({
+                name: newSupplierName.trim()
+            });
+        }
 
         const payload = {
             type,
             amount: val,
             description,
             date,
-            categoryId,
-            supplierId: supplierId || undefined,
+            categoryId: finalCategoryId,
+            supplierId: finalSupplierId || undefined,
             paymentMethodId: paymentMethodId || undefined,
             isFixed,
             isRecurring: type === 'INCOME' ? isRecurring : false,
@@ -156,20 +183,68 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <Select
-                        label="Categoria"
-                        value={categoryId}
-                        onChange={e => setCategoryId(e.target.value)}
-                        icon={<Layers size={16} />}
-                        options={availableCategories.map(c => ({ value: c.id, label: c.name }))}
-                    />
-                    <Select
-                        label="Pagamento"
-                        value={paymentMethodId}
-                        onChange={e => setPaymentMethodId(e.target.value)}
-                        icon={<CreditCard size={16} />}
-                        options={data.paymentMethods.map(m => ({ value: m.id, label: m.name }))}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <Select
+                            label="Categoria"
+                            value={isCreatingCategory ? 'CREATE_NEW' : categoryId}
+                            onChange={e => {
+                                if (e.target.value === 'CREATE_NEW') {
+                                    setIsCreatingCategory(true);
+                                    setCategoryId('');
+                                } else {
+                                    setIsCreatingCategory(false);
+                                    setCategoryId(e.target.value);
+                                }
+                            }}
+                            icon={<Layers size={16} />}
+                            options={[
+                                ...availableCategories.map(c => ({ value: c.id, label: c.name })),
+                                { value: 'CREATE_NEW', label: '✨ CRIAR nova categoria...' }
+                            ]}
+                        />
+                        {isCreatingCategory && (
+                            <div style={{
+                                padding: '1rem',
+                                backgroundColor: '#fcf8ff',
+                                borderRadius: '12px',
+                                border: '1.5px dashed #d8b4fe',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem',
+                                animation: 'fadeIn 0.3s ease-out'
+                            }}>
+                                <Input
+                                    label="Nome da Categoria"
+                                    value={newCategoryName}
+                                    onChange={e => setNewCategoryName(e.target.value)}
+                                    placeholder="Ex: Presentes, Obra..."
+                                    required
+                                    icon={<Plus size={14} color="#9333ea" />}
+                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <Palette size={14} color="#9333ea" />
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b21a8' }}>Cor:</span>
+                                    <input
+                                        type="color"
+                                        value={newCategoryColor}
+                                        onChange={e => setNewCategoryColor(e.target.value)}
+                                        style={{ width: '40px', height: '20px', border: 'none', padding: 0, cursor: 'pointer', borderRadius: '4px' }}
+                                    />
+                                    <span style={{ fontSize: '0.7rem', color: '#9333ea', fontWeight: 700 }}>{newCategoryColor.toUpperCase()}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <Select
+                            label="Pagamento"
+                            value={paymentMethodId}
+                            onChange={e => setPaymentMethodId(e.target.value)}
+                            icon={<CreditCard size={16} />}
+                            options={data.paymentMethods.map(m => ({ value: m.id, label: m.name }))}
+                        />
+                    </div>
                 </div>
 
                 {/* Parcelamento - Só aparece se for Cartão de Crédito */}
@@ -343,16 +418,48 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                     </div>
                 )}
 
-                <Select
-                    label="Fornecedor (Opcional)"
-                    value={supplierId}
-                    onChange={e => setSupplierId(e.target.value)}
-                    icon={<Building2 size={16} />}
-                    options={[
-                        { value: '', label: 'Nenhum' },
-                        ...data.suppliers.map(s => ({ value: s.id, label: s.name }))
-                    ]}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <Select
+                        label="Fornecedor (Opcional)"
+                        value={isCreatingSupplier ? 'CREATE_NEW' : supplierId}
+                        onChange={e => {
+                            if (e.target.value === 'CREATE_NEW') {
+                                setIsCreatingSupplier(true);
+                                setSupplierId('');
+                            } else {
+                                setIsCreatingSupplier(false);
+                                setSupplierId(e.target.value);
+                            }
+                        }}
+                        icon={<Building2 size={16} />}
+                        options={[
+                            { value: '', label: 'Nenhum' },
+                            ...data.suppliers.map(s => ({ value: s.id, label: s.name })),
+                            { value: 'CREATE_NEW', label: '✨ CRIAR novo fornecedor...' }
+                        ]}
+                    />
+                    {isCreatingSupplier && (
+                        <div style={{
+                            padding: '1rem',
+                            backgroundColor: '#f0f9ff',
+                            borderRadius: '12px',
+                            border: '1.5px dashed #7dd3fc',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.75rem',
+                            animation: 'fadeIn 0.3s ease-out'
+                        }}>
+                            <Input
+                                label="Nome do Fornecedor"
+                                value={newSupplierName}
+                                onChange={e => setNewSupplierName(e.target.value)}
+                                placeholder="Ex: Amazon, Mercado Livre..."
+                                required
+                                icon={<Plus size={14} color="#0369a1" />}
+                            />
+                        </div>
+                    )}
+                </div>
 
                 <div
                     onClick={() => setIsFixed(!isFixed)}

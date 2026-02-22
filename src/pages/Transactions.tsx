@@ -2,13 +2,14 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import {
-    Plus, Search, Filter, Trash2, Edit, Lock,
+    Plus, Search, Filter, Calendar, X,
+    Trash2, Edit2, RefreshCcw, Lock,
+    TrendingUp, TrendingDown, Target,
     ArrowUpDown, ArrowUp, ArrowDown,
-    X, Calendar, SlidersHorizontal, Anchor,
-    TrendingUp, TrendingDown, Target, Paperclip
+    Anchor, Paperclip, SlidersHorizontal
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
-import { Transaction, Attachment } from '../models/types';
+import { Transaction, Attachment, Category, PaymentMethod, Supplier, Commitment } from '../models/types';
 import { formatCurrency, formatDate } from '../utils/format';
 import { useLocation } from 'react-router-dom';
 import { TransactionForm } from '../components/forms/TransactionForm';
@@ -21,7 +22,7 @@ import { ParsedTransaction } from '../utils/aiParser';
 import './Transactions.css';
 
 // ── Types ──
-type SortColumn = 'description' | 'category' | 'date' | 'amount' | 'method';
+type SortColumn = 'description' | 'category' | 'date' | 'amount' | 'method' | 'supplier';
 type SortDirection = 'asc' | 'desc';
 
 interface SortState {
@@ -35,6 +36,7 @@ const SORT_COLUMNS: { key: SortColumn; label: string }[] = [
     { key: 'date', label: 'Data' },
     { key: 'amount', label: 'Valor' },
     { key: 'method', label: 'Método' },
+    { key: 'supplier', label: 'Fornecedor' },
 ];
 
 import { Pagination } from '../components/ui/Pagination';
@@ -60,11 +62,12 @@ export const Transactions: React.FC = () => {
     const [dateEnd, setDateEnd] = useState('');
     const [filterFixed, setFilterFixed] = useState<'ALL' | 'FIXED' | 'VARIABLE'>('ALL');
     const [filterCategoryId, setFilterCategoryId] = useState<string>('ALL');
+    const [filterSupplierId, setFilterSupplierId] = useState<string>('ALL');
 
     // Reset page to 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, filterType, filterMonth, dateStart, dateEnd, filterFixed, filterCategoryId]);
+    }, [searchTerm, filterType, filterMonth, dateStart, dateEnd, filterFixed, filterCategoryId, filterSupplierId]);
 
     // Handle incoming state from Dashboard or Voice Assistant
     useEffect(() => {
@@ -95,20 +98,26 @@ export const Transactions: React.FC = () => {
     // ── Lookup maps (memoised) ──
     const categoryMap = useMemo(() => {
         const map = new Map<string, { name: string; color: string }>();
-        data.categories.forEach(c => map.set(c.id, { name: c.name, color: c.color || '#94a3b8' }));
+        data.categories.forEach((c: Category) => map.set(c.id, { name: c.name, color: c.color || '#94a3b8' }));
         return map;
     }, [data.categories]);
 
     const paymentMethodMap = useMemo(() => {
         const map = new Map<string, { name: string; color: string }>();
-        data.paymentMethods.forEach(m => map.set(m.id, { name: m.name, color: m.color || '#94a3b8' }));
+        data.paymentMethods.forEach((m: PaymentMethod) => map.set(m.id, { name: m.name, color: m.color || '#94a3b8' }));
         return map;
     }, [data.paymentMethods]);
+
+    const supplierMap = useMemo(() => {
+        const map = new Map<string, string>();
+        data.suppliers.forEach((s: Supplier) => map.set(s.id, s.name));
+        return map;
+    }, [data.suppliers]);
 
     // ── Locked Transactions (from commitments) ──
     const lockedTransactionIds = useMemo(() => {
         const ids = new Set<string>();
-        data.commitments?.forEach(c => {
+        data.commitments?.forEach((c: Commitment) => {
             if (c.transactionId) ids.add(c.transactionId);
         });
         return ids;
@@ -125,7 +134,7 @@ export const Transactions: React.FC = () => {
 
     // ── Filter + Sort pipeline ──
     const filteredTransactions = useMemo(() => {
-        let result = data.transactions.filter(t => {
+        let result = data.transactions.filter((t: Transaction) => {
             // 1. Date filtering — period takes priority over month
             if (isPeriodActive) {
                 const txDate = t.date.slice(0, 10); // yyyy-mm-dd
@@ -145,9 +154,11 @@ export const Transactions: React.FC = () => {
             if (searchTerm) {
                 const needle = normalizeSearch(searchTerm);
                 const catName = categoryMap.get(t.categoryId)?.name || '';
+                const supplierName = supplierMap.get(t.supplierId || '') || '';
                 const matches = (
                     normalizeSearch(t.description).includes(needle) ||
-                    normalizeSearch(catName).includes(needle)
+                    normalizeSearch(catName).includes(needle) ||
+                    normalizeSearch(supplierName).includes(needle)
                 );
                 if (!matches) return false;
             }
@@ -158,6 +169,9 @@ export const Transactions: React.FC = () => {
 
             // 5. Category filter
             if (filterCategoryId !== 'ALL' && t.categoryId !== filterCategoryId) return false;
+
+            // 6. Supplier filter
+            if (filterSupplierId !== 'ALL' && t.supplierId !== filterSupplierId) return false;
 
             return true;
         });
@@ -191,6 +205,12 @@ export const Transactions: React.FC = () => {
                         cmp = compareLocalePTBR(methodA, methodB);
                         break;
                     }
+                    case 'supplier': {
+                        const supplierA = supplierMap.get(a.supplierId || '') || '';
+                        const supplierB = supplierMap.get(b.supplierId || '') || '';
+                        cmp = compareLocalePTBR(supplierA, supplierB);
+                        break;
+                    }
                 }
                 if (cmp !== 0) return cmp * multiplier;
                 // Tiebreaker: most recent first
@@ -202,7 +222,7 @@ export const Transactions: React.FC = () => {
         }
 
         return result;
-    }, [data.transactions, filterMonth, filterType, searchTerm, filterFixed, categoryMap, isPeriodActive, effectiveDates, sort, filterCategoryId]);
+    }, [data.transactions, filterMonth, filterType, searchTerm, filterFixed, categoryMap, supplierMap, isPeriodActive, effectiveDates, sort, filterCategoryId, filterSupplierId]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
@@ -213,13 +233,13 @@ export const Transactions: React.FC = () => {
 
     // ── Summary Stats (derived from ALL filtered data) ──
     const summaryStats = useMemo(() => {
-        const income = filteredTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
-        const expense = filteredTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-        return {
-            income,
-            expense,
-            balance: income - expense
-        };
+        const income = filteredTransactions
+            .filter((t: Transaction) => t.type === 'INCOME')
+            .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
+        const expense = filteredTransactions
+            .filter((t: Transaction) => t.type === 'EXPENSE')
+            .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
+        return { income, expense, balance: income - expense };
     }, [filteredTransactions]);
 
     // ── Handlers ──
@@ -257,7 +277,7 @@ export const Transactions: React.FC = () => {
 
     // Cycle sort: null → asc → desc → null
     const handleSort = useCallback((column: SortColumn) => {
-        setSort(prev => {
+        setSort((prev: SortState) => {
             if (prev.column !== column) return { column, direction: 'asc' };
             if (prev.direction === 'asc') return { column, direction: 'desc' };
             return { column: null, direction: null };
@@ -272,11 +292,12 @@ export const Transactions: React.FC = () => {
         setDateEnd('');
         setFilterFixed('ALL');
         setFilterCategoryId('ALL');
+        setFilterSupplierId('ALL');
         setSort({ column: null, direction: null });
         setCurrentPage(1);
     }, []);
 
-    const hasActiveFilters = searchTerm !== '' || filterType !== 'ALL' || isPeriodActive || filterFixed !== 'ALL' || filterCategoryId !== 'ALL' || sort.column !== null;
+    const hasActiveFilters = searchTerm !== '' || filterType !== 'ALL' || isPeriodActive || filterFixed !== 'ALL' || filterCategoryId !== 'ALL' || filterSupplierId !== 'ALL' || sort.column !== null;
 
     // Sort icon helper
     const SortIcon: React.FC<{ column: SortColumn }> = ({ column }) => {
@@ -297,18 +318,22 @@ export const Transactions: React.FC = () => {
         onRemove: () => setFilterFixed('ALL')
     });
     if (isPeriodActive) activeChips.push({
-        label: `Período: ${effectiveDates.start || '...'} → ${effectiveDates.end || '...'}`,
+        label: `Período: ${effectiveDates.start || '...'} → ${effectiveDates.end || '...'} `,
         onRemove: () => { setDateStart(''); setDateEnd(''); }
     });
     if (filterCategoryId !== 'ALL') {
         const catName = categoryMap.get(filterCategoryId)?.name || 'Categoria';
-        activeChips.push({ label: `Categoria: ${catName}`, onRemove: () => setFilterCategoryId('ALL') });
+        activeChips.push({ label: `Categoria: ${catName} `, onRemove: () => setFilterCategoryId('ALL') });
+    }
+    if (filterSupplierId !== 'ALL') {
+        const supName = supplierMap.get(filterSupplierId) || 'Fornecedor';
+        activeChips.push({ label: `Fornecedor: ${supName} `, onRemove: () => setFilterSupplierId('ALL') });
     }
 
     if (sort.column) {
         const colLabel = SORT_COLUMNS.find(c => c.key === sort.column)?.label || '';
         activeChips.push({
-            label: `Ordem: ${colLabel} ${sort.direction === 'asc' ? '↑' : '↓'}`,
+            label: `Ordem: ${colLabel} ${sort.direction === 'asc' ? '↑' : '↓'} `,
             onRemove: () => setSort({ column: null, direction: null })
         });
     }
@@ -353,7 +378,7 @@ export const Transactions: React.FC = () => {
                     <div className="tx-summ-indicator"></div>
                 </div>
 
-                <div className={`tx-summary-card balance ${summaryStats.balance >= 0 ? 'positive' : 'negative'}`}>
+                <div className={`tx - summary - card balance ${summaryStats.balance >= 0 ? 'positive' : 'negative'} `}>
                     <div className="tx-summ-header">
                         <span className="tx-summ-label">Resultado</span>
                         <Target size={20} className="tx-summ-icon" />
@@ -363,129 +388,176 @@ export const Transactions: React.FC = () => {
                 </div>
             </div>
 
-            {/* ── Filters ── */}
-            <div className="tx-filters-card">
-                <div className="tx-filters-grid">
+            {/* ── Filtros ── */}
+            <div className="tx-filters-grid">
+                {/* Row 1: Search and Business Filters */}
+                <div className="tx-filters-row">
                     {/* Search */}
-                    <div className="tx-search-wrapper">
-                        <Search className="tx-search-icon" size={18} />
-                        <input
-                            className="input-field"
-                            placeholder="Pesquisar por descrição ou categoria..."
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Month */}
-                    <div className="tx-filter-item">
-                        <Input
-                            type="month"
-                            value={filterMonth}
-                            onChange={e => setFilterMonth(e.target.value)}
-                            disabled={isPeriodActive}
-                            className={isPeriodActive ? 'tx-disabled' : ''}
-                        />
+                    <div className="tx-filter-group tx-flex-grow-2">
+                        <label className="tx-filter-label flex items-center gap-1">
+                            <Search size={12} strokeWidth={2.5} />
+                            Pesquisar
+                        </label>
+                        <div className="tx-search-wrapper">
+                            <input
+                                className="input-field"
+                                placeholder="Descrição ou categoria..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {/* Type */}
-                    <div className="tx-filter-item">
-                        <Select
-                            options={[
-                                { value: 'ALL', label: 'Todos os Tipos' },
-                                { value: 'INCOME', label: 'Receitas' },
-                                { value: 'EXPENSE', label: 'Despesas' }
-                            ]}
-                            value={filterType}
-                            onChange={e => setFilterType(e.target.value)}
-                        />
+                    <div className="tx-filter-group">
+                        <label className="tx-filter-label">Tipo</label>
+                        <div className="tx-filter-item">
+                            <Select
+                                options={[
+                                    { value: 'ALL', label: 'Todos' },
+                                    { value: 'INCOME', label: 'Receitas' },
+                                    { value: 'EXPENSE', label: 'Despesas' }
+                                ]}
+                                value={filterType}
+                                onChange={e => setFilterType(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {/* Fixed vs Variable */}
-                    <div className="tx-filter-item">
-                        <Select
-                            options={[
-                                { value: 'ALL', label: 'Todas (Fixas/Var.)' },
-                                { value: 'FIXED', label: 'Apenas Fixas' },
-                                { value: 'VARIABLE', label: 'Apenas Variáveis' }
-                            ]}
-                            value={filterFixed}
-                            onChange={e => setFilterFixed(e.target.value as any)}
-                        />
+                    <div className="tx-filter-group">
+                        <label className="tx-filter-label">Fixo/Var.</label>
+                        <div className="tx-filter-item">
+                            <Select
+                                options={[
+                                    { value: 'ALL', label: 'Todas' },
+                                    { value: 'FIXED', label: 'Fixas' },
+                                    { value: 'VARIABLE', label: 'Variáveis' }
+                                ]}
+                                value={filterFixed}
+                                onChange={e => setFilterFixed(e.target.value as any)}
+                            />
+                        </div>
                     </div>
 
-                    {/* Category Filter */}
-                    <div className="tx-filter-item">
-                        <Select
-                            options={[
-                                { value: 'ALL', label: 'Todas as Categorias' },
-                                ...data.categories.map(c => ({ value: c.id, label: c.name }))
-                            ]}
-                            value={filterCategoryId}
-                            onChange={e => setFilterCategoryId(e.target.value)}
-                        />
+                    {/* Category */}
+                    <div className="tx-filter-group">
+                        <label className="tx-filter-label">Categoria</label>
+                        <div className="tx-filter-item">
+                            <Select
+                                options={[
+                                    { value: 'ALL', label: 'Todas' },
+                                    ...data.categories.map(c => ({ value: c.id, label: c.name }))
+                                ]}
+                                value={filterCategoryId}
+                                onChange={e => setFilterCategoryId(e.target.value)}
+                            />
+                        </div>
                     </div>
 
-                    {/* Date Start */}
-                    <div className="tx-filter-item tx-filter-date">
-                        <Calendar size={14} className="tx-date-icon" />
-                        <input
-                            type="date"
-                            className="input-field"
-                            value={dateStart}
-                            onChange={e => setDateStart(e.target.value)}
-                            title="Data inicial"
-                        />
+                    {/* Supplier */}
+                    <div className="tx-filter-group">
+                        <label className="tx-filter-label">Fornecedor</label>
+                        <div className="tx-filter-item">
+                            <Select
+                                options={[
+                                    { value: 'ALL', label: 'Todos' },
+                                    ...data.suppliers.map(s => ({ value: s.id, label: s.name }))
+                                ]}
+                                value={filterSupplierId}
+                                onChange={e => setFilterSupplierId(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Row 2: Temporal Controls and Actions */}
+                <div className="tx-filters-row temporal">
+                    <div className="tx-temporal-group">
+                        {/* Month */}
+                        <div className="tx-filter-group month-picker">
+                            <label className="tx-filter-label">Mês</label>
+                            <div className="tx-filter-item">
+                                <Input
+                                    type="month"
+                                    value={filterMonth}
+                                    onChange={e => setFilterMonth(e.target.value)}
+                                    disabled={isPeriodActive}
+                                    className={isPeriodActive ? 'tx-disabled' : ''}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="tx-date-range-group">
+                            {/* Custom Range */}
+                            <div className="tx-filter-group tx-filter-date">
+                                <label className="tx-filter-label">Intervalo Personalizado</label>
+                                <div className="tx-date-inputs">
+                                    <div className="tx-date-field">
+                                        <Calendar size={12} className="tx-date-icon-mini" />
+                                        <input
+                                            type="date"
+                                            className="input-field mini"
+                                            value={dateStart}
+                                            onChange={e => setDateStart(e.target.value)}
+                                            placeholder="Início"
+                                        />
+                                    </div>
+                                    <div className="tx-date-range-sep">—</div>
+                                    <div className="tx-date-field">
+                                        <Calendar size={12} className="tx-date-icon-mini" />
+                                        <input
+                                            type="date"
+                                            className="input-field mini"
+                                            value={dateEnd}
+                                            onChange={e => setDateEnd(e.target.value)}
+                                            placeholder="Fim"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Date End */}
-                    <div className="tx-filter-item tx-filter-date">
-                        <Calendar size={14} className="tx-date-icon" />
-                        <input
-                            type="date"
-                            className="input-field"
-                            value={dateEnd}
-                            onChange={e => setDateEnd(e.target.value)}
-                            title="Data final"
-                        />
-                    </div>
-
-                    {/* Clear filters */}
-                    <div className="tx-filter-item">
+                    {/* Reset Action */}
+                    <div className="tx-filter-group clear-action">
+                        <label className="tx-filter-label">&nbsp;</label>
                         <button
-                            className={`tx-clear-btn ${hasActiveFilters ? 'active' : ''}`}
+                            className={`tx-clear-btn-premium ${hasActiveFilters ? 'active' : ''}`}
                             onClick={clearAllFilters}
                             disabled={!hasActiveFilters}
-                            title="Limpar todos os filtros"
+                            title="Limpar todos os filtros ativos"
                         >
-                            <X size={16} />
-                            <span>Limpar</span>
+                            <RefreshCcw size={14} />
+                            <span>Redefinir</span>
                         </button>
                     </div>
                 </div>
-
-                {/* Period active indicator */}
-                {isPeriodActive && (
-                    <div className="tx-period-notice">
-                        <Calendar size={14} />
-                        <span>Período personalizado ativo — filtro de mês desabilitado</span>
-                    </div>
-                )}
             </div>
 
-            {/* ── Active Filter Chips ── */}
-            {activeChips.length > 0 && (
-                <div className="tx-chips-container">
-                    {activeChips.map((chip, i) => (
-                        <div key={i} className="tx-chip">
-                            <span>{chip.label}</span>
-                            <button onClick={chip.onRemove} className="tx-chip-remove">
-                                <X size={14} />
-                            </button>
-                        </div>
-                    ))}
+            {/* Period active indicator */}
+            {isPeriodActive && (
+                <div className="tx-period-notice">
+                    <Calendar size={14} />
+                    <span>Período personalizado ativo — filtro de mês desabilitado</span>
                 </div>
             )}
+
+            {/* ── Active Filter Chips ── */}
+            {
+                activeChips.length > 0 && (
+                    <div className="tx-chips-container">
+                        {activeChips.map((chip, i) => (
+                            <div key={i} className="tx-chip">
+                                <span>{chip.label}</span>
+                                <button onClick={chip.onRemove} className="tx-chip-remove">
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
 
             {/* ── List Content ── */}
             <div className="tx-list-container">
@@ -539,20 +611,20 @@ export const Transactions: React.FC = () => {
                         <>
                             {/* Desktop Header */}
                             <div className="tx-grid-header">
-                                <span className="tx-header-col">ID</span>
+                                <span className="tx-header-col tx-centered">ID</span>
                                 <button className="tx-header-col sortable" onClick={() => handleSort('description')}>
                                     Descrição <SortIcon column="description" />
                                 </button>
-                                <button className="tx-header-col sortable" onClick={() => handleSort('category')}>
-                                    Categoria <SortIcon column="category" />
+                                <button className="tx-header-col sortable tx-centered" onClick={() => handleSort('category_id')}>
+                                    Categoria <SortIcon column="category_id" />
                                 </button>
-                                <button className="tx-header-col sortable" onClick={() => handleSort('date')}>
+                                <button className="tx-header-col sortable tx-centered" onClick={() => handleSort('date')}>
                                     Data <SortIcon column="date" />
                                 </button>
                                 <button className="tx-header-col sortable tx-align-right" onClick={() => handleSort('amount')}>
                                     Valor <SortIcon column="amount" />
                                 </button>
-                                <button className="tx-header-col sortable" onClick={() => handleSort('method')}>
+                                <button className="tx-header-col sortable tx-centered" onClick={() => handleSort('method')}>
                                     Método <SortIcon column="method" />
                                 </button>
                                 <span className="tx-header-col tx-align-right">Ações</span>
@@ -577,23 +649,31 @@ export const Transactions: React.FC = () => {
                                             {/* Column: Description */}
                                             <div className="tx-col-description">
                                                 <div className="tx-status-indicator" style={{ backgroundColor: catColor }} />
-                                                <span className="tx-description-text" title={tx.description}>
-                                                    {tx.description}
-                                                    {tx.isFixed && <Anchor size={12} className="tx-fixed-icon" style={{ marginLeft: '6px', color: 'var(--color-primary)', opacity: 0.7 }} />}
-                                                    {tx.attachments && tx.attachments.length > 0 && (
-                                                        <button
-                                                            className="tx-att-indicator"
-                                                            onClick={(e) => { e.stopPropagation(); setViewingAttachments(tx.attachments!); }}
-                                                            title={`${tx.attachments.length} anexo(s)`}
-                                                        >
-                                                            <Paperclip size={12} />
-                                                        </button>
+                                                <div className="tx-desc-content">
+                                                    <div className="tx-desc-main">
+                                                        <span className="tx-description-text" title={tx.description}>
+                                                            {tx.description}
+                                                        </span>
+                                                        {tx.isFixed && <Anchor size={12} className="tx-fixed-icon" style={{ marginLeft: '4px', color: 'var(--color-primary)', opacity: 0.7 }} />}
+                                                        {tx.attachments && tx.attachments.length > 0 && (
+                                                            <button
+                                                                className="tx-att-indicator"
+                                                                onClick={(e) => { e.stopPropagation(); setViewingAttachments(tx.attachments!); }}
+                                                                title={`${tx.attachments.length} anexo(s)`}
+                                                            >
+                                                                <Paperclip size={12} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    {tx.supplierId && (
+                                                        <span className="tx-supplier-under">
+                                                            {supplierMap.get(tx.supplierId)}
+                                                        </span>
                                                     )}
-                                                </span>
+                                                </div>
                                             </div>
-
                                             {/* Column: Category */}
-                                            <div className="tx-col-category">
+                                            <div className="tx-col-category tx-centered">
                                                 <span
                                                     className="tx-category-badge"
                                                     style={{
@@ -607,7 +687,7 @@ export const Transactions: React.FC = () => {
                                             </div>
 
                                             {/* Column: Date */}
-                                            <div className="tx-col-date">
+                                            <div className="tx-col-date tx-centered">
                                                 {formatDate(tx.date)}
                                             </div>
 
@@ -617,7 +697,7 @@ export const Transactions: React.FC = () => {
                                             </div>
 
                                             {/* Column: Method */}
-                                            <div className="tx-col-method">
+                                            <div className="tx-col-method tx-centered">
                                                 {(() => {
                                                     const method = tx.paymentMethodId ? paymentMethodMap.get(tx.paymentMethodId) : null;
                                                     const mName = method?.name || 'Geral';
@@ -646,7 +726,7 @@ export const Transactions: React.FC = () => {
                                                 ) : (
                                                     <>
                                                         <button className="tx-btn-icon" onClick={() => handleEdit(tx)} title="Editar">
-                                                            <Edit size={18} />
+                                                            <Edit2 size={18} />
                                                         </button>
                                                         <button className="tx-btn-icon danger" onClick={() => handleDelete(tx.id)} title="Excluir">
                                                             <Trash2 size={18} />
@@ -658,14 +738,17 @@ export const Transactions: React.FC = () => {
                                             {/* Mobile Card Layout */}
                                             <div className="tx-mobile-card">
                                                 <div className="tx-card-row">
-                                                    <span className="tx-card-description">{tx.description}</span>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                        <span className="tx-card-description">{tx.description}</span>
+                                                        {tx.supplierId && (
+                                                            <span className="tx-supplier-text-mini">
+                                                                {supplierMap.get(tx.supplierId)}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <span
-                                                        className="tx-category-badge"
-                                                        style={{
-                                                            backgroundColor: `${catColor}15`,
-                                                            color: catColor,
-                                                            borderColor: `${catColor}30`
-                                                        }}
+                                                        className={`tx - category - badge - mini`}
+                                                        style={{ color: catColor, backgroundColor: `${catColor} 15` }}
                                                     >
                                                         {catName}
                                                     </span>
@@ -678,12 +761,12 @@ export const Transactions: React.FC = () => {
                                                         {(() => {
                                                             const method = tx.paymentMethodId ? paymentMethodMap.get(tx.paymentMethodId) : null;
                                                             return method && (
-                                                                <span className="tx-method-badge-mini" style={{ color: method.color, backgroundColor: `${method.color}15` }}>
+                                                                <span className="tx-method-badge-mini" style={{ color: method.color, backgroundColor: `${method.color} 15` }}>
                                                                     {method.name}
                                                                 </span>
                                                             );
                                                         })()}
-                                                        <span className={`tx-card-amount ${isExpense ? 'expense' : 'income'}`}>
+                                                        <span className={`tx - card - amount ${isExpense ? 'expense' : 'income'} `}>
                                                             {isExpense ? '- ' : '+ '}{formatCurrency(tx.amount)}
                                                         </span>
                                                     </div>
@@ -697,7 +780,7 @@ export const Transactions: React.FC = () => {
                                                     ) : (
                                                         <>
                                                             <button className="tx-btn-icon" onClick={() => handleEdit(tx)}>
-                                                                <Edit size={18} />
+                                                                <Edit2 size={18} />
                                                                 <span>Editar</span>
                                                             </button>
                                                             <button className="tx-btn-icon danger" onClick={() => handleDelete(tx.id)}>
@@ -748,6 +831,6 @@ export const Transactions: React.FC = () => {
                 onClose={() => setViewingAttachments(null)}
                 attachments={viewingAttachments || []}
             />
-        </div>
+        </div >
     );
 };

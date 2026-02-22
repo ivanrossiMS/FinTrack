@@ -3,7 +3,7 @@ import { Button } from '../ui/Button';
 import { Input, Select } from '../ui/Input';
 import { useData } from '../../contexts/DataContext';
 import { Commitment, Attachment } from '../../models/types';
-import { Calendar, DollarSign, Tag, Building2, Layers } from 'lucide-react';
+import { Calendar, DollarSign, Tag, Building2, Layers, Plus, Palette } from 'lucide-react';
 import { AttachmentManager } from '../ui/AttachmentManager';
 
 interface CommitmentFormProps {
@@ -12,7 +12,7 @@ interface CommitmentFormProps {
 }
 
 export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editingCommitment }) => {
-    const { data, addCommitment, updateCommitment } = useData();
+    const { data, addCommitment, updateCommitment, addCategory, addSupplier } = useData();
 
     const [description, setDescription] = useState(editingCommitment?.description || '');
     const [amount, setAmount] = useState(editingCommitment?.amount?.toString() || '');
@@ -23,20 +23,47 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
     const [attachments, setAttachments] = useState<Attachment[]>(editingCommitment?.attachments || []);
     const [error, setError] = useState('');
 
+    // Inline Creation States
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategoryColor, setNewCategoryColor] = useState('#3b82f6');
+    const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
+    const [newSupplierName, setNewSupplierName] = useState('');
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!description || !amount || !dueDate || !categoryId) {
+        if (!description || !amount || (!categoryId && !isCreatingCategory)) {
             setError('Por favor, preencha todos os campos obrigatórios.');
             return;
+        }
+
+        let finalCategoryId = categoryId;
+        let finalSupplierId = supplierId;
+
+        // 1. Handle Inline Category Creation
+        if (isCreatingCategory && newCategoryName.trim()) {
+            finalCategoryId = addCategory({
+                name: newCategoryName.trim(),
+                type: 'EXPENSE',
+                color: newCategoryColor,
+                isDefault: false
+            });
+        }
+
+        // 2. Handle Inline Supplier Creation
+        if (isCreatingSupplier && newSupplierName.trim()) {
+            finalSupplierId = addSupplier({
+                name: newSupplierName.trim()
+            });
         }
 
         const payload = {
             description,
             amount: parseFloat(amount),
             dueDate,
-            supplierId: supplierId || undefined,
-            categoryId,
+            supplierId: finalSupplierId || undefined,
+            categoryId: finalCategoryId,
             installments: parseInt(installments) > 1 ? parseInt(installments) : undefined,
             attachments
         };
@@ -102,29 +129,105 @@ export const CommitmentForm: React.FC<CommitmentFormProps> = ({ onClose, editing
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <Select
-                        label="Fornecedor (Opcional)"
-                        value={supplierId}
-                        onChange={e => setSupplierId(e.target.value)}
-                        icon={<Building2 size={16} />}
-                        options={[
-                            { value: '', label: 'Nenhum' },
-                            ...data.suppliers.map(s => ({ value: s.id, label: s.name }))
-                        ]}
-                    />
-                    <Select
-                        label="Categoria"
-                        value={categoryId}
-                        onChange={e => setCategoryId(e.target.value)}
-                        required
-                        icon={<Layers size={16} />}
-                        options={[
-                            { value: '', label: 'Selecione...' },
-                            ...data.categories
-                                .filter(c => c.type === 'EXPENSE' || c.type === 'BOTH')
-                                .map(c => ({ value: c.id, label: c.name }))
-                        ]}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <Select
+                            label="Fornecedor (Opcional)"
+                            value={isCreatingSupplier ? 'CREATE_NEW' : supplierId}
+                            onChange={e => {
+                                if (e.target.value === 'CREATE_NEW') {
+                                    setIsCreatingSupplier(true);
+                                    setSupplierId('');
+                                } else {
+                                    setIsCreatingSupplier(false);
+                                    setSupplierId(e.target.value);
+                                }
+                            }}
+                            icon={<Building2 size={16} />}
+                            options={[
+                                { value: '', label: 'Nenhum' },
+                                ...data.suppliers.map(s => ({ value: s.id, label: s.name })),
+                                { value: 'CREATE_NEW', label: '✨ CRIAR novo fornecedor...' }
+                            ]}
+                        />
+                        {isCreatingSupplier && (
+                            <div style={{
+                                padding: '1rem',
+                                backgroundColor: '#f0f9ff',
+                                borderRadius: '12px',
+                                border: '1.5px dashed #7dd3fc',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem',
+                                animation: 'fadeIn 0.3s ease-out'
+                            }}>
+                                <Input
+                                    label="Nome do Fornecedor"
+                                    value={newSupplierName}
+                                    onChange={e => setNewSupplierName(e.target.value)}
+                                    placeholder="Ex: Amazon, Mercado Livre..."
+                                    required
+                                    icon={<Plus size={14} color="#0369a1" />}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <Select
+                            label="Categoria"
+                            value={isCreatingCategory ? 'CREATE_NEW' : categoryId}
+                            onChange={e => {
+                                if (e.target.value === 'CREATE_NEW') {
+                                    setIsCreatingCategory(true);
+                                    setCategoryId('');
+                                } else {
+                                    setIsCreatingCategory(false);
+                                    setCategoryId(e.target.value);
+                                }
+                            }}
+                            required
+                            icon={<Layers size={16} />}
+                            options={[
+                                { value: '', label: 'Selecione...' },
+                                ...data.categories
+                                    .filter(c => c.type === 'EXPENSE' || c.type === 'BOTH')
+                                    .map(c => ({ value: c.id, label: c.name })),
+                                { value: 'CREATE_NEW', label: '✨ CRIAR nova categoria...' }
+                            ]}
+                        />
+                        {isCreatingCategory && (
+                            <div style={{
+                                padding: '1rem',
+                                backgroundColor: '#fcf8ff',
+                                borderRadius: '12px',
+                                border: '1.5px dashed #d8b4fe',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem',
+                                animation: 'fadeIn 0.3s ease-out'
+                            }}>
+                                <Input
+                                    label="Nome da Categoria"
+                                    value={newCategoryName}
+                                    onChange={e => setNewCategoryName(e.target.value)}
+                                    placeholder="Ex: Presentes, Obra..."
+                                    required
+                                    icon={<Plus size={14} color="#9333ea" />}
+                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <Palette size={14} color="#9333ea" />
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b21a8' }}>Cor:</span>
+                                    <input
+                                        type="color"
+                                        value={newCategoryColor}
+                                        onChange={e => setNewCategoryColor(e.target.value)}
+                                        style={{ width: '40px', height: '20px', border: 'none', padding: 0, cursor: 'pointer', borderRadius: '4px' }}
+                                    />
+                                    <span style={{ fontSize: '0.7rem', color: '#9333ea', fontWeight: 700 }}>{newCategoryColor.toUpperCase()}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Parcelamento - Para compromissos também é útil */}

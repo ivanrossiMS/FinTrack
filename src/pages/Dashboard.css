@@ -7,6 +7,12 @@
     animation: fadeIn 0.8s ease-out;
 }
 
+@media (max-width: 767px) {
+    .dashboard-container {
+        padding: 1rem 0.5rem;
+    }
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -29,6 +35,22 @@
     gap: 1.5rem;
 }
 
+@media (max-width: 767px) {
+    .dashboard-header {
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.8rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .dashboard-header p {
+        font-size: 0.9rem !important;
+    }
+}
+
 @media (min-width: 1024px) {
     .dashboard-header {
         flex-direction: row;
@@ -37,114 +59,42 @@
 }
 
 /* Modern Segmented Control / Range Selector */
-/* Dash Filters 3D Refinements */
-.dash-filters-container {
-    display: flex;
-    flex-direction: column;
+.range-selector {
+    display: flex !important;
     align-items: center;
-    gap: 1rem;
-    width: 100%;
-}
-
-.range-selector.3d-bar {
-    background: #cbd5e1;
-    /* Deep base for 3D effect */
-    padding: 4px;
-    border-radius: 1.25rem;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.range-selector.3d-bar .seg-btn {
-    background: transparent;
-    color: #475569;
-    border-radius: 1rem;
-    border: none;
-    box-shadow: none;
-    transform: none;
-}
-
-.range-selector.3d-bar .seg-btn.active {
-    background: white !important;
-    color: var(--color-primary) !important;
-    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-1px);
-}
-
-.custom-date-row {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.custom-date-badge {
-    background: rgba(255, 255, 255, 0.8);
+    gap: 8px !important;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(12px);
-    padding: 0.5rem 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+    width: fit-content;
+}
+
+.seg-btn {
+    padding: 10px 18px;
     border-radius: 1rem;
-    border: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    box-shadow: var(--shadow-sm);
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--color-text-muted);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 }
 
-.custom-date-picker-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.seg-btn:hover {
+    background: rgba(243, 244, 246, 0.8);
+    color: var(--color-text);
 }
 
-/* Page Standard Widths for Cards */
-.dash-insight-card,
-.dash-upcoming-card,
-.dash-chart-card {
-    width: 100% !important;
-}
-
-/* KPI Cards - Mobile Horizontal Refinement */
-@media (max-width: 767px) {
-    .kpi-grid {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 0.75rem !important;
-    }
-
-    .kpi-card {
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: flex-start !important;
-        padding: 0.75rem 1rem !important;
-        height: auto !important;
-        /* Managed by content */
-        gap: 1rem !important;
-        text-align: left !important;
-    }
-
-    .kpi-icon-wrapper {
-        width: 40px !important;
-        height: 40px !important;
-        min-width: 40px !important;
-        border-radius: 10px !important;
-        margin-bottom: 0 !important;
-    }
-
-    .kpi-content {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }
-
-    .kpi-label {
-        font-size: 0.65rem !important;
-        margin-bottom: 2px !important;
-        text-align: left !important;
-    }
-
-    .kpi-value {
-        font-size: 1.25rem !important;
-        text-align: left !important;
-    }
+.seg-btn.active {
+    background: #fff !important;
+    color: var(--color-primary) !important;
+    border-color: rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    transform: translateY(-1px) scale(1.02);
 }
 
 /* Premium KPI Grid */
@@ -153,6 +103,13 @@
     grid-template-columns: repeat(12, 1fr);
     gap: 2rem;
     margin-bottom: 3rem;
+}
+
+@media (max-width: 767px) {
+    .kpi-grid {
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 }
 
 .kpi-card {
@@ -231,6 +188,12 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 2rem;
+}
+
+@media (max-width: 767px) {
+    .chart-grid {
+        gap: 1.5rem;
+    }
 }
 
 .main-chart-col {

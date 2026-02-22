@@ -429,110 +429,161 @@
     }
 }
 
-/* Mobile Nav - Lumina Style */
-/* Mobile Header (Top Bar) Refinements */
+/* ── Premium Mobile Header (Top) ── */
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 900;
+    padding: 0 1.25rem;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
 @media (max-width: 767px) {
-    .sidebar-brand-text {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
+    .mobile-header {
+        display: flex;
     }
 
-    .sidebar-brand-name {
-        font-size: 1.25rem !important;
+    .main-content {
+        padding-top: 85px !important;
+        padding-bottom: 100px !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 
-    .sidebar-brand-slogan {
-        font-size: 0.6rem !important;
-        display: block !important;
+    .app-layout::before {
+        opacity: 0.8;
+    }
+}
+
+.mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+}
+
+.mobile-brand-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.mobile-user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: var(--shadow-md);
+    object-fit: cover;
+}
+
+/* ── Neural Pulse AI FAB adjustment for mobile ── */
+@media (max-width: 767px) {
+    .ai-fab-neural {
+        bottom: 6.5rem;
+        right: 1.25rem;
+        width: 60px;
+        height: 60px;
     }
 
-    /* Target the top header specifically on mobile */
+    .ai-fab-core {
+        border-radius: 18px;
+    }
+}
+
+/* ── Premium Bottom Nav (Floating Glass) ── */
+@media (max-width: 767px) {
     .sidebar {
-        background: rgba(255, 255, 255, 0.6) !important;
-        backdrop-filter: blur(20px) saturate(180%) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03) !important;
+        display: none !important;
     }
 
-    .sidebar-avatar-container {
-        width: 48px !important;
-        height: 48px !important;
-        border: 2px solid white;
-        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+    .bottom-nav {
+        position: fixed;
+        bottom: 1.25rem;
+        left: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 0.6rem 0.4rem;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.15);
+        z-index: 1000;
+        gap: 0;
     }
 
-    .sidebar-user-name {
-        font-size: 1rem !important;
-        font-weight: 800 !important;
+    .nav-list {
+        display: contents;
     }
 
-    .sidebar-user-tag {
-        font-size: 0.6rem !important;
-        padding: 2px 8px !important;
-        background: rgba(99, 102, 241, 0.1) !important;
-        color: var(--color-primary) !important;
-        border-radius: var(--radius-full);
-    }
-
-    /* Centering logic for name within button container if needed */
-    .sidebar-header {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        text-align: center !important;
-        padding: 1.5rem 1rem !important;
-        gap: 0.75rem !important;
-    }
-
-    .sidebar-user-info {
-        align-items: center !important;
-    }
-
-    /* Sidebar Menu Items - Horizontal on Mobile */
     .nav-item {
-        flex-direction: row !important;
-        align-items: center !important;
-        gap: 1rem !important;
-        padding: 0.75rem 1.25rem !important;
-        font-size: 0.9rem !important;
+        flex-direction: column !important;
+        align-items: center;
+        justify-content: center;
+        gap: 4px !important;
+        padding: 0.5rem 0 !important;
+        font-size: 0.6rem !important;
         font-weight: 700 !important;
-        border-radius: 12px !important;
+        color: var(--color-text-light) !important;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        border-radius: 16px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    .nav-item svg {
+        width: 20px !important;
+        height: 20px !important;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+        color: var(--color-primary) !important;
+        background: rgba(99, 102, 241, 0.08) !important;
+    }
+
+    .nav-item.active svg {
+        opacity: 1;
+        transform: translateY(-2px);
+        stroke-width: 2.5;
     }
 
     .nav-label {
-        font-size: 0.85rem !important;
-        text-transform: none !important;
-        letter-spacing: 0 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
     }
 
-    /* Bottom Nav Refinements - Icon Only */
-    .bottom-nav {
-        background: rgba(255, 255, 255, 0.7) !important;
-        backdrop-filter: blur(20px) saturate(180%) !important;
-        height: 70px !important;
-        bottom: 1rem !important;
-        left: 1rem !important;
-        right: 1rem !important;
-        border-radius: 24px !important;
-        border: 1px solid rgba(255, 255, 255, 0.5) !important;
-        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15) !important;
+    /* Hide text for non-essential items to reduce clutter on small screens */
+    .nav-item:not(.active) .nav-label {
+        display: none;
     }
 
-    .bottom-nav .nav-item {
-        flex-direction: column !important;
-        justify-content: center !important;
-        height: 100% !important;
-        padding: 0 !important;
-    }
-
-    .bottom-nav .nav-label {
+    /* Alternative: Show only icons or use a more compact style */
+    .sidebar-brand,
+    .sidebar-header,
+    .nav-item-logout,
+    .sidebar-copyright,
+    .nav-item:nth-child(n+6) {
         display: none !important;
-        /* Icon-only as requested */
-    }
-
-    .bottom-nav .nav-item svg {
-        width: 26px !important;
-        height: 26px !important;
     }
 }

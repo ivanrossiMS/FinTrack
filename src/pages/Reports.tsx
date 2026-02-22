@@ -8,7 +8,7 @@ import { startOfMonth, endOfMonth, startOfDay, subDays, parseISO, isWithinInterv
 import { ExpensesPieChart } from '../components/charts/ExpensesPieChart';
 import { getCategoryExpenses } from '../utils/statistics';
 import { Button } from '../components/ui/Button';
-import { Commitment } from '../models/types';
+import { Transaction, Commitment } from '../models/types';
 
 type PeriodMode = 'TODAY' | '7DAYS' | 'MONTH' | 'CUSTOM';
 
@@ -74,26 +74,26 @@ export const Reports: React.FC = () => {
     }, [periodMode, dateRange, currentMonth, customStart, customEnd]);
 
     const filteredData = useMemo(() => {
-        return data.transactions.filter(t =>
+        return data.transactions.filter((t: Transaction) =>
             isWithinInterval(new Date(t.date), { start: dateRange.start, end: dateRange.end })
-        ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        ).sort((a: Transaction, b: Transaction) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [data.transactions, dateRange]);
 
     // ── Commitments filtered by period and status ──
     const filteredCommitments = useMemo(() => {
         const today = new Date().toISOString().slice(0, 10);
 
-        const inRange = (data.commitments || []).filter(c =>
+        const inRange = (data.commitments || []).filter((c: Commitment) =>
             isWithinInterval(new Date(c.dueDate), { start: dateRange.start, end: dateRange.end })
         );
 
         switch (commitmentFilter) {
             case 'PAID':
-                return inRange.filter(c => c.status === 'PAID');
+                return inRange.filter((c: Commitment) => c.status === 'PAID');
             case 'UPCOMING':
-                return inRange.filter(c => c.status === 'PENDING' && c.dueDate.slice(0, 10) >= today);
+                return inRange.filter((c: Commitment) => c.status === 'PENDING' && c.dueDate.slice(0, 10) >= today);
             case 'OVERDUE':
-                return inRange.filter(c => c.status === 'PENDING' && c.dueDate.slice(0, 10) < today);
+                return inRange.filter((c: Commitment) => c.status === 'PENDING' && c.dueDate.slice(0, 10) < today);
             default:
                 return inRange;
         }
@@ -234,31 +234,31 @@ export const Reports: React.FC = () => {
             <div className="rep-main-grid">
 
                 {/* ── Column A: Charts & Detailed ── */}
-                <div className="rep-col-a" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="rep-col-a">
 
                     {/* Summary Row */}
                     <div className="rep-summary-grid">
                         <div className="rep-summ-card income">
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <div className="rep-summ-header-row">
                                 <span className="label">Entradas</span>
                                 <TrendingUp size={16} />
                             </div>
                             <span className="value">{formatCurrency(totals.income)}</span>
                         </div>
                         <div className="rep-summ-card expense">
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <div className="rep-summ-header-row">
                                 <span className="label">Saídas</span>
                                 <TrendingDown size={16} />
                             </div>
                             <span className="value">{formatCurrency(totals.expense)}</span>
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '10px', opacity: 0.8 }}>
+                            <div className="rep-summ-footer">
                                 <span>Fixas: {formatCurrency(totals.fixed)}</span>
-                                <span style={{ opacity: 0.4 }}>|</span>
+                                <span className="rep-summ-sep">|</span>
                                 <span>Var: {formatCurrency(totals.variable)}</span>
                             </div>
                         </div>
                         <div className={`rep-summ-card result ${totals.balance >= 0 ? 'positive' : 'negative'}`}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <div className="rep-summ-header-row">
                                 <span className="label">Resultado</span>
                                 <Target size={16} />
                             </div>
@@ -273,7 +273,7 @@ export const Reports: React.FC = () => {
                             {categoryExpenses.length > 0 ? (
                                 <ExpensesPieChart data={categoryExpenses} onSliceClick={handleCategoryClick} />
                             ) : (
-                                <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+                                <div className="rep-empty-state">
                                     Sem despesas para exibir no gráfico.
                                 </div>
                             )}
@@ -328,7 +328,7 @@ export const Reports: React.FC = () => {
                                 })}
 
                                 {filteredData.length === 0 && (
-                                    <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text-light)', fontStyle: 'italic', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div className="rep-empty-state">
                                         <Filter size={32} opacity={0.3} />
                                         <span>Nenhum lançamento neste período.</span>
                                     </div>
@@ -431,7 +431,7 @@ export const Reports: React.FC = () => {
                 </div>
 
                 {/* ── Column B: Stats & Ranking ── */}
-                <aside className="rep-col-b" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <aside className="rep-col-b">
 
                     {/* High Expenses Card */}
                     <div className="rep-card">
@@ -451,7 +451,7 @@ export const Reports: React.FC = () => {
                                     </div>
                                 ))}
                             {filteredData.filter(t => t.type === 'EXPENSE').length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--color-text-light)', fontStyle: 'italic', fontSize: '0.75rem' }}>
+                                <div className="rep-empty-state" style={{ padding: '2rem 0', fontSize: '0.75rem' }}>
                                     Nenhuma despesa registrada.
                                 </div>
                             )}
@@ -459,9 +459,9 @@ export const Reports: React.FC = () => {
                     </div>
 
                     {/* Insight Card */}
-                    <div className="rep-card" style={{ background: 'var(--color-primary)', color: 'white', border: 'none' }}>
-                        <h3 className="rep-card-title" style={{ color: 'rgba(255,255,255,0.8)' }}>Insight Mensal</h3>
-                        <p style={{ fontSize: '0.875rem', fontWeight: 500, lineHeight: 1.6 }}>
+                    <div className="rep-card rep-insight-card">
+                        <h3 className="rep-card-title rep-insight-title">Insight Mensal</h3>
+                        <p className="rep-insight-text">
                             {totals.balance >= 0
                                 ? "Excelente! Suas receitas superaram as despesas este mês. Considere investir o excedente."
                                 : "Atenção: Suas despesas superaram as receitas. Revise seus gastos em categorias não essenciais."}

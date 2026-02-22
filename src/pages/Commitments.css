@@ -46,12 +46,21 @@
     gap: 0.75rem;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cm-summary-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
+}
+
+.cm-summ-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: transparent;
 }
 
 .cm-summ-icon {
@@ -69,14 +78,26 @@
     color: #f97316;
 }
 
+.cm-summary-card.pending .cm-summ-indicator {
+    background: #f97316;
+}
+
 .cm-summary-card.today .cm-summ-icon {
     background: #fef2f2;
     color: #ef4444;
 }
 
+.cm-summary-card.today .cm-summ-indicator {
+    background: #ef4444;
+}
+
 .cm-summary-card.paid .cm-summ-icon {
     background: #f0fdf4;
     color: #22c55e;
+}
+
+.cm-summary-card.paid .cm-summ-indicator {
+    background: #22c55e;
 }
 
 .cm-summ-label {
@@ -237,18 +258,34 @@
 /* Grid Table */
 .cm-grid-row {
     display: grid;
-    grid-template-columns: 80px 2fr 1fr 1fr 0.8fr 1.2fr 1fr 120px;
+    grid-template-columns: 80px 2fr 1fr 1fr 1fr 1.2fr 1.2fr 140px;
     gap: 1.5rem;
     align-items: center;
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-    transition: background 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cm-grid-row:hover {
+    background: #f8fafc;
+    transform: scale(1.002) translateX(4px);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+    z-index: 1;
 }
 
 .cm-grid-row.header {
     background: #f8fafc;
     border-bottom: 2px solid var(--color-border);
     padding: 0.875rem 1.5rem;
+    transition: none;
+    transform: none;
+    box-shadow: none;
+}
+
+.cm-grid-row.header:hover {
+    background: #f8fafc;
+    transform: none;
+    box-shadow: none;
 }
 
 .cm-grid-row.header div {
@@ -258,11 +295,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: flex;
-    flex-direction: row;
-    /* Force row to avoid icon going below text */
     align-items: center;
-    justify-content: flex-start;
-    /* Align to the left */
     gap: 0.5rem;
 }
 
@@ -276,10 +309,11 @@
     color: var(--color-primary);
 }
 
-.cm-grid-row:not(.header):hover {
-    background: #f8fafc;
-    transform: translateX(4px);
-    box-shadow: inset 4px 0 0 0 var(--color-primary);
+.cm-status-indicator {
+    width: 4px;
+    height: 24px;
+    border-radius: 4px;
+    flex-shrink: 0;
 }
 
 .cm-grid-row.paid {
@@ -287,14 +321,13 @@
 }
 
 /* ID Column */
-.cm-id-text {
-    font-family: var(--font-mono);
+.cm-col-id {
+    font-family: var(--font-mono, 'Roboto Mono', monospace);
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--color-text-muted);
-    background: #f1f5f9;
-    padding: 2px 6px;
-    border-radius: 6px;
+    color: var(--color-text-light);
+    opacity: 0.6;
+    letter-spacing: 0.025em;
 }
 
 .cm-col-name {
@@ -304,15 +337,14 @@
 
 .cm-name-text {
     font-weight: 700;
+    font-size: 1rem;
     color: var(--color-text);
-    font-size: 0.95rem;
 }
 
 .cm-supplier-text {
     font-size: 0.75rem;
     color: var(--color-text-light);
     font-weight: 600;
-    color: var(--color-text-muted);
 }
 
 .cm-col-value {
@@ -328,6 +360,34 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Payment Method Badge */
+.cm-method-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Pay Date display */
+.cm-paid-at {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+    background: #f1f5f9;
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
+    width: fit-content;
 }
 
 .cm-status-badge.pending {
@@ -409,18 +469,172 @@
     transform: scale(1.1);
 }
 
+/* ── Responsive ── */
 @media (max-width: 1024px) {
     .cm-summary-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cm-summary-card.pending {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .cm-page {
         gap: 1rem;
     }
 
-    .cm-grid-row {
-        grid-template-columns: 1fr 1fr;
+    .cm-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cm-header .shadow-3d {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cm-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .cm-summary-card.pending {
+        grid-column: span 2;
+    }
+
+    .cm-summary-card {
+        padding: 1.25rem;
+    }
+
+    .cm-summ-value {
+        font-size: 1.5rem;
+    }
+
+    /* Filters */
+    .cm-filter-wrapper {
+        padding: 1rem;
+        border-radius: 20px;
+    }
+
+    .cm-filters-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .cm-filter-group {
+        min-width: 0;
+    }
+
+    .cm-date-range {
+        flex-direction: column;
         gap: 0.5rem;
     }
 
-    .cm-grid-row> :nth-child(n+3):not(:last-child) {
+    .cm-date-range span {
         display: none;
+    }
+
+    /* Grid -> Cards */
+    .cm-grid-row.header {
+        display: none;
+    }
+
+    .cm-grid-row {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+        gap: 1rem;
+        border-bottom: 8px solid #f8fafc;
+    }
+
+    .cm-grid-row:hover {
+        transform: none;
+    }
+
+    .cm-col-id {
+        margin-bottom: -0.5rem;
+    }
+
+    .cm-col-name {
+        gap: 0.5rem;
+    }
+
+    .cm-name-text {
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .cm-col-value {
+        font-size: 1.2rem;
+        border-top: 1px dashed rgba(0, 0, 0, 0.05);
+        padding-top: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cm-col-value::before {
+        content: 'Valor:';
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--color-text-light);
+    }
+
+    .cm-col-status,
+    .cm-col-method,
+    .cm-col-paydate {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+
+    .cm-col-status::before {
+        content: 'Status:';
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--color-text-light);
+    }
+
+    .cm-col-method::before {
+        content: 'Pagamento:';
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--color-text-light);
+    }
+
+    .cm-col-paydate::before {
+        content: 'Pago em:';
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--color-text-light);
+    }
+
+    .cm-col-edit {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        margin-top: 0.25rem;
+    }
+
+    .cm-col-edit button {
+        width: 100%;
+        height: 3rem;
+        background: #f8fafc;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cm-mini-pay-btn {
+        width: 100% !important;
+        height: 3rem !important;
+        box-shadow: none !important;
     }
 }

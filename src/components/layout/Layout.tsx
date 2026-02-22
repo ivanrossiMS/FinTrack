@@ -41,6 +41,25 @@ export const Layout: React.FC = () => {
 
     return (
         <div className="app-layout">
+            {/* Mobile Top Header */}
+            <header className="mobile-header">
+                <div className="mobile-brand">
+                    <img src={logoIcon} alt="Finance+" className="mobile-logo" />
+                    <span className="mobile-brand-name">
+                        Finance<span className="sidebar-brand-plus">+</span>
+                    </span>
+                </div>
+                <NavLink to="/profile">
+                    {user?.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="mobile-user-avatar" />
+                    ) : (
+                        <div className="mobile-user-avatar flex items-center justify-center bg-primary-light text-primary">
+                            <User size={20} />
+                        </div>
+                    )}
+                </NavLink>
+            </header>
+
             {/* Desktop Sidebar / Mobile Bottom Nav Placeholder */}
             <aside className="sidebar bottom-nav">
                 {/* ── Brand Top ── */}
@@ -62,12 +81,10 @@ export const Layout: React.FC = () => {
                     </NavLink>
                     <div className="sidebar-user-info">
                         <span className="sidebar-user-name" title={user?.name}>{user?.name || 'Usuário'}</span>
-                        <div className="sidebar-user-plan-row">
-                            <span className={`sidebar-user-tag ${user?.plan?.toLowerCase() || 'free'}`}>
-                                {user?.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
-                                {user?.plan === 'PREMIUM' ? 'Plano Premium' : 'Plano Free'}
-                            </span>
-                        </div>
+                        <span className={`sidebar-user-tag ${user?.plan?.toLowerCase() || 'free'}`}>
+                            {user?.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
+                            Plano {user?.plan === 'PREMIUM' ? 'Premium' : 'Free'}
+                        </span>
                     </div>
                 </div>
 
@@ -76,7 +93,7 @@ export const Layout: React.FC = () => {
                         <NavLink
                             key={path}
                             to={path}
-                            className={({ isActive }) => clsx("nav-item", isActive && "active")}
+                            className={({ isActive }: { isActive: boolean }) => clsx("nav-item", isActive && "active")}
                         >
                             <Icon size={22} strokeWidth={2} />
                             <span className="nav-label">{label}</span>
