@@ -188,7 +188,6 @@
 }
 
 .kpi-card {
-    grid-column: span 12;
     padding: 1.75rem !important;
     border: none !important;
     position: relative;
@@ -317,6 +316,16 @@
         flex-direction: column !important;
         justify-content: center !important;
         gap: 0.5rem !important;
+    }
+
+    /* Force 1+2 Layout in CSS to override anything else */
+    .card-total {
+        grid-column: span 12 !important;
+    }
+
+    .card-income,
+    .card-expense {
+        grid-column: span 6 !important;
     }
 
     /* Balance (Top Full Width) */
