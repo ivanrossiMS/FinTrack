@@ -196,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }).eq('id', targetId);
     };
 
-    const impersonateUser = (email: string) => {
+    const impersonateUser = (_email: string) => {
         if (!user || (!user.isAdmin && !isImpersonating)) return;
         localStorage.setItem('fintrack_original_admin', JSON.stringify(user));
         setIsImpersonating(true);
