@@ -17,6 +17,7 @@ interface AuthContextType {
     loading: boolean;
     supabaseUrl: string;
     supabaseKeyMasked: string;
+    resetAppCache: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +32,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const supUrl = import.meta.env.VITE_SUPABASE_URL || 'ERRO: URL NÃO DEFINIDA';
     const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
     const maskedKey = rawKey ? `${rawKey.substring(0, 8)}...${rawKey.substring(rawKey.length - 8)}` : 'ERRO: CHAVE NÃO DEFINIDA';
+
+    const resetAppCache = () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload();
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -110,14 +117,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Login: Iniciando tentativa para', email);
+        console.log('Login: [1/4] Iniciando limpeza de sessão anterior...');
         try {
+            // Tenta limpar sessão antes, mas sem travar se der erro
+            try { await supabase.auth.signOut(); } catch (e) { }
+
+            console.log('Login: [2/4] Enviando credenciais para Supabase:', email);
             const loginPromise = supabase.auth.signInWithPassword({ email, password });
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Login (40s).')), 40000)
+                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Login (60s). Verifique sua conexão ou se bloqueador de anúncios está interferindo.')), 60000)
             );
 
-            console.log('Login: Aguardando resposta do Supabase Auth...');
             const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
 
             if (error) {
@@ -125,20 +135,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return { success: false, error: error.message };
             }
 
-            if (data.user) {
-                console.log('Login: Auth OK! Buscando perfil do usuário...');
-                const { data: profile } = await supabase
+            if (data?.user) {
+                console.log('Login: [3/4] Auth OK! Buscando perfil do usuário...');
+                const { data: profile, error: pError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
 
+                if (pError) console.error('Login: Erro ao buscar perfil (talvez precise de auto-recovery):', pError);
+
                 if (profile) {
+                    console.log('Login: [4/4] Perfil encontrado. Validando autorização...');
                     const profileEmail = profile.email?.toLowerCase();
                     const masterEmail = 'ivanrossi@outlook.com';
 
                     if (!profile.is_authorized && profileEmail !== masterEmail) {
-                        console.log('Login: Usuário não autorizado.');
+                        console.warn('Login: Usuário não autorizado.');
                         await supabase.auth.signOut();
                         return { success: false, error: "Sua conta ainda não foi autorizada pelo administrador." };
                     }
@@ -153,10 +166,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         plan: profile.plan
                     });
                     setIsAuthenticated(true);
-                    console.log('Login: Sucesso total!');
+                    console.log('Login: SUCESSO! Entrando no app...');
                     return { success: true };
                 } else {
-                    console.log('Login: Perfil não encontrado, tentando auto-recuperação...');
+                    console.log('Login: Perfil ausente. Iniciando Auto-Recuperação...');
                     const userEmail = data.user.email?.toLowerCase();
                     const masterEmail = 'ivanrossi@outlook.com';
                     const isMasterAdmin = userEmail === masterEmail;
@@ -193,15 +206,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
                 }
             }
-            return { success: false, error: "Usuário não encontrado." };
+            return { success: false, error: "Falha ao processar resposta do servidor." };
         } catch (err: any) {
-            console.error('Login: Erro inesperado:', err);
-            return { success: false, error: err.message || "Erro inesperado." };
+            console.error('Login: Erro inesperado capturado:', err);
+            return { success: false, error: err.message || "Erro inesperado no cliente." };
         }
     };
 
     const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Cadastro: Iniciando tentativa para', email);
+        console.log('Cadastro: [1/3] Iniciando tentativa para', email);
         try {
             const registerPromise = supabase.auth.signUp({
                 email,
@@ -210,24 +223,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
 
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Cadastro (40s).')), 40000)
+                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Cadastro (60s).')), 60000)
             );
 
-            console.log('Cadastro: Aguardando resposta do Supabase Auth...');
+            console.log('Cadastro: [2/3] Aguardando resposta do Supabase Auth...');
             const { data, error } = await Promise.race([registerPromise, timeoutPromise]) as any;
 
             if (error) {
-                console.error('Cadastro: Erro no Auth do Supabase:', error);
+                console.error('Cadastro: Erro no Auth:', error);
                 return { success: false, error: error.message };
             }
 
-            if (data.user) {
-                console.log('Cadastro: Auth OK! Criando perfil no banco de dados...');
+            if (data?.user) {
+                console.log('Cadastro: [3/3] Auth OK! Criando perfil no banco de dados...');
                 const userEmail = email.toLowerCase();
                 const masterEmail = 'ivanrossi@outlook.com';
                 const isMasterAdmin = userEmail === masterEmail;
 
-                await supabase.from('user_profiles').upsert([{
+                const { error: profileError } = await supabase.from('user_profiles').upsert([{
                     id: data.user.id,
                     name,
                     email: email,
@@ -236,19 +249,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     plan: 'FREE'
                 }]);
 
+                if (profileError) {
+                    console.error('Cadastro: Perfil falhou (mas login criado):', profileError);
+                }
+
                 if (isMasterAdmin) {
                     setUser({ id: data.user.id, name, email, isAdmin: true, isAuthorized: true, plan: 'FREE' });
                     setIsAuthenticated(true);
-                    console.log('Cadastro: Sucesso total (Admin)!');
+                    console.log('Cadastro: SUCESSO total (Admin)!');
                     return { success: true };
                 } else {
-                    console.log('Cadastro: Sucesso! Aguardando autorização.');
+                    console.log('Cadastro: SUCESSO! Autorização pendente.');
                     return { success: true, error: "AUTORIZACAO_PENDENTE" };
                 }
             }
             return { success: false, error: "Falha na criação do usuário." };
         } catch (err: any) {
-            console.error('Cadastro: Erro inesperado:', err);
+            console.error('Cadastro: Erro inesperado capturado:', err);
             return { success: false, error: err.message || "Erro inesperado." };
         }
     };
@@ -318,7 +335,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <AuthContext.Provider value={{
             isAuthenticated, user, login, register, logout, updateUser, adminUpdateUserInfo, impersonateUser, stopImpersonating, changePassword, isImpersonating, loading,
             supabaseUrl: supUrl,
-            supabaseKeyMasked: maskedKey
+            supabaseKeyMasked: maskedKey,
+            resetAppCache
         }}>
             {children}
         </AuthContext.Provider>
