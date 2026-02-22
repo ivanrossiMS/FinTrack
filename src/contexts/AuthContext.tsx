@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (profileError) {
                     console.error('Error creating profile:', profileError);
-                    alert(`O login foi criado, mas houve um erro ao criar o perfil: ${profileError.message}`);
+                    alert(`O login foi criado, mas o seu perfil no banco de dados FALHOU.\n\nErro: ${profileError.message}\nDetalhes: ${profileError.details || 'Sem detalhes'}\nCódigo: ${profileError.code}`);
                 }
 
                 if (isMasterAdmin) {
