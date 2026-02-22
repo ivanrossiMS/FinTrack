@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X, HelpCircle } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -37,6 +37,7 @@ export const Layout: React.FC = () => {
         { path: '/reports', label: 'Relatórios', icon: PieChart },
         { path: '/manage', label: 'Cadastros', icon: List },
         { path: '/profile', label: 'Perfil', icon: User },
+        { path: '/help', label: 'Ajuda', icon: HelpCircle },
         ...(user?.isAdmin ? [
             { path: '/admin', label: 'ADM', icon: ShieldCheck },
             { path: '/settings', label: 'Ajustes', icon: Settings }

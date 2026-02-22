@@ -17,7 +17,7 @@ import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
 import { Commitments } from './pages/Commitments';
 import { Savings } from './pages/Savings';
-import { Investments } from './pages/Investments';
+import { Help } from './pages/Help';
 
 function App() {
     return (
@@ -40,6 +40,7 @@ function App() {
                                 <Route path="/manage" element={<Manage />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/profile" element={<Profile />} />
+                                <Route path="/help" element={<Help />} />
                                 <Route path="/admin" element={<Admin />} />
                             </Route>
                         </Route>
