@@ -34,14 +34,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const maskedKey = rawKey ? `${rawKey.substring(0, 8)}...${rawKey.substring(rawKey.length - 8)}` : 'ERRO: CHAVE NÃO DEFINIDA';
 
     const resetAppCache = () => {
+        console.log('ResetAppCache: Limpando tudo e recarregando...');
         localStorage.clear();
         sessionStorage.clear();
+        // Remove especificamente chaves do Supabase para garantir
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes('supabase') || key.startsWith('sb-')) {
+                localStorage.removeItem(key);
+            }
+        });
         window.location.reload();
     };
 
     useEffect(() => {
         let isMounted = true;
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+
+        // Listeners de mudança de estado (Supabase)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('onAuthStateChange:', event);
             if (session?.user) {
                 try {
                     const { data: profile } = await supabase
@@ -72,10 +82,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (isMounted) setLoading(false);
         });
 
+        // Verificação Inicial com Auto-Cura (Timeout de 3s)
         const checkSession = async () => {
+            console.log('Auth: Iniciando verificação de sessão...');
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const sessionPromise = supabase.auth.getSession();
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('SESSION_DEADLOCK')), 3000)
+                );
+
+                const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+
                 if (session?.user) {
+                    console.log('Auth: Sessão encontrada para', session.user.email);
                     const { data: profile } = await supabase
                         .from('user_profiles')
                         .select('*')
@@ -94,81 +113,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         });
                         setIsAuthenticated(true);
                     }
+                } else {
+                    console.log('Auth: Nenhuma sessão ativa.');
                 }
-            } catch (err) {
-                console.error('Initial session check error:', err);
+            } catch (err: any) {
+                console.error('Auth Init Error:', err.message);
+                if (err.message === 'SESSION_DEADLOCK') {
+                    console.warn('Auth: Detectado travamento de sessão! Executando auto-limpeza...');
+                    localStorage.clear();
+                    // Se estiver travado, recarrega para limpar o estado do Singleton do Supabase
+                    if (isMounted) window.location.reload();
+                }
             } finally {
                 if (isMounted) setLoading(false);
             }
         };
 
         checkSession();
-        const timeout = setTimeout(() => {
-            if (isMounted && loading) {
-                setLoading(false);
-            }
-        }, 5000);
 
         return () => {
             isMounted = false;
             subscription.unsubscribe();
-            clearTimeout(timeout);
         };
     }, []);
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Login: [1/4] Limpando vestígios de sessões anteriores...');
+        console.log('Login: [1/4] Limpando ambiente...');
         try {
-            // Tenta limpar sessão antes com um timeout curto (2s) para não travar o login
-            try {
-                const signOutPromise = supabase.auth.signOut();
-                const signOutTimeout = new Promise((resolve) => setTimeout(() => resolve({ error: 'timeout' }), 2000));
-                await Promise.race([signOutPromise, signOutTimeout]);
-            } catch (e) {
-                console.warn('Login: Erro ou timeout na limpeza inicial (ignorado).');
-            }
-
-            // Limpeza bruta do localStorage (remove todas as chaves do Supabase)
+            // Limpeza agressiva de chaves do Supabase no localStorage antes de tentar login
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('sb-')) localStorage.removeItem(key);
             });
 
-            console.log('Login: [2/4] Enviando credenciais para Supabase:', email);
+            console.log('Login: [2/4] Autenticando...', email);
             const loginPromise = supabase.auth.signInWithPassword({ email, password });
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Login (60s). Verifique sua conexão ou se bloqueador de anúncios está interferindo.')), 60000)
+                setTimeout(() => reject(new Error('Tempo limite do servidor (60s). Verifique sua rede.')), 60000)
             );
 
             const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
 
             if (error) {
-                console.error('Login: Erro no Auth do Supabase:', error);
-                // Se o erro for "session_not_found" ou similar, limpamos novamente para garantir
-                localStorage.clear();
+                console.error('Login: Erro Auth:', error.message);
                 return { success: false, error: error.message };
             }
 
             if (data?.user) {
-                console.log('Login: [3/4] Auth OK! Buscando perfil do usuário...');
-
-                // Tentativa de buscar perfil com timeout também
+                console.log('Login: [3/4] Auth OK! Carregando perfil...');
                 const { data: profile, error: pError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
 
-                if (pError) console.error('Login: Erro ao buscar perfil:', pError);
-
                 if (profile) {
-                    console.log('Login: [4/4] Perfil encontrado. Validando autorização...');
+                    console.log('Login: [4/4] Finalizando...');
                     const profileEmail = profile.email?.toLowerCase();
                     const masterEmail = 'ivanrossi@outlook.com';
 
                     if (!profile.is_authorized && profileEmail !== masterEmail) {
-                        console.warn('Login: Usuário não autorizado.');
-                        await supabase.auth.signOut();
-                        return { success: false, error: "Sua conta ainda não foi autorizada pelo administrador." };
+                        await logout();
+                        return { success: false, error: "Conta pendente de autorização." };
                     }
 
                     setUser({
@@ -181,81 +186,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         plan: profile.plan
                     });
                     setIsAuthenticated(true);
-                    console.log('Login: SUCESSO! Entrando no app...');
                     return { success: true };
                 } else {
-                    console.log('Login: Perfil ausente. Iniciando Auto-Recuperação...');
+                    // Auto-recuperação (idêntica à anterior, mas mantida por segurança)
+                    console.log('Login: Perfil não encontrado. Criando...');
                     const userEmail = data.user.email?.toLowerCase();
                     const masterEmail = 'ivanrossi@outlook.com';
                     const isMasterAdmin = userEmail === masterEmail;
 
-                    const { error: recoveryError } = await supabase
-                        .from('user_profiles')
-                        .insert([{
-                            id: data.user.id,
-                            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário',
-                            email: data.user.email,
-                            is_admin: isMasterAdmin,
-                            is_authorized: true,
-                            plan: 'FREE'
-                        }]);
+                    const { error: recError } = await supabase.from('user_profiles').insert([{
+                        id: data.user.id,
+                        name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário',
+                        email: data.user.email,
+                        is_admin: isMasterAdmin,
+                        is_authorized: true,
+                        plan: 'FREE'
+                    }]);
 
-                    if (recoveryError) {
-                        console.error('Login: Erro na auto-recuperação:', recoveryError);
-                        return { success: false, error: "Erro ao criar perfil: " + recoveryError.message };
+                    if (!recError) {
+                        const { data: newP } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
+                        if (newP) {
+                            setUser({ id: data.user.id, name: newP.name, email: newP.email, isAdmin: newP.is_admin, isAuthorized: newP.is_authorized, plan: newP.plan });
+                            setIsAuthenticated(true);
+                            return { success: true };
+                        }
                     }
-
-                    const { data: newProfile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
-                    if (newProfile) {
-                        setUser({
-                            id: data.user.id,
-                            name: newProfile.name,
-                            email: newProfile.email,
-                            isAdmin: newProfile.is_admin,
-                            isAuthorized: newProfile.is_authorized,
-                            plan: newProfile.plan
-                        });
-                        setIsAuthenticated(true);
-                        console.log('Login: Sucesso após auto-recuperação!');
-                        return { success: true };
-                    }
+                    return { success: false, error: "Erro ao criar perfil após login." };
                 }
             }
-            return { success: false, error: "Falha ao processar resposta do servidor." };
+            return { success: false, error: "Resposta inválida do servidor." };
         } catch (err: any) {
-            console.error('Login: Erro inesperado capturado:', err);
-            return { success: false, error: err.message || "Erro inesperado no cliente." };
+            console.error('Login: Erro inesperado:', err);
+            return { success: false, error: err.message || "Erro de conexão." };
         }
     };
 
     const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Cadastro: [1/3] Iniciando tentativa para', email);
         try {
-            const registerPromise = supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: { data: { name } }
             });
 
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no Cadastro (60s).')), 60000)
-            );
-
-            console.log('Cadastro: [2/3] Aguardando resposta do Supabase Auth...');
-            const { data, error } = await Promise.race([registerPromise, timeoutPromise]) as any;
-
-            if (error) {
-                console.error('Cadastro: Erro no Auth:', error);
-                return { success: false, error: error.message };
-            }
+            if (error) return { success: false, error: error.message };
 
             if (data?.user) {
-                console.log('Cadastro: [3/3] Auth OK! Criando perfil no banco de dados...');
                 const userEmail = email.toLowerCase();
                 const masterEmail = 'ivanrossi@outlook.com';
                 const isMasterAdmin = userEmail === masterEmail;
 
-                const { error: profileError } = await supabase.from('user_profiles').upsert([{
+                await supabase.from('user_profiles').upsert([{
                     id: data.user.id,
                     name,
                     email: email,
@@ -264,40 +245,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     plan: 'FREE'
                 }]);
 
-                if (profileError) {
-                    console.error('Cadastro: Perfil falhou (mas login criado):', profileError);
-                }
-
                 if (isMasterAdmin) {
                     setUser({ id: data.user.id, name, email, isAdmin: true, isAuthorized: true, plan: 'FREE' });
                     setIsAuthenticated(true);
-                    console.log('Cadastro: SUCESSO total (Admin)!');
                     return { success: true };
                 } else {
-                    console.log('Cadastro: SUCESSO! Autorização pendente.');
                     return { success: true, error: "AUTORIZACAO_PENDENTE" };
                 }
             }
-            return { success: false, error: "Falha na criação do usuário." };
+            return { success: false, error: "Erro ao criar usuário." };
         } catch (err: any) {
-            console.error('Cadastro: Erro inesperado capturado:', err);
-            return { success: false, error: err.message || "Erro inesperado." };
+            return { success: false, error: err.message };
         }
     };
 
     const logout = async () => {
-        console.log('Logout: Saindo e limpando estado...');
-        // Limpa estado local imediatamente da UI
+        console.log('Logout: Iniciando reset completo do app...');
+        try {
+            // Desloga no servidor sem esperar (fire and forget com timeout curto)
+            const logoutPromise = supabase.auth.signOut();
+            const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1000));
+            await Promise.race([logoutPromise, timeoutPromise]);
+        } catch (e) { }
+
+        // Limpa estado da UI
         setIsAuthenticated(false);
         setUser(null);
-        localStorage.clear();
 
-        // Tenta deslogar do servidor em background (não trava a UI)
-        try {
-            await supabase.auth.signOut();
-        } catch (e) {
-            console.warn('Logout: Erro ao avisar servidor, mas estado local já foi limpo.');
-        }
+        // Limpa TUDO e força reload para resetar o singleton do Supabase Client
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login';
     };
 
     const updateUser = async (updatedUser: any) => {
