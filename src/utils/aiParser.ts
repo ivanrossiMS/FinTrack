@@ -365,10 +365,16 @@ export const parseTranscription = (
     }
 
     // Fallback: if description is suspiciously short or empty, take the middle part (after trigger, before amount)
-    if (!description || description.length < 3) {
-        // Just take first 5 original tokens that aren't pure numbers
-        description = raw.split(/\s+/).filter(w => !/^\d+$/.test(w)).slice(0, 5).join(' ');
-        description = description.charAt(0).toUpperCase() + description.slice(1);
+    if (!description || description.length < 2) {
+        // Just take first 5 original tokens that aren't pure numbers or currency symbols
+        description = raw.split(/\s+/)
+            .filter(w => !/^\d+([.,]\d+)?$/.test(w) && !/^(r\$|\$)$/i.test(w) && w.length > 1)
+            .slice(0, 5)
+            .join(' ');
+
+        if (description) {
+            description = description.charAt(0).toUpperCase() + description.slice(1);
+        }
     }
 
     confidence = Math.min(confidence, 1.0);

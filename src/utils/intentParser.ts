@@ -438,12 +438,26 @@ export function detectIntent(text: string): VoiceIntent {
         return { type: 'transaction', confidence: 0.87, rawText: text };
     }
 
-    // 6. Heuristic: number + money context → likely a transaction
+    // 6. Heuristic: number + text -> high confidence transaction (Short speech: "50 pão")
+    // Use a tighter regex for amount detection here
+    const amountMatch = lower.match(/\b(\d+(?:[.,]\d{1,2})?)\b/);
+    if (amountMatch) {
+        const amountStr = amountMatch[1];
+        const restOfText = lower.replace(amountStr, '').trim();
+        const wordCount = restOfText.split(/\s+/).filter(w => w.length > 1).length;
+
+        // If we have a number and at least one word, it's very likely a transaction
+        // especially if it's a short "50 uber" style phrase
+        if (wordCount >= 1) {
+            return { type: 'transaction', confidence: 0.9, rawText: text };
+        }
+    }
+
+    // 7. General number context -> medium confidence transaction
     const hasAmount = /\d+/.test(lower);
     const hasMoneyWord = /(reais|real|r\$|conto|pila|bala)/.test(lower);
-    const wordCount = lower.split(' ').length;
-    if (hasAmount && hasMoneyWord && wordCount >= 2) {
-        return { type: 'transaction', confidence: 0.68, rawText: text };
+    if (hasAmount && hasMoneyWord) {
+        return { type: 'transaction', confidence: 0.8, rawText: text };
     }
 
     return { type: 'unknown', confidence: 0, rawText: text };
