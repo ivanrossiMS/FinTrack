@@ -429,31 +429,51 @@
     }
 }
 
-/* ── NEW Premium Mobile V5 (Prefix: mob-prem-) ── */
+/* ── NEW Premium Mobile V6 (Prefix: mob-prem-) ── */
 .mob-prem-header,
-.mob-prem-bottom-bar {
+.mob-prem-bottom-bar,
+.mob-prem-drawer-overlay {
     display: none;
 }
 
 @media (max-width: 767px) {
 
-    /* 1. Header Premium V4 - Clean Style (Persistent in V5) */
+    /* 1. Header Premium V6 - Oval Frame & Menu */
     .mob-prem-header {
         display: flex;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        height: 70px;
-        background: rgba(255, 255, 255, 0.75);
+        height: 75px;
+        background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(25px) saturate(180%);
         -webkit-backdrop-filter: blur(25px) saturate(180%);
         z-index: 1000;
-        padding: 0 1.25rem;
+        padding: 0 1rem;
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .mob-prem-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .mob-prem-hamburger-btn {
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        color: var(--color-primary);
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
     }
 
     .mob-prem-brand {
@@ -463,68 +483,71 @@
     }
 
     .mob-prem-logo {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         border-radius: 9px;
     }
 
     .mob-prem-brand-name {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         font-weight: 800;
         letter-spacing: -0.02em;
         color: var(--color-text);
     }
 
-    .mob-prem-header-right {
+    /* ── Moldura Oval de Perfil V6 ── */
+    .mob-prem-profile-frame {
         display: flex;
         align-items: center;
-        gap: 0.85rem;
+        gap: 0.75rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        padding: 4px 4px 4px 12px;
+        border-radius: 100px;
+        /* Formato Pílula Oval */
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
     }
 
-    .mob-prem-profile-meta {
+    .mob-prem-profile-info {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 1px;
+        align-items: flex-end;
+        gap: 0;
     }
 
     .mob-prem-user-firstname {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         font-weight: 800;
-        color: var(--color-text);
-        line-height: 1.1;
+        color: #1e293b;
+        line-height: 1.2;
     }
 
-    .mob-prem-plan-badge {
-        font-size: 0.6rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        padding: 2px 8px;
-        border-radius: 6px;
-        letter-spacing: 0.02em;
+    .mob-prem-plan-tag {
+        font-size: 0.55rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
     }
 
-    .mob-prem-plan-badge.premium {
-        background: linear-gradient(135deg, #6366f1, #a855f7);
-        color: white;
-        box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+    .mob-prem-plan-tag.premium {
+        color: #6366f1;
     }
 
-    .mob-prem-plan-badge.free {
-        background: rgba(100, 116, 139, 0.08);
-        color: #64748b;
+    .mob-prem-plan-tag.free {
+        color: #94a3b8;
     }
 
-    .mob-prem-user-avatar {
-        width: 46px;
-        height: 46px;
-        border-radius: 14px;
+    .mob-prem-avatar-pill {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
         border: 2px solid white;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         object-fit: cover;
     }
 
-    .mob-prem-user-avatar.default {
+    .mob-prem-avatar-pill.default {
         background: var(--color-primary-light);
         color: var(--color-primary);
         display: flex;
@@ -532,7 +555,119 @@
         justify-content: center;
     }
 
-    /* 2. Bottom Navigation Bar V5 - Dynamic Horizontal Nav */
+    /* 2. Side Drawer Premium V6 */
+    .mob-prem-drawer-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(6px);
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mob-prem-drawer-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .mob-prem-drawer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 295px;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(40px) saturate(200%);
+        -webkit-backdrop-filter: blur(40px) saturate(200%);
+        border-right: 1px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        flex-direction: column;
+        transform: translateX(-100%);
+        transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 20px 0 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .mob-prem-drawer.active {
+        transform: translateX(0);
+    }
+
+    .mob-prem-drawer-header {
+        padding: 1.5rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .mob-prem-drawer-close {
+        background: rgba(241, 245, 249, 0.8);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+    }
+
+    .mob-prem-drawer-nav {
+        flex: 1;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        overflow-y: auto;
+    }
+
+    .mob-prem-drawer-item {
+        display: flex;
+        align-items: center;
+        gap: 1.1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 18px;
+        color: #475569;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        border: 1px solid transparent;
+    }
+
+    .mob-prem-drawer-item.active {
+        background: white;
+        color: var(--color-primary);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.05);
+    }
+
+    .mob-prem-drawer-item svg {
+        opacity: 0.8;
+    }
+
+    .mob-prem-drawer-footer {
+        padding: 1.25rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .mob-prem-drawer-logout {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        padding: 1.1rem;
+        border-radius: 18px;
+        border: 1px solid rgba(239, 68, 68, 0.1);
+        background: rgba(239, 68, 68, 0.04);
+        color: #ef4444;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+    }
+
+    /* 3. Bottom Navigation Bar V5 Content (Nested in Media Query) */
     .mob-prem-bottom-bar {
         display: block;
         position: fixed;
@@ -545,7 +680,7 @@
 
     .mob-prem-bottom-inner {
         pointer-events: auto;
-        background: rgba(255, 255, 255, 0.78);
+        background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(35px) saturate(200%);
         -webkit-backdrop-filter: blur(35px) saturate(200%);
         border: 1px solid rgba(255, 255, 255, 0.5);
@@ -583,7 +718,7 @@
         opacity: 0;
         height: 0;
         overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         color: var(--color-primary);
         text-align: center;
         white-space: nowrap;
@@ -605,23 +740,20 @@
         margin-top: 2px;
     }
 
-    /* 3. Global Mobile Polish */
+    /* 4. Global Mobile Polish */
     .main-content {
-        padding-top: 90px !important;
-        padding-bottom: 125px !important;
+        padding-top: 95px !important;
+        padding-bottom: 130px !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
 
-    .sidebar {
-        display: none !important;
-    }
-
+    .sidebar,
     .bottom-nav {
         display: none !important;
     }
 
-    /* Neural AI FAB position V5 */
+    /* Neural AI FAB position V6 */
     .ai-fab-neural {
         bottom: 8.5rem;
         right: 1.5rem;

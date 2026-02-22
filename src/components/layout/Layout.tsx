@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -13,6 +13,7 @@ export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
     const navigate = useNavigate();
     const [voiceOpen, setVoiceOpen] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
     const handleLogout = () => {
         logout();
@@ -23,6 +24,9 @@ export const Layout: React.FC = () => {
         stopImpersonating();
         navigate('/admin');
     };
+
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const closeMenu = () => setIsMenuOpen(false);
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: Home },
@@ -52,35 +56,78 @@ export const Layout: React.FC = () => {
 
     return (
         <div className="app-layout">
-            {/* ── NEW Premium Mobile Header (V4 - Simple & Clean) ── */}
+            {/* ── NEW Premium Mobile Header (V6 - Menu & Oval Profile) ── */}
             <header className="mob-prem-header">
-                <div className="mob-prem-brand">
-                    <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
-                    <span className="mob-prem-brand-name">
-                        Finance<span className="sidebar-brand-plus">+</span>
-                    </span>
+                <div className="mob-prem-header-left">
+                    <button className="mob-prem-hamburger-btn" onClick={toggleMenu} aria-label="Abrir Menu">
+                        <Menu size={24} strokeWidth={2.5} />
+                    </button>
+                    <div className="mob-prem-brand">
+                        <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
+                        <span className="mob-prem-brand-name">
+                            Finance<span className="sidebar-brand-plus">+</span>
+                        </span>
+                    </div>
                 </div>
 
                 <div className="mob-prem-header-right">
-                    <div className="mob-prem-profile-meta">
-                        <span className="mob-prem-user-firstname">{firstName}</span>
-                        <span className={`mob-prem-plan-badge ${user?.plan?.toLowerCase() || 'free'}`}>
-                            {user?.plan === 'PREMIUM' ? 'Plano Premium' : 'Plano Free'}
-                        </span>
-                    </div>
-                    <NavLink to="/profile" className="mob-prem-avatar-link">
+                    <NavLink to="/profile" className="mob-prem-profile-frame">
+                        <div className="mob-prem-profile-info">
+                            <span className="mob-prem-user-firstname">{firstName}</span>
+                            <span className={`mob-prem-plan-tag ${user?.plan?.toLowerCase() || 'free'}`}>
+                                {user?.plan === 'PREMIUM' ? 'PREMIUM' : 'FREE'}
+                            </span>
+                        </div>
                         {user?.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="mob-prem-user-avatar" />
+                            <img src={user.avatar} alt={user.name} className="mob-prem-avatar-pill" />
                         ) : (
-                            <div className="mob-prem-user-avatar default">
-                                <User size={22} />
+                            <div className="mob-prem-avatar-pill default">
+                                <User size={20} />
                             </div>
                         )}
                     </NavLink>
                 </div>
             </header>
 
-            {/* ── NEW Premium Mobile Bottom Nav (V5 - Task: Icon + Text on Active) ── */}
+            {/* ── NEW Premium Mobile Drawer (V6 - Total Access) ── */}
+            <div className={clsx("mob-prem-drawer-overlay", isMenuOpen && "active")} onClick={closeMenu}>
+                <aside className={clsx("mob-prem-drawer", isMenuOpen && "active")} onClick={e => e.stopPropagation()}>
+                    <div className="mob-prem-drawer-header">
+                        <div className="mob-prem-brand">
+                            <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
+                            <span className="mob-prem-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
+                        </div>
+                        <button className="mob-prem-drawer-close" onClick={closeMenu}>
+                            <X size={26} />
+                        </button>
+                    </div>
+
+                    <nav className="mob-prem-drawer-nav">
+                        {navItems.map(({ path, icon: Icon, label }) => (
+                            <NavLink
+                                key={path}
+                                to={path}
+                                className={({ isActive }: { isActive: boolean }) =>
+                                    clsx("mob-prem-drawer-item", isActive && "active")
+                                }
+                                onClick={closeMenu}
+                            >
+                                <Icon size={22} strokeWidth={2} />
+                                <span>{label}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
+
+                    <div className="mob-prem-drawer-footer">
+                        <button onClick={handleLogout} className="mob-prem-drawer-logout">
+                            <LogOut size={22} />
+                            <span>DESCONECTAR</span>
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+            {/* ── NEW Premium Mobile Bottom Nav (V5 - Dynamic Horizontal Nav) ── */}
             <nav className="mob-prem-bottom-bar">
                 <div className="mob-prem-bottom-inner">
                     {mobileBottomItems.map(({ path, icon: Icon, label }) => (
