@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, X, ArrowRight, Volume2, HelpCircle } from 'lucide-react';
 import { addDays, isAfter, subDays, isBefore, endOfDay } from 'date-fns';
 import { useData } from '../../contexts/DataContext';
-import { parseTranscription } from '../../utils/aiParser';
+import { parseTranscriptionAsync } from '../../utils/aiParser';
 import {
     detectIntent,
     resolveQuery,
@@ -213,8 +213,9 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                 break;
             }
             case 'transaction': {
+                setStatus('PROCESSING');
                 handleOkConfirm();
-                const parsed = parseTranscription(text, d.categories, d.paymentMethods, d.suppliers);
+                const parsed = await parseTranscriptionAsync(text, d.categories, d.paymentMethods, d.suppliers);
                 nav('/transactions', { state: { voicePrefill: parsed, openForm: true } });
                 close();
                 break;

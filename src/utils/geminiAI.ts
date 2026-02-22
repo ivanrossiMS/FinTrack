@@ -102,12 +102,77 @@ export async function askGemini(
     }
 }
 
+// ── Semantic Transaction Parsing ───────────────────────────────────────────
+export interface AIParseResult {
+    type: 'EXPENSE' | 'INCOME';
+    description: string;
+    amount: number;
+    categoryName: string;
+    paymentMethodName?: string;
+    supplierName?: string;
+    confidence: number;
+}
+
+export async function parseTransactionWithAI(
+    text: string,
+    categories: string[]
+): Promise<AIParseResult | null> {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+    if (!apiKey) return null;
+
+    const prompt = `Analise o seguinte comando de voz para um lançamento financeiro: "${text}"
+
+Categorias disponíveis: ${categories.join(', ')}
+
+Extraia os dados no seguinte formato JSON estrito:
+{
+  "type": "EXPENSE" | "INCOME",
+  "description": "descrição curta e limpa",
+  "amount": valor numérico,
+  "categoryName": "escolha a melhor categoria da lista acima",
+  "paymentMethodName": "método de pagamento se mencionado",
+  "supplierName": "fornecedor se mencionado",
+  "confidence": 0.0 a 1.0
+}
+
+Regras:
+1. Se a categoria não estiver na lista, escolha a mais óbvia (ex: "pão" -> "Alimentação", "luz" -> "Moradia").
+2. Descrição deve ser o item/serviço (ex: "pão", "mensalidade escolar").
+3. Retorne APENAS o JSON.`;
+
+    try {
+        const response = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 300,
+                    responseMimeType: "application/json"
+                }
+            })
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!jsonText) return null;
+
+        return JSON.parse(jsonText);
+    } catch (err) {
+        console.error('[geminiAI] AI Parse Error:', err);
+        return null;
+    }
+}
+
 // ── Refocused local fallback ────────────────────────────────────────────────
 function fallbackAnswer(question: string): string {
     const q = question.toLowerCase();
 
     if (/\boi\b|ol[aá]|bom dia|boa tarde|boa noite/.test(q)) {
-        return 'Olá! Sou o Especialista IA do FinTrack. Posso te ajudar a navegar pelo app ou analisar seus gastos. O que deseja fazer?';
+        return 'Olá! Sou o Especialista IA do Finance+. Posso te ajudar a navegar pelo app ou analisar seus gastos. O que deseja fazer?';
     }
 
     if (/como.*usar|ajuda|funciona/.test(q)) {
@@ -125,5 +190,5 @@ function fallbackAnswer(question: string): string {
         } catch { /* ignore */ }
     }
 
-    return 'Como assistente do FinTrack, sou focado em suas finanças e no uso deste aplicativo. Posso te ajudar com alguma tela ou dado financeiro?';
+    return 'Como assistente do Finance+, sou focado em suas finanças e no uso deste aplicativo. Posso te ajudar com alguma tela ou dado financeiro?';
 }

@@ -398,3 +398,52 @@ export const parseTranscription = (
     console.log('[aiParser] Result:', result);
     return result;
 };
+// ── Async AI-first parser ──────────────────────────────────────────────────────
+import { parseTransactionWithAI } from './geminiAI';
+
+export const parseTranscriptionAsync = async (
+    text: string,
+    categories: Category[],
+    paymentMethods: PaymentMethod[],
+    suppliers: Supplier[]
+): Promise<ParsedTransaction> => {
+    // 1. Try AI first for elite perception
+    try {
+        const categoryNames = categories.map(c => c.name);
+        const aiResult = await parseTransactionWithAI(text, categoryNames);
+
+        if (aiResult && aiResult.confidence > 0.6) {
+            console.log('[aiParser] AI perception success:', aiResult);
+
+            const cat = categories.find(c => normalise(c.name) === normalise(aiResult.categoryName)) ||
+                categories.find(c => c.type === aiResult.type || c.type === 'BOTH');
+
+            const pay = aiResult.paymentMethodName ?
+                paymentMethods.find(p => normalise(p.name).includes(normalise(aiResult.paymentMethodName!))) :
+                undefined;
+
+            const sup = aiResult.supplierName ?
+                suppliers.find(s => normalise(s.name).includes(normalise(aiResult.supplierName!))) :
+                undefined;
+
+            return {
+                type: aiResult.type,
+                description: aiResult.description,
+                amount: aiResult.amount,
+                date: format(new Date(), 'yyyy-MM-dd'),
+                categoryId: cat?.id || '',
+                paymentMethodId: pay?.id || (paymentMethods.length > 0 ? paymentMethods[0].id : undefined),
+                supplierId: sup?.id,
+                confidence: aiResult.confidence,
+                needsClarification: aiResult.amount === 0,
+                question: aiResult.amount === 0 ? 'Qual o valor do lançamento?' : '',
+                observation: 'Processado por Inteligência de Elite (Gemini)'
+            };
+        }
+    } catch (err) {
+        console.error('[aiParser] AI Parse error, falling back to heuristics:', err);
+    }
+
+    // 2. Fallback to local heuristics
+    return parseTranscription(text, categories, paymentMethods, suppliers);
+};

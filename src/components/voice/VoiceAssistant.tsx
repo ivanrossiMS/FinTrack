@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { parseTranscription, ParsedTransaction } from '../../utils/aiParser';
+import { parseTranscriptionAsync, ParsedTransaction } from '../../utils/aiParser';
 import { Mic, MicOff, X, Check, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/Button';
 import './VoiceAssistant.css';
@@ -140,7 +140,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ isOpen, onClose,
         }
     }, [stopRecognition]);
 
-    const handleFinalize = useCallback(() => {
+    const handleFinalize = useCallback(async () => {
         const fullText = (transcriptRef.current || '').trim();
 
         if (!fullText) {
@@ -156,7 +156,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ isOpen, onClose,
         console.log('[VoiceAssistant] Finalizing with text:', fullText);
 
         // Parse the transcription
-        const parsed = parseTranscription(
+        const parsed = await parseTranscriptionAsync(
             fullText,
             data.categories,
             data.paymentMethods,
