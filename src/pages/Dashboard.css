@@ -322,46 +322,80 @@
 
     .range-selector {
         width: 100%;
+        max-width: 360px;
+        margin: 0 auto;
         padding: 8px;
         gap: 6px !important;
         background: rgba(255, 255, 255, 0.4);
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
     }
 
     .seg-btn {
         flex: 1 1 calc(33.33% - 12px);
-        min-width: 80px;
-        padding: 8px 4px;
-        font-size: 0.8rem;
+        min-width: 70px;
+        padding: 10px 4px;
+        font-size: 0.75rem;
+        text-align: center;
     }
 
     /* Target the last button (Personalizado) to wrap and center */
     .seg-btn:last-child {
-        flex: 0 0 calc(60% - 12px);
+        flex: 0 0 100% !important;
+        max-width: 180px;
         margin-top: 4px;
     }
 
-    /* Date range inputs on mobile */
+    /* Date range selector on mobile */
     .custom-range-picker {
         width: 100%;
+        max-width: 360px;
+        margin: 8px auto 0 !important;
         justify-content: center;
-        padding: 12px;
-        margin-top: 8px;
+        padding: 12px 8px;
         background: rgba(255, 255, 255, 0.5);
         border-radius: 1.25rem;
-        gap: 8px;
+        gap: 10px;
+        flex-direction: row;
+        box-sizing: border-box;
     }
 
     .date-inputs {
         gap: 8px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* Stack dates vertically only on very narrow screens if needed, 
+       but first try to make them fit horizontally by reducing font/gap */
+    @media (max-width: 380px) {
+        .date-inputs {
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .date-input-separator {
+            display: none;
+        }
+
+        .date-input-label {
+            text-align: center;
+        }
     }
 
     .date-field {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        width: 100%;
+        text-align: center;
     }
 
     .date-input-separator {
         margin-top: 12px;
-        font-size: 1.2rem;
+        font-size: 1rem;
+        opacity: 0.2;
     }
 
     .kpi-value {
