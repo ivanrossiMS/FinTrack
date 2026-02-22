@@ -39,13 +39,13 @@ export const Layout: React.FC = () => {
         ] : []),
     ];
 
-    // Mobile specific nav items (Bottom Bar) - Top 5 for cleaner UI
+    // Mobile specific nav items (Bottom Bar V5)
     const mobileBottomItems = [
-        { path: '/', icon: Home },
-        { path: '/transactions', icon: DollarSign },
-        { path: '/commitments', icon: Calendar },
-        { path: '/savings', icon: Target },
-        { path: '/profile', icon: User },
+        { path: '/', icon: Home, label: 'DASHBOARD' },
+        { path: '/transactions', icon: DollarSign, label: 'LANÇAMENTOS' },
+        { path: '/commitments', icon: Calendar, label: 'COMPROMISSOS' },
+        { path: '/savings', icon: Target, label: 'ECONOMIA' },
+        { path: '/investments', icon: TrendingUp, label: 'INVESTIMENTOS' },
     ];
 
     const firstName = user?.name ? user.name.split(' ')[0] : 'Usuário';
@@ -80,10 +80,10 @@ export const Layout: React.FC = () => {
                 </div>
             </header>
 
-            {/* ── NEW Premium Mobile Bottom Nav (V4 - Horizontal Icons Only) ── */}
+            {/* ── NEW Premium Mobile Bottom Nav (V5 - Task: Icon + Text on Active) ── */}
             <nav className="mob-prem-bottom-bar">
                 <div className="mob-prem-bottom-inner">
-                    {mobileBottomItems.map(({ path, icon: Icon }) => (
+                    {mobileBottomItems.map(({ path, icon: Icon, label }) => (
                         <NavLink
                             key={path}
                             to={path}
@@ -91,8 +91,8 @@ export const Layout: React.FC = () => {
                                 clsx("mob-prem-bottom-item", isActive && "active")
                             }
                         >
-                            <Icon size={24} strokeWidth={2.5} />
-                            <div className="mob-prem-active-dot" />
+                            <Icon size={24} strokeWidth={2.5} className="mob-prem-nav-icon" />
+                            <span className="mob-prem-bottom-label">{label}</span>
                         </NavLink>
                     ))}
                 </div>

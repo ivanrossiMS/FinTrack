@@ -429,7 +429,7 @@
     }
 }
 
-/* ── NEW Premium Mobile V4 (Prefix: mob-prem-) ── */
+/* ── NEW Premium Mobile V5 (Prefix: mob-prem-) ── */
 .mob-prem-header,
 .mob-prem-bottom-bar {
     display: none;
@@ -437,7 +437,7 @@
 
 @media (max-width: 767px) {
 
-    /* 1. Header Premium V4 - Clean Style */
+    /* 1. Header Premium V4 - Clean Style (Persistent in V5) */
     .mob-prem-header {
         display: flex;
         position: fixed;
@@ -532,7 +532,7 @@
         justify-content: center;
     }
 
-    /* 2. Bottom Navigation Bar V4 - Modern Horizontal Icons */
+    /* 2. Bottom Navigation Bar V5 - Dynamic Horizontal Nav */
     .mob-prem-bottom-bar {
         display: block;
         position: fixed;
@@ -541,22 +541,21 @@
         right: 1.25rem;
         z-index: 1000;
         pointer-events: none;
-        /* Let clicks pass through except to the inner bar */
     }
 
     .mob-prem-bottom-inner {
         pointer-events: auto;
-        background: rgba(255, 255, 255, 0.75);
+        background: rgba(255, 255, 255, 0.78);
         backdrop-filter: blur(35px) saturate(200%);
         -webkit-backdrop-filter: blur(35px) saturate(200%);
         border: 1px solid rgba(255, 255, 255, 0.5);
         border-radius: 28px;
-        height: 70px;
+        height: 72px;
         display: flex;
         align-items: center;
         justify-content: space-around;
-        padding: 0 0.75rem;
-        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12);
+        padding: 0 0.5rem;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
     }
 
     .mob-prem-bottom-item {
@@ -565,41 +564,51 @@
         align-items: center;
         justify-content: center;
         position: relative;
-        width: 50px;
-        height: 50px;
+        min-width: 50px;
+        height: 54px;
         color: #94a3b8;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
+        gap: 2px;
+    }
+
+    .mob-prem-nav-icon {
+        transition: all 0.3s ease;
+    }
+
+    .mob-prem-bottom-label {
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        opacity: 0;
+        height: 0;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: var(--color-primary);
+        text-align: center;
+        white-space: nowrap;
     }
 
     .mob-prem-bottom-item.active {
         color: var(--color-primary);
-        transform: translateY(-4px) scale(1.1);
+        transform: translateY(-4px);
     }
 
-    .mob-prem-active-dot {
-        position: absolute;
-        bottom: -4px;
-        width: 5px;
-        height: 5px;
-        background: var(--color-primary);
-        border-radius: 50%;
-        opacity: 0;
-        transform: scale(0);
-        transition: all 0.3s ease;
-        box-shadow: 0 0 10px var(--color-primary);
+    .mob-prem-bottom-item.active .mob-prem-nav-icon {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.2));
     }
 
-    .mob-prem-bottom-item.active .mob-prem-active-dot {
+    .mob-prem-bottom-item.active .mob-prem-bottom-label {
         opacity: 1;
-        transform: scale(1);
-        bottom: 2px;
+        height: 12px;
+        margin-top: 2px;
     }
 
     /* 3. Global Mobile Polish */
     .main-content {
         padding-top: 90px !important;
-        padding-bottom: 120px !important;
+        padding-bottom: 125px !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
@@ -608,14 +617,13 @@
         display: none !important;
     }
 
-    /* Old navigation elements cleanup */
     .bottom-nav {
         display: none !important;
     }
 
-    /* Neural AI FAB position V4 */
+    /* Neural AI FAB position V5 */
     .ai-fab-neural {
-        bottom: 7.5rem;
+        bottom: 8.5rem;
         right: 1.5rem;
         width: 62px;
         height: 62px;
