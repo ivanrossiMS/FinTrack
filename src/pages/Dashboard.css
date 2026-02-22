@@ -176,8 +176,8 @@
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    gap: 2rem;
-    margin-bottom: 3rem;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
 }
 
 @media (max-width: 767px) {
@@ -301,53 +301,49 @@
     border-radius: var(--radius-lg) !important;
 }
 
-/* KPI Mobile Specific Harmony (1+2 Layout) */
+/* KPI Mobile Specific Harmony (Refined 2-Column Grid) */
 @media (max-width: 640px) {
     .kpi-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.75rem !important;
         margin-bottom: 1.5rem !important;
+        display: grid !important;
     }
 
     .kpi-card {
-        padding: 1rem !important;
+        padding: 1.25rem 1rem !important;
         border-radius: 1.25rem !important;
         min-height: auto !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
-        gap: 0.5rem !important;
+        gap: 0.75rem !important;
+        grid-column: auto !important;
+        /* Reset spans to use explicit ones below */
     }
 
-    /* Force 1+2 Layout in CSS to override anything else */
+    /* Force explicit grid positions to avoid any overlapping */
     .card-total {
-        grid-column: span 12 !important;
-    }
-
-    .card-income,
-    .card-expense {
-        grid-column: span 6 !important;
-    }
-
-    /* Balance (Top Full Width) */
-    .card-total {
-        padding: 1.25rem !important;
+        grid-column: 1 / span 2 !important;
+        padding: 1.5rem 1.25rem !important;
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    }
+
+    .card-income {
+        grid-column: 1 / span 1 !important;
+    }
+
+    .card-expense {
+        grid-column: 2 / span 1 !important;
     }
 
     .card-total .kpi-value {
         font-size: 1.75rem !important;
     }
 
-    /* Income & Expenses (Side-by-Side) */
-    .card-income,
-    .card-expense {
-        padding: 0.75rem 0.5rem !important;
-        overflow: hidden;
-    }
-
     .card-income .kpi-value,
     .card-expense .kpi-value {
-        font-size: 1rem !important;
+        font-size: 1.25rem !important;
         margin-top: 2px;
         white-space: nowrap;
         overflow: hidden;
@@ -356,25 +352,25 @@
 
     .card-income .kpi-label,
     .card-expense .kpi-label {
-        font-size: 0.55rem !important;
+        font-size: 0.65rem !important;
         margin-bottom: 0 !important;
         white-space: nowrap;
-        letter-spacing: 0.02em;
+        opacity: 0.8;
     }
 
     .kpi-icon-wrapper {
-        width: 28px !important;
-        height: 28px !important;
+        width: 40px !important;
+        height: 40px !important;
         margin-bottom: 0 !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }
 
     .kpi-icon-wrapper svg {
-        width: 16px !important;
-        height: 16px !important;
+        width: 20px !important;
+        height: 20px !important;
     }
 
-    /* Hide extra info on very small cards to save space */
+    /* Hide extra info to keep it clean */
     .card-expense div[style*="font-size: 11px"] {
         display: none !important;
     }
