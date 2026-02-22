@@ -30,11 +30,11 @@ export const Help: React.FC = () => {
                         <h2>Guia Rápido</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>O FinTrack foi desenhado para ser intuitivo. Aqui estão os pilares:</p>
+                        <p>O FinTrack foi desenhado para ser intuitivo. Veja como aproveitar cada parte:</p>
                         <ul>
-                            <li><strong>Dashboard:</strong> Sua visão geral de saúde financeira.</li>
-                            <li><strong>Lançamentos:</strong> Onde a mágica acontece. Registre tudo o que entra e sai.</li>
-                            <li><strong>Filtros Inteligentes:</strong> Clique nos cards de Resumo (Receita/Despesa) para filtrar sua lista instantaneamente.</li>
+                            <li><strong>Dashboard:</strong> Sua central de comando. Acompanhe o balanço geral e o gráfico de evolução mensal. Passe o mouse ou toque nas barras do gráfico para ver detalhes por categoria.</li>
+                            <li><strong>Lançamentos:</strong> Onde você registra sua vida financeira. Clique em "+" para abrir o formulário. Preencha o valor, a descrição e selecione uma categoria. Você também pode anexar observações e definir o fornecedor.</li>
+                            <li><strong>Filtros Rápidos:</strong> Na tela de Lançamentos, clique nos cards coloridos de Resumo (Receita ou Despesa) para filtrar a lista instantaneamente. Clique novamente para limpar o filtro.</li>
                         </ul>
                     </div>
                 </section>
@@ -69,7 +69,8 @@ export const Help: React.FC = () => {
                         <h2>Compromissos</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>Não esqueça mais de pagar boletos. Use os <strong>Compromissos</strong> para agendar contas recorrentes ou únicas. O sistema te avisará quando estiverem próximas do vencimento.</p>
+                        <p><strong>O que faz:</strong> Gerencia suas contas futuras e recorrentes (boletos, assinaturas, aluguel).</p>
+                        <p><strong>Como usar:</strong> Cadastre um novo compromisso selecionando a data de vencimento. O sistema mostra o status como <strong>Pendente</strong>. Quando pagar, basta clicar no ícone de confirmação para dar baixa e gerar um lançamento automático.</p>
                     </div>
                 </section>
 
@@ -79,7 +80,19 @@ export const Help: React.FC = () => {
                         <h2>Economia & Metas</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>Quer comprar um carro ou viajar? Defina suas metas na aba <strong>Economia</strong>. Acompanhe seu progresso e veja quanto falta para realizar seu sonho.</p>
+                        <p><strong>O que faz:</strong> Planeja sonhos e reservas de emergência.</p>
+                        <p><strong>Como usar:</strong> Defina um nome para sua meta e o valor que deseja alcançar. Conforme você economiza, registre os aportes para ver a barra de progresso subir até os 100%.</p>
+                    </div>
+                </section>
+
+                <section className="help-card">
+                    <div className="help-card-header">
+                        <DollarSign size={24} />
+                        <h2>Investimentos</h2>
+                    </div>
+                    <div className="help-card-content">
+                        <p><strong>O que faz:</strong> Acompanha o crescimento do seu patrimônio em ativos.</p>
+                        <p><strong>Como usar:</strong> Registre seus aportes em renda fixa ou variável. O sistema consolida o valor total investido e mostra o rendimento histórico da sua carteira no gráfico de performance.</p>
                     </div>
                 </section>
 
