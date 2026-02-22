@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Camera, Lock, Eye, EyeOff, Phone, Mail, CheckCircle2, Shield, Sparkles, Save } from 'lucide-react';
+import { User, Camera, Lock, Eye, EyeOff, Phone, Mail, Shield, Sparkles, Save } from 'lucide-react';
 
 export const Profile: React.FC = () => {
     const { data, updateProfile } = useData();
@@ -275,93 +275,76 @@ export const Profile: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
                 {/* ══════════════════════════════════════════════
-                    HERO CARD — Avatar + Contact Info
+                    HERO CARD — Avatar + Contact Info (V3 ISOLATED)
                    ══════════════════════════════════════════════ */}
-                <div style={s.card}>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'minmax(200px, 300px) 1fr',
-                        minHeight: 320,
-                    }}>
-                        {/* Left — Avatar Column */}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '2.5rem 1.5rem',
-                            background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(14,165,233,0.04) 100%)',
-                            borderRight: '1px solid rgba(226,232,240,0.6)',
-                            gap: '0.75rem',
-                        }}>
-                            {/* Avatar */}
-                            <div style={{ position: 'relative' }}>
-                                <div style={{
-                                    width: 120,
-                                    height: 120,
+                <div className="prof-hero-card-container">
+                    {/* Left/Top — Identity Column */}
+                    <div className="prof-avatar-col">
+                        <div style={{ position: 'relative' }}>
+                            <div style={{
+                                width: 124,
+                                height: 124,
+                                borderRadius: '50%',
+                                background: 'white',
+                                padding: 5,
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+                                border: '1px solid rgba(226,232,240,0.8)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                position: 'relative',
+                            }}>
+                                {avatar ? (
+                                    <img src={avatar} alt="Profile" style={{
+                                        width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
+                                    }} />
+                                ) : (
+                                    <User size={54} color="#cbd5e1" />
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => document.getElementById('avatar-upload')?.click()}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 4,
+                                    right: 4,
+                                    width: 38,
+                                    height: 38,
+                                    background: '#4f46e5',
+                                    color: 'white',
                                     borderRadius: '50%',
-                                    background: 'white',
-                                    padding: 4,
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-                                    border: '1px solid #e2e8f0',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    overflow: 'hidden',
-                                }}>
-                                    {avatar ? (
-                                        <img src={avatar} alt="Profile" style={{
-                                            width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
-                                        }} />
-                                    ) : (
-                                        <User size={52} color="#cbd5e1" />
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => document.getElementById('avatar-upload')?.click()}
-                                    title="Alterar foto"
-                                    style={{
-                                        position: 'absolute',
-                                        bottom: 2,
-                                        right: 2,
-                                        width: 36,
-                                        height: 36,
-                                        background: '#6366f1',
-                                        color: 'white',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: '3px solid white',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
-                                        transition: 'transform 0.2s',
-                                    }}
-                                    onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.12)')}
-                                    onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                                >
-                                    <Camera size={16} />
-                                </button>
-                                <input
-                                    id="avatar-upload"
-                                    type="file"
-                                    style={{ display: 'none' }}
-                                    accept="image/*"
-                                    onChange={handleAvatarChange}
-                                />
-                            </div>
+                                    border: '3px solid white',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(79,70,229,0.3)',
+                                    zIndex: 2,
+                                }}
+                            >
+                                <Camera size={18} />
+                            </button>
+                            <input
+                                id="avatar-upload"
+                                type="file"
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                onChange={handleAvatarChange}
+                            />
+                        </div>
 
-                            <h2 style={{
-                                fontSize: '1.25rem',
+                        <div style={{ textAlign: 'center' }}>
+                            <h2 className="prof-name" style={{
+                                fontSize: '1.4rem',
                                 fontWeight: 800,
-                                color: '#0f172a',
-                                letterSpacing: '-0.03em',
-                                margin: 0,
-                                textAlign: 'center',
+                                color: '#1e293b',
+                                letterSpacing: '-0.02em',
+                                margin: '0 0 0.5rem 0',
                             }}>{name || 'Usuário'}</h2>
 
-                            {profession && (
+                            {profession ? (
                                 <span style={{
                                     fontSize: '0.65rem',
                                     fontWeight: 700,
@@ -369,145 +352,117 @@ export const Profile: React.FC = () => {
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.12em',
                                     background: 'rgba(99,102,241,0.08)',
-                                    padding: '0.3rem 0.8rem',
-                                    borderRadius: 999,
-                                    border: '1px solid rgba(99,102,241,0.12)',
+                                    padding: '0.4rem 1.2rem',
+                                    borderRadius: 100,
+                                    border: '1px solid rgba(99,102,241,0.1)',
                                 }}>{profession}</span>
-                            )}
-
-                            <span style={{
-                                fontSize: '0.6rem',
-                                fontWeight: 600,
-                                color: '#94a3b8',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em',
-                                marginTop: '0.5rem',
-                            }}>JPG, PNG, WEBP · MÁX 2MB</span>
-
-                            {/* Save Avatar Button — only shows after picking a new photo */}
-                            {avatarDirty && (
-                                <button
-                                    type="button"
-                                    onClick={handleSaveAvatar}
-                                    style={{
-                                        marginTop: '0.5rem',
-                                        height: 36,
-                                        padding: '0 1.25rem',
-                                        border: 'none',
-                                        borderRadius: 10,
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        color: 'white',
-                                        background: '#059669',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.4rem',
-                                        boxShadow: '0 4px 12px rgba(5,150,105,0.25)',
-                                        transition: 'background 0.2s, transform 0.15s',
-                                    }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = '#047857'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                >
-                                    <Save size={14} />
-                                    Salvar Imagem
-                                </button>
+                            ) : (
+                                <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 500 }}>Ocupação não informada</span>
                             )}
                         </div>
 
-                        {/* Right — Contact Info */}
-                        <div style={{
-                            padding: '2.5rem 2rem',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                        }}>
-                            <h3 style={{
-                                fontSize: '1.05rem',
-                                fontWeight: 700,
-                                color: '#0f172a',
-                                margin: '0 0 1.5rem 0',
-                            }}>Informações de Contato</h3>
-
-                            <div style={{
-                                border: '1px solid #f1f5f9',
-                                borderRadius: 14,
-                                overflow: 'hidden',
-                                background: 'rgba(255,255,255,0.4)',
-                            }}>
-                                {/* Email */}
-                                <div style={{
+                        {avatarDirty && (
+                            <button
+                                type="button"
+                                onClick={handleSaveAvatar}
+                                style={{
+                                    marginTop: '0.5rem',
+                                    height: 38,
+                                    padding: '0 1.5rem',
+                                    border: 'none',
+                                    borderRadius: 12,
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    background: '#10b981',
+                                    cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    padding: '1rem 1.25rem',
-                                    borderBottom: '1px solid #f1f5f9',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: 160, flexShrink: 0 }}>
-                                        <Mail size={16} color="#6366f1" style={{ opacity: 0.7 }} />
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>E-mail</span>
-                                    </div>
-                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>{email}</span>
-                                </div>
+                                    gap: '0.5rem',
+                                    boxShadow: '0 4px 12px rgba(16,185,129,0.2)',
+                                }}
+                            >
+                                <Save size={16} />
+                                Salvar Imagem
+                            </button>
+                        )}
+                    </div>
 
-                                {/* Phone */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '1rem 1.25rem',
-                                    borderBottom: '1px solid #f1f5f9',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: 160, flexShrink: 0 }}>
-                                        <Phone size={16} color="#6366f1" style={{ opacity: 0.7 }} />
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Telefone</span>
-                                    </div>
-                                    <span style={{
-                                        fontSize: '0.9rem',
-                                        fontWeight: phone ? 600 : 400,
-                                        color: phone ? '#0f172a' : '#94a3b8',
-                                        fontStyle: phone ? 'normal' : 'italic',
-                                    }}>{phone || 'Não informado'}</span>
-                                </div>
+                    {/* Right/Bottom — Contact Column */}
+                    <div className="prof-info-col">
+                        <h3 style={{
+                            fontSize: '1.05rem',
+                            fontWeight: 700,
+                            color: '#1e293b',
+                            margin: '0 0 1.5rem 0',
+                        }}>Informações de Contato</h3>
 
-                                {/* Plan */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '1rem 1.25rem',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: 160, flexShrink: 0 }}>
-                                        <Sparkles size={16} color="#6366f1" style={{ opacity: 0.7 }} />
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plano</span>
-                                    </div>
-                                    <span style={{
-                                        fontSize: '0.7rem',
-                                        fontWeight: 700,
-                                        color: user?.plan === 'PREMIUM' ? '#fff' : '#6366f1',
-                                        background: user?.plan === 'PREMIUM' ? 'linear-gradient(135deg, #6366f1, #0d9488)' : 'rgba(99,102,241,0.08)',
-                                        padding: '0.25rem 0.7rem',
-                                        borderRadius: 999,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.05em',
-                                    }}>{user?.plan === 'PREMIUM' ? '✦ Premium' : 'Free'}</span>
+                        <div className="prof-contact-box">
+                            {/* Email */}
+                            <div className="prof-contact-item">
+                                <div className="prof-contact-label-box">
+                                    <Mail size={16} color="#6366f1" style={{ opacity: 0.8 }} />
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>E-mail Primário</span>
                                 </div>
+                                <span className="prof-value" style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>{email}</span>
                             </div>
 
-                            {/* Status Banner */}
-                            <div style={{
-                                marginTop: '1.5rem',
-                                padding: '0.9rem 1rem',
-                                background: 'rgba(16,185,129,0.05)',
-                                border: '1px solid rgba(16,185,129,0.15)',
-                                borderRadius: 12,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.65rem',
-                                color: '#059669',
-                            }}>
-                                <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
-                                <span style={{ fontSize: '0.75rem', fontWeight: 600, lineHeight: 1.4 }}>
-                                    Perfil verificado e ativo. Suas informações de contato são usadas para suporte e faturamento.
+                            {/* Phone */}
+                            <div className="prof-contact-item">
+                                <div className="prof-contact-label-box">
+                                    <Phone size={16} color="#6366f1" style={{ opacity: 0.8 }} />
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>WhatsApp / Celular</span>
+                                </div>
+                                <span className="prof-value" style={{
+                                    fontSize: '0.95rem',
+                                    fontWeight: phone ? 700 : 500,
+                                    color: phone ? '#1e293b' : '#94a3b8',
+                                    fontStyle: phone ? 'normal' : 'italic'
+                                }}>
+                                    {phone || 'Número não cadastrado'}
                                 </span>
                             </div>
+
+                            {/* Plan */}
+                            <div className="prof-contact-item">
+                                <div className="prof-contact-label-box">
+                                    <Sparkles size={16} color="#f59e0b" />
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Plano Ativo</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 800,
+                                        color: user?.plan === 'PREMIUM' ? '#fff' : '#475569',
+                                        background: user?.plan === 'PREMIUM' ? 'linear-gradient(135deg, #4f46e5, #0ea5e9)' : '#f1f5f9',
+                                        padding: '0.4rem 1.2rem',
+                                        borderRadius: 100,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.04em',
+                                        boxShadow: user?.plan === 'PREMIUM' ? '0 4px 12px rgba(79,70,229,0.2)' : 'none'
+                                    }}>
+                                        {user?.plan === 'PREMIUM' ? '✦ Membro Premium' : 'Plano Free'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Security Banner */}
+                        <div style={{
+                            marginTop: '2rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            padding: '1.25rem',
+                            background: 'rgba(16, 185, 129, 0.04)',
+                            borderRadius: 16,
+                            border: '1px solid rgba(16, 185, 129, 0.1)',
+                            color: '#065f46'
+                        }}>
+                            <Shield size={18} style={{ flexShrink: 0 }} />
+                            <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 600, lineHeight: 1.4 }}>
+                                Perfil verificado e ativo. Suas informações de contato são usadas para suporte e faturamento.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -694,6 +649,6 @@ export const Profile: React.FC = () => {
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 };
