@@ -135,10 +135,12 @@ export const Register: React.FC = () => {
                         borderRadius: '8px',
                         fontSize: '10px',
                         color: '#94a3b8',
-                        textAlign: 'left'
+                        textAlign: 'left',
+                        wordBreak: 'break-all'
                     }}>
                         <strong>DEBUG INFO:</strong><br />
-                        Supabase: {(useAuth() as any).supabaseUrl || 'Configurado'}<br />
+                        URL: {(useAuth() as any).supabaseUrl}<br />
+                        Key: {(useAuth() as any).supabaseKeyMasked}<br />
                         Status: {error ? '🔴 Erro' : '🟢 Online'}
                     </div>
                 </div>

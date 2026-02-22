@@ -92,10 +92,12 @@ export const Login: React.FC = () => {
                         borderRadius: '8px',
                         fontSize: '10px',
                         color: '#94a3b8',
-                        textAlign: 'left'
+                        textAlign: 'left',
+                        wordBreak: 'break-all'
                     }}>
                         <strong>DEBUG INFO:</strong><br />
-                        Supabase: {supabaseUrl}<br />
+                        URL: {(useAuth() as any).supabaseUrl}<br />
+                        Key: {(useAuth() as any).supabaseKeyMasked}<br />
                         Status: {error ? '🔴 Verifique o erro' : '🟢 Online'}
                     </div>
 
