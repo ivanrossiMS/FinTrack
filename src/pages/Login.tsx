@@ -13,6 +13,7 @@ export const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setIsSubmitLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,7 +25,7 @@ export const Login: React.FC = () => {
             if (result.success) {
                 navigate('/');
             } else {
-                setError(result.error || 'Erro ao entrar.');
+                setError(result.error || 'E-mail ou senha incorretos ou conta ainda não autorizada.');
             }
         } catch (err: any) {
             setError(err.message || 'Ocorreu um erro inesperado.');
@@ -34,7 +35,7 @@ export const Login: React.FC = () => {
     };
 
     // Obter URL do Supabase para debug visual
-    const supabaseUrl = (useAuth() as any).supabaseUrl || (import.meta.env.VITE_SUPABASE_URL || 'Não configurado');
+    const supabaseUrl = (useAuth() as any).supabaseUrl || 'Supabase (configurado)';
 
     return (
         <div className="login-page">
@@ -95,7 +96,7 @@ export const Login: React.FC = () => {
                     }}>
                         <strong>DEBUG INFO:</strong><br />
                         Supabase: {supabaseUrl}<br />
-                        Status: {error ? '🔴 Erro' : '🟢 Online'}
+                        Status: {error ? '🔴 Verifique o erro' : '🟢 Online'}
                     </div>
 
                     <p style={{ marginTop: '1rem', fontSize: '0.75rem', opacity: 0.5 }}>
