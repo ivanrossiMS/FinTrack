@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp } from 'lucide-react';
+import { Home, DollarSign, PieChart, List, User, LogOut, Settings, ShieldCheck, Calendar, Target, Crown, Mic, TrendingUp, Menu, X } from 'lucide-react';
 import './Layout.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
@@ -13,6 +13,7 @@ export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
     const navigate = useNavigate();
     const [voiceOpen, setVoiceOpen] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
     const handleLogout = () => {
         logout();
@@ -23,6 +24,9 @@ export const Layout: React.FC = () => {
         stopImpersonating();
         navigate('/admin');
     };
+
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const closeMenu = () => setIsMenuOpen(false);
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: Home },
@@ -39,28 +43,82 @@ export const Layout: React.FC = () => {
         ] : []),
     ];
 
+    const firstName = user?.name ? user.name.split(' ')[0] : 'Usuário';
+
     return (
         <div className="app-layout">
-            {/* Mobile Top Header */}
-            <header className="mobile-header">
-                <div className="mobile-brand">
-                    <img src={logoIcon} alt="Finance+" className="mobile-logo" />
-                    <span className="mobile-brand-name">
-                        Finance<span className="sidebar-brand-plus">+</span>
-                    </span>
+            {/* ── NEW Premium Mobile Header (V3 Absolute Isolation) ── */}
+            <header className="mob-prem-header">
+                <div className="mob-prem-header-left">
+                    <button className="mob-prem-hamburger-btn" onClick={toggleMenu} aria-label="Menu">
+                        <Menu size={26} strokeWidth={2.5} />
+                    </button>
+                    <div className="mob-prem-brand">
+                        <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
+                        <span className="mob-prem-brand-name">
+                            Finance<span className="sidebar-brand-plus">+</span>
+                        </span>
+                    </div>
                 </div>
-                <NavLink to="/profile">
-                    {user?.avatar ? (
-                        <img src={user.avatar} alt={user.name} className="mobile-user-avatar" />
-                    ) : (
-                        <div className="mobile-user-avatar flex items-center justify-center bg-primary-light text-primary">
-                            <User size={20} />
-                        </div>
-                    )}
-                </NavLink>
+
+                <div className="mob-prem-header-right">
+                    <div className="mob-prem-profile-meta">
+                        <span className="mob-prem-user-firstname">{firstName}</span>
+                        <span className={`mob-prem-plan-badge ${user?.plan?.toLowerCase() || 'free'}`}>
+                            {user?.plan === 'PREMIUM' ? 'Plano Premium' : 'Plano Free'}
+                        </span>
+                    </div>
+                    <NavLink to="/profile" className="mob-prem-avatar-link">
+                        {user?.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="mob-prem-user-avatar" />
+                        ) : (
+                            <div className="mob-prem-user-avatar default">
+                                <User size={22} />
+                            </div>
+                        )}
+                    </NavLink>
+                </div>
             </header>
 
-            {/* Desktop Sidebar / Mobile Bottom Nav Placeholder */}
+            {/* ── NEW Mobile Drawer (V3 Absolute Isolation) ── */}
+            <div className={clsx("mob-prem-drawer-overlay", isMenuOpen && "active")} onClick={closeMenu}>
+                <aside className={clsx("mob-prem-drawer", isMenuOpen && "active")} onClick={e => e.stopPropagation()}>
+                    <div className="mob-prem-drawer-header">
+                        <div className="mob-prem-brand">
+                            <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
+                            <span className="mob-prem-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
+                        </div>
+                        <button className="mob-prem-drawer-close" onClick={closeMenu}>
+                            <X size={26} />
+                        </button>
+                    </div>
+
+                    <nav className="mob-prem-drawer-nav">
+                        {navItems.map(({ path, icon: Icon, label }) => (
+                            <NavLink
+                                key={path}
+                                to={path}
+                                className={({ isActive }: { isActive: boolean }) =>
+                                    clsx("mob-prem-drawer-item", isActive && "active")
+                                }
+                                onClick={closeMenu}
+                            >
+                                <Icon size={22} />
+                                <span>{label}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
+
+                    <div className="mob-prem-drawer-footer">
+                        <button onClick={handleLogout} className="mob-prem-drawer-logout">
+                            <LogOut size={22} />
+                            <span>FINALIZAR SESSÃO</span>
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+            {/* OLD Sidebar (DESKTOP) - DO NOT CHANGE STRUCTURE */}
             <aside className="sidebar bottom-nav">
                 {/* ── Brand Top ── */}
                 <div className="sidebar-brand">
@@ -129,16 +187,16 @@ export const Layout: React.FC = () => {
                 </div>
             </main>
 
-            {/* ── Neural Pulse AI Button (FAB) ── */}
+            {/* Neural Pulse AI FAB */}
             <button
                 className="ai-fab-neural"
                 onClick={() => setVoiceOpen(true)}
                 title="Assistente IA por Voz"
             >
-                <div className="ai-fab-glow"></div>
+                <div className="ai-fab-glow" />
                 <div className="ai-fab-rings">
-                    <div className="ring ring-1"></div>
-                    <div className="ring ring-2"></div>
+                    <div className="ring ring-1" />
+                    <div className="ring ring-2" />
                 </div>
                 <div className="ai-fab-core">
                     <Mic size={24} strokeWidth={2.5} />
@@ -146,7 +204,6 @@ export const Layout: React.FC = () => {
                 </div>
             </button>
 
-            {/* Global Voice Assistant Modal */}
             <GlobalVoiceModal isOpen={voiceOpen} onClose={() => setVoiceOpen(false)} />
         </div>
     );
