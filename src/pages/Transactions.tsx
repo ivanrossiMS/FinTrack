@@ -378,7 +378,7 @@ export const Transactions: React.FC = () => {
                     <div className="tx-summ-indicator"></div>
                 </div>
 
-                <div className={`tx - summary - card balance ${summaryStats.balance >= 0 ? 'positive' : 'negative'} `}>
+                <div className={`tx-summary-card balance ${summaryStats.balance >= 0 ? 'positive' : 'negative'}`}>
                     <div className="tx-summ-header">
                         <span className="tx-summ-label">Resultado</span>
                         <Target size={20} className="tx-summ-icon" />
@@ -771,7 +771,7 @@ export const Transactions: React.FC = () => {
                                                                 </span>
                                                             );
                                                         })()}
-                                                        <span className={`tx - card - amount ${isExpense ? 'expense' : 'income'} `}>
+                                                        <span className={`tx-card-amount ${isExpense ? 'expense' : 'income'}`}>
                                                             {isExpense ? '- ' : '+ '}{formatCurrency(tx.amount)}
                                                         </span>
                                                     </div>

@@ -770,6 +770,8 @@
         grid-template-columns: repeat(2, 1fr) !important;
         grid-template-rows: auto auto !important;
         gap: 0.75rem !important;
+        width: 100% !important;
+        /* Ensure it fills container */
     }
 
     .tx-summary-card.balance {
@@ -785,6 +787,8 @@
         padding: 1.25rem !important;
         /* Slightly more compact */
         min-height: 110px !important;
+        width: 100% !important;
+        /* Force full width alignment */
     }
 
     .tx-summary-card.income,
@@ -819,6 +823,7 @@
     .tx-summary-card.balance .tx-summ-value {
         font-size: 1.7rem !important;
         font-weight: 900 !important;
+        /* Force Extreme Bold */
     }
 
     /* 2. Compact Filters */
