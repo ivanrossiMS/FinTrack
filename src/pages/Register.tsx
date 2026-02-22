@@ -127,6 +127,20 @@ export const Register: React.FC = () => {
                     <p className="text-sm text-muted">
                         Já tem uma conta? <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
                     </p>
+
+                    <div style={{
+                        marginTop: '2rem',
+                        padding: '1rem',
+                        backgroundColor: 'rgba(0,0,0,0.03)',
+                        borderRadius: '8px',
+                        fontSize: '10px',
+                        color: '#94a3b8',
+                        textAlign: 'left'
+                    }}>
+                        <strong>DEBUG INFO:</strong><br />
+                        Supabase: {(useAuth() as any).supabaseUrl || 'Configurado'}<br />
+                        Status: {error ? '🔴 Erro' : '🟢 Online'}
+                    </div>
                 </div>
             </div>
         </div>

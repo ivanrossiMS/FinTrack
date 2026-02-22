@@ -183,14 +183,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        console.log('Register attempt started for:', email);
         try {
-            const { data, error } = await supabase.auth.signUp({
+            const registerPromise = supabase.auth.signUp({
                 email,
                 password,
                 options: { data: { name } }
             });
 
-            if (error) return { success: false, error: error.message };
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Tempo limite do Supabase excedido no cadastro.')), 15000)
+            );
+
+            const { data, error } = await Promise.race([registerPromise, timeoutPromise]) as any;
+
+            if (error) {
+                console.error('Supabase Register Error:', error);
+                return { success: false, error: error.message };
+            }
 
             if (data.user) {
                 const userEmail = email.toLowerCase();
