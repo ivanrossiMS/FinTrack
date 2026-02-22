@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Camera, Lock, Eye, EyeOff, Phone, Mail, Shield, Sparkles, Save } from 'lucide-react';
+import './Profile.css';
 
 export const Profile: React.FC = () => {
     const { data, updateProfile } = useData();
