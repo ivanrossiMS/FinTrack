@@ -17,6 +17,7 @@ import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
 import { Commitments } from './pages/Commitments';
 import { Savings } from './pages/Savings';
+import { Investments } from './pages/Investments';
 import { Help } from './pages/Help';
 
 function App() {
