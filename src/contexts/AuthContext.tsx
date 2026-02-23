@@ -26,9 +26,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [isImpersonating, setIsImpersonating] = useState(false);
+    const [isImpersonating, setIsImpersonating] = useState(!!localStorage.getItem('fintrack_impersonated_id'));
 
-    // Debug info from env
+    // Configuration and Utilities
     const supUrl = import.meta.env.VITE_SUPABASE_URL || 'ERRO: URL NÃO DEFINIDA';
     const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
     const maskedKey = rawKey ? `${rawKey.substring(0, 8)}...${rawKey.substring(rawKey.length - 8)}` : 'ERRO: CHAVE NÃO DEFINIDA';
@@ -37,123 +37,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('ResetAppCache: Limpando TUDO e recarregando...');
         localStorage.clear();
         sessionStorage.clear();
-
-        // Limpa cookies (importante para o novo storage de sessão)
         document.cookie.split(";").forEach((c) => {
-            document.cookie = c
-                .replace(/^ +/, "")
-                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
         });
-
         window.location.reload();
     };
 
     useEffect(() => {
         let isMounted = true;
-        console.log('Auth: [INIT] Início da verificação de segurança...');
-
         const initAuth = async () => {
-            try {
-                // Listener reativo (Fonte Única de Verdade)
-                const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-                    if (!isMounted) return;
-                    console.log(`Auth: Evento [${event}] recebido.`);
+            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+                if (!isMounted) return;
 
-                    if (session?.user) {
-                        setIsAuthenticated(true);
-                        const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
-                        setUser((prev: any) => prev || {
-                            id: session.user.id,
-                            email: session.user.email,
-                            name: session.user.user_metadata?.name || 'Usuário',
-                            isAdmin: isMaster,
-                            isAuthorized: isMaster
+                if (session?.user) {
+                    setIsAuthenticated(true);
+
+                    const impersonatedId = localStorage.getItem('fintrack_impersonated_id');
+                    const targetId = impersonatedId || session.user.id;
+                    const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
+
+                    // Sync Profile
+                    const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', targetId).single();
+
+                    if (profile) {
+                        setUser({
+                            id: profile.id,
+                            authId: session.user.id, // Keep track of who is actually logged in
+                            name: profile.name,
+                            email: profile.email,
+                            avatar: profile.avatar,
+                            isAdmin: isMaster || profile.is_admin,
+                            isAuthorized: isMaster || profile.is_authorized,
+                            plan: isMaster ? 'PREMIUM' : (profile.plan || 'FREE'),
+                            isImpersonating: !!impersonatedId
                         });
-
-                        // Sync Profile em background com Auto-Heal
-                        supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
-                            .then(async ({ data: profile, error: pError }) => {
-                                if (isMounted) {
-                                    if (!pError && profile) {
-                                        console.log('Auth: Profile sincronizado.');
-                                        const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
-                                        const finalUser = {
-                                            id: session.user.id,
-                                            name: profile.name,
-                                            email: profile.email,
-                                            avatar: profile.avatar,
-                                            isAdmin: isMaster || profile.is_admin,
-                                            isAuthorized: isMaster || profile.is_authorized,
-                                            plan: isMaster ? 'PREMIUM' : (profile.plan || 'FREE')
-                                        };
-                                        setUser(finalUser);
-                                    } else if (pError && pError.code === 'PGRST116') {
-                                        // Auto-Heal: Perfil não existe no DB, vamos criar agora
-                                        console.warn('Auth: [AUTO-HEAL] Criando perfil inexistente...');
-                                        const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
-                                        const newProfile = {
-                                            id: session.user.id,
-                                            name: session.user.user_metadata?.name || 'Usuário',
-                                            email: session.user.email?.toLowerCase().trim() || '',
-                                            is_admin: isMaster,
-                                            is_authorized: isMaster || true,
-                                            plan: isMaster ? 'PREMIUM' : 'FREE'
-                                        };
-
-                                        const { error: iError } = await supabase.from('user_profiles').upsert([newProfile]);
-                                        if (!iError) {
-                                            setUser({
-                                                id: newProfile.id,
-                                                name: newProfile.name,
-                                                email: newProfile.email,
-                                                isAdmin: newProfile.is_admin,
-                                                isAuthorized: newProfile.is_authorized,
-                                                plan: newProfile.plan
-                                            });
-                                        }
-                                    }
-                                }
-                            });
-                    } else {
-                        setIsAuthenticated(false);
-                        setUser(null);
+                    } else if (!impersonatedId) {
+                        // Auto-Heal only for the logged in user
+                        const newProfile = {
+                            id: session.user.id,
+                            name: session.user.user_metadata?.name || 'Usuário',
+                            email: session.user.email?.toLowerCase().trim() || '',
+                            is_admin: isMaster,
+                            is_authorized: true,
+                            plan: isMaster ? 'PREMIUM' : 'FREE'
+                        };
+                        await supabase.from('user_profiles').upsert([newProfile]);
+                        setUser({ ...newProfile, isAdmin: isMaster, isAuthorized: true });
                     }
-
-                    // SEMPRE libera o loading em eventos de estado
-                    setLoading(false);
-                });
-
-                return subscription;
-            } catch (err) {
-                console.error('Auth: Erro fatal no listener:', err);
+                } else {
+                    setIsAuthenticated(false);
+                    setUser(null);
+                    setIsImpersonating(false);
+                }
                 setLoading(false);
-                return null;
-            }
+            });
+            return subscription;
         };
-
         const subPromise = initAuth();
-
-        // FAILSAFE NUCLEAR: Liberação garantida em 2 segundos
-        const timer = setTimeout(() => {
-            if (isMounted) {
-                console.warn('Auth: [FAILSAFE] Forçando liberação da UI após 2s.');
-                setLoading(false);
-            }
-        }, 2000);
-
-        return () => {
-            isMounted = false;
-            clearTimeout(timer);
-            subPromise.then(s => s?.unsubscribe());
-        };
+        const timer = setTimeout(() => { if (isMounted) setLoading(false); }, 2000);
+        return () => { isMounted = false; clearTimeout(timer); subPromise.then(s => s?.unsubscribe()); };
     }, []);
+
+    const updateUser = async (updatedUser: any) => {
+        if (!user?.id) return;
+        const dbUpdates: any = {};
+        if (updatedUser.name !== undefined) dbUpdates.name = updatedUser.name;
+        if (updatedUser.phone !== undefined) dbUpdates.phone = updatedUser.phone;
+        if (updatedUser.profession !== undefined) dbUpdates.profession = updatedUser.profession;
+        if (updatedUser.avatar !== undefined) dbUpdates.avatar = updatedUser.avatar;
+
+        const { error } = await supabase.from('user_profiles').update(dbUpdates).eq('id', user.id);
+        if (error) throw error;
+        setUser((prev: any) => ({ ...prev, ...updatedUser }));
+    };
+
+    const impersonateUser = (targetId: string) => {
+        localStorage.setItem('fintrack_impersonated_id', targetId);
+        window.location.reload();
+    };
+
+    const stopImpersonating = () => {
+        localStorage.removeItem('fintrack_impersonated_id');
+        window.location.reload();
+    };
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         try {
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) return { success: false, error: error.message };
-            if (data?.user) return { success: true };
-            return { success: false, error: "Falha na resposta." };
+            return { success: !!data?.user };
         } catch (err: any) {
             return { success: false, error: "Erro de conexão." };
         }
@@ -190,30 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.location.href = '/login';
     };
 
-    const updateUser = async (updatedUser: any) => {
-        if (!user?.id) return;
-
-        // Map camelCase to snake_case for DB
-        const dbUpdates: any = {};
-        if (updatedUser.name !== undefined) dbUpdates.name = updatedUser.name;
-        if (updatedUser.phone !== undefined) dbUpdates.phone = updatedUser.phone;
-        if (updatedUser.profession !== undefined) dbUpdates.profession = updatedUser.profession;
-        if (updatedUser.avatar !== undefined) dbUpdates.avatar = updatedUser.avatar;
-        if (updatedUser.isAdmin !== undefined) dbUpdates.is_admin = updatedUser.isAdmin;
-        if (updatedUser.isAuthorized !== undefined) dbUpdates.is_authorized = updatedUser.isAuthorized;
-        if (updatedUser.plan !== undefined) dbUpdates.plan = updatedUser.plan;
-
-        const { error } = await supabase.from('user_profiles').update(dbUpdates).eq('id', user.id);
-        if (!error) {
-            setUser((prev: any) => ({ ...prev, ...updatedUser }));
-        } else {
-            console.error('Auth: [ERROR] updateProfile failed:', error);
-            throw error;
-        }
-    };
-
     const adminUpdateUserInfo = async (targetId: string, updates: any) => {
-        // Map camelCase to snake_case for DB
         const dbUpdates: any = { ...updates };
         if (updates.isAuthorized !== undefined) {
             dbUpdates.is_authorized = updates.isAuthorized;
@@ -223,21 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dbUpdates.is_admin = updates.isAdmin;
             delete dbUpdates.isAdmin;
         }
-
         await supabase.from('user_profiles').update(dbUpdates).eq('id', targetId);
-    };
-
-    const impersonateUser = (_id: string) => {
-        if (!user || (!user.isAdmin && !isImpersonating)) return;
-        localStorage.setItem('fintrack_original_admin', JSON.stringify(user));
-        setIsImpersonating(true);
-        window.location.reload();
-    };
-
-    const stopImpersonating = () => {
-        localStorage.removeItem('fintrack_original_admin');
-        setIsImpersonating(false);
-        window.location.reload();
     };
 
     const changePassword = async (_cp: string, _np: string) => ({ success: true, message: 'OK' });

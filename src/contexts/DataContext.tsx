@@ -95,32 +95,37 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const groupId = count > 1 ? uuidv4() : undefined;
         const baseDate = parseISO(baseTx.date);
 
-        for (let i = 0; i < count; i++) {
-            const date = addMonths(baseDate, i).toISOString();
-            const description = count > 1 ? `${baseTx.description} [${i + 1}/${count}]` : baseTx.description;
-            const installmentAmount = (!baseTx.isRecurring && count > 1)
-                ? Math.round((baseTx.amount / count) * 100) / 100
-                : baseTx.amount;
+        try {
+            for (let i = 0; i < count; i++) {
+                const date = addMonths(baseDate, i).toISOString();
+                const description = count > 1 ? `${baseTx.description} [${i + 1}/${count}]` : baseTx.description;
+                const installmentAmount = (!baseTx.isRecurring && count > 1)
+                    ? Math.round((baseTx.amount / count) * 100) / 100
+                    : baseTx.amount;
 
-            const newTx: Transaction = {
-                ...baseTx,
-                id: uuidv4(),
-                date,
-                amount: installmentAmount,
-                description,
-                installmentId: groupId,
-                installmentNumber: i + 1,
-                totalInstallments: count > 1 ? count : undefined,
-                isRecurring: baseTx.isRecurring || false,
-                recurrenceCount: baseTx.isRecurring ? count : undefined,
-                createdAt: Date.now(),
-                updatedAt: Date.now()
-            };
+                const newTx: Transaction = {
+                    ...baseTx,
+                    id: uuidv4(),
+                    date,
+                    amount: installmentAmount,
+                    description,
+                    installmentId: groupId,
+                    installmentNumber: i + 1,
+                    totalInstallments: count > 1 ? count : undefined,
+                    isRecurring: baseTx.isRecurring || false,
+                    recurrenceCount: baseTx.isRecurring ? count : undefined,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
 
-            await StorageService.saveTransaction(newTx, user.id);
+                await StorageService.saveTransaction(newTx, user.id);
+            }
+            await refresh();
+        } catch (err) {
+            console.error('DataContext: Error adding transaction:', err);
+            alert('Erro ao salvar lançamento. Verifique sua conexão ou permissões.');
+            throw err;
         }
-
-        refresh();
     };
 
     const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
@@ -237,28 +242,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const installmentId = count > 1 ? uuidv4() : undefined;
         const baseDate = parseISO(baseComm.dueDate);
 
-        for (let i = 0; i < count; i++) {
-            const dueDate = addMonths(baseDate, i).toISOString();
-            const description = count > 1 ? `${baseComm.description} [${i + 1}/${count}]` : baseComm.description;
-            const installmentAmount = count > 1 ? Math.round((baseComm.amount / count) * 100) / 100 : baseComm.amount;
+        try {
+            for (let i = 0; i < count; i++) {
+                const dueDate = addMonths(baseDate, i).toISOString();
+                const description = count > 1 ? `${baseComm.description} [${i + 1}/${count}]` : baseComm.description;
+                const installmentAmount = count > 1 ? Math.round((baseComm.amount / count) * 100) / 100 : baseComm.amount;
 
-            const newComm: Commitment = {
-                ...baseComm,
-                id: uuidv4(),
-                amount: installmentAmount,
-                dueDate,
-                description,
-                status: 'PENDING',
-                installmentId,
-                installmentNumber: i + 1,
-                totalInstallments: count > 1 ? count : undefined,
-                createdAt: Date.now(),
-                updatedAt: Date.now()
-            };
+                const newComm: Commitment = {
+                    ...baseComm,
+                    id: uuidv4(),
+                    amount: installmentAmount,
+                    dueDate,
+                    description,
+                    status: 'PENDING',
+                    installmentId,
+                    installmentNumber: i + 1,
+                    totalInstallments: count > 1 ? count : undefined,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
 
-            await StorageService.saveCommitment(newComm, user.id);
+                await StorageService.saveCommitment(newComm, user.id);
+            }
+            await refresh();
+        } catch (err) {
+            console.error('DataContext: Error adding commitment:', err);
+            alert('Erro ao salvar compromisso. Verifique sua conexão ou permissões.');
+            throw err;
         }
-        refresh();
     };
 
     const updateCommitment = async (id: string, updates: Partial<Commitment>) => {
