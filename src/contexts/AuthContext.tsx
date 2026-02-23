@@ -31,9 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (authInitialized.current) return;
 
             try {
-                // 1. Get initial session strictly
+                // 1. Get initial session strictly from Hybrid Storage
                 const { data: { session } } = await supabase.auth.getSession();
-                console.log('Initial Auth Check:', !!session ? 'Session Found' : 'No Session');
+                console.log('Hybrid Auth Init:', !!session ? `Session [${session.user.id}]` : 'Guest');
 
                 if (session) {
                     currentFetchingUserId.current = session.user.id;
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
                 authInitialized.current = true;
             } catch (err) {
-                console.error('Auth initialization error:', err);
+                console.error('Critical Auth Error:', err);
                 setLoading(false);
                 authInitialized.current = true;
             }
@@ -51,12 +51,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         initializeAuth();
 
-        // 2. Listen for auth changes
+        // 2. Optimized Listener (Prevents race conditions)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`Auth event: ${event}`);
+            console.log(`📡 Auth Stream: ${event}`);
 
             if (session) {
-                // Prevent duplicate fetch if initialization is already doing it or if same user
+                // Avoid redundant fetches if init is busy or user is same
                 if (currentFetchingUserId.current === session.user.id && user) return;
 
                 await fetchProfile(session.user.id);
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [user?.id]);
 
     const fetchProfile = async (userId: string) => {
         // Double check lock

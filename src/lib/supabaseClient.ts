@@ -8,31 +8,30 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Inicializa sem jogar erro no nível do módulo para o app não "morrer" no import
-// Implementação de Storage via Cookies de Sessão (compartilha abas, limpa ao fechar navegador)
-const cookieStorage = {
+// ── HYBRID SESSION STORAGE ──
+// Combines localStorage (capacity) with a Session Cookie Heartbeat (lifecycle).
+// Resolves the 4KB cookie limit while ensuring automatic logout when the browser closes.
+const hybridStorage = {
     getItem: (key: string) => {
-        const name = `${key}=`;
-        const ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i].trim();
-            if (c.indexOf(name) === 0) {
-                const value = c.substring(name.length, c.length);
-                try {
-                    return decodeURIComponent(value);
-                } catch (e) {
-                    return value;
-                }
-            }
+        // Heartbeat check: if the session cookie is gone, the session is dead.
+        const hasHeartbeat = document.cookie.includes('fintrack_heartbeat=active');
+        if (!hasHeartbeat) {
+            localStorage.removeItem(key);
+            return null;
         }
-        return null;
+        return localStorage.getItem(key);
     },
     setItem: (key: string, value: string) => {
-        const encodedValue = encodeURIComponent(value);
-        // Cookie sem "Expires" ou "Max-Age" = Cookie de Sessão
-        document.cookie = `${key}=${encodedValue};path=/;SameSite=Lax`;
+        // Set the heartbeat cookie (Session scope - dies when browser closes)
+        document.cookie = "fintrack_heartbeat=active; path=/; SameSite=Lax";
+        localStorage.setItem(key, value);
     },
     removeItem: (key: string) => {
-        document.cookie = `${key}=;path=/;Max-Age=-99999999;`;
+        localStorage.removeItem(key);
+        // Only clear heartbeat if we are explicitly removing the main session key
+        if (key.includes('auth-token')) {
+            document.cookie = "fintrack_heartbeat=; path=/; Max-Age=-99999999;";
+        }
     }
 };
 
@@ -41,7 +40,7 @@ export const supabase = createClient(
     supabaseAnonKey || 'placeholder-key',
     {
         auth: {
-            storage: cookieStorage,
+            storage: hybridStorage,
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true

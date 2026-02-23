@@ -170,23 +170,26 @@ ALTER TABLE public.savings_goals ENABLE ROW LEVEL SECURITY;
 
 -- ── FUNCTIONS & POLICIES ──
 
--- Admin check function (OPTIMIZED: SECURITY DEFINER + search_path bypasses RLS)
+-- Admin check function (SUPREME OPTIMIZATION: Zero-Query via JWT)
 CREATE OR REPLACE FUNCTION public.is_admin() 
 RETURNS BOOLEAN AS $$
-DECLARE
-  is_adm BOOLEAN;
 BEGIN
-  -- FAST-PATH: Master admin check via JWT (no DB query needed for the boss)
+  -- 1. FAST-PATH: Master admin check via JWT email (Immediate)
   IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
     RETURN TRUE;
   END IF;
 
-  -- DB-PATH: Query profiles bypassing RLS via SECURITY DEFINER
-  SELECT (role = 'ADMIN') INTO is_adm
-  FROM public.profiles 
-  WHERE id = auth.uid();
-  
-  RETURN COALESCE(is_adm, FALSE);
+  -- 2. JWT-PATH: Check app_metadata (No DB query needed)
+  IF (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- 3. DB-PATH: Query profiles only if JWT is empty (SECURITY DEFINER bypasses RLS)
+  -- This is technically redundant if JWT is set, but good for local/dev fallback.
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND role = 'ADMIN'
+  );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
@@ -202,16 +205,16 @@ BEGIN
 END $$;
 
 -- User Profiles Policies (ZERO RECURSION ARCHITECTURE)
--- 1. Own Profile: Static check (Fastest, no function call)
+-- 1. Everyone can view their own profile (Static)
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 
 -- 2. Admin View: Function call (Safe due to SECURITY DEFINER and master admin fast-path)
 CREATE POLICY "Admins can view all profiles" ON public.profiles FOR SELECT USING (public.is_admin());
 
--- 3. Own Update
+-- 3. Own Update (Static)
 CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- 4. Admin Update
+-- 4. Admin Update (Zero-Query via JWT)
 CREATE POLICY "Admins can update all profiles" ON public.profiles FOR UPDATE USING (public.is_admin());
 
 -- Generic Multi-tenant Policies (Applied to all data tables)
@@ -221,7 +224,7 @@ DECLARE
 BEGIN
   FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('categories', 'suppliers', 'payment_methods', 'transactions', 'commitments', 'savings_goals')
   LOOP
-    EXECUTE format('CREATE POLICY "Manage own %I" ON public.%I FOR ALL USING (auth.uid() = user_id OR public.is_admin()) WITH CHECK (auth.uid() = user_id OR public.is_admin())', t, t);
+    EXECUTE format('CREATE POLICY "Manage own %I" ON public.%I FOR ALL USING ((auth.uid() = user_id AND public.check_is_authorized()) OR public.is_admin()) WITH CHECK ((auth.uid() = user_id AND public.check_is_authorized()) OR public.is_admin())', t, t);
   END LOOP;
 END $$;
 
@@ -229,19 +232,54 @@ END $$;
 -- This ensures every user in auth.users has a record in public.user_profiles
 -- World-class approach: database triggers are more reliable than client-side sync.
 
+-- Authorization check function (Zero-Query via JWT)
+CREATE OR REPLACE FUNCTION public.check_is_authorized() 
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Master admin is always authorized
+  IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- Check JWT app_metadata
+  IF (auth.jwt() -> 'app_metadata' ->> 'is_authorized') = 'true' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- Fallback to DB
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND is_authorized = TRUE
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
+DECLARE
+  initial_role TEXT;
+  initial_auth BOOLEAN;
 BEGIN
+  initial_role := CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END;
+  initial_auth := CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN TRUE ELSE FALSE END;
+
   -- 1. Create Profile
   INSERT INTO public.profiles (id, name, email, role, is_authorized)
   VALUES (
     NEW.id, 
     COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1), 'Usuário'), 
     NEW.email,
-    CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END,
-    CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN TRUE ELSE FALSE END
+    initial_role,
+    initial_auth
   )
   ON CONFLICT (id) DO NOTHING;
+
+  -- 2. Update auth.users metadata (Enables Zero-Query RLS)
+  -- This requires the trigger to have enough permissions or be SECURITY DEFINER
+  UPDATE auth.users 
+  SET raw_app_meta_data = raw_app_meta_data || 
+    jsonb_build_object('role', initial_role, 'is_authorized', initial_auth)
+  WHERE id = NEW.id;
 
   -- 2. Seed Default Categories
   INSERT INTO public.categories (id, user_id, name, type, color, icon, is_default)
