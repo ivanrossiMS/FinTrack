@@ -49,25 +49,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const fetchProfile = async (userId: string, retries = 3) => {
-        const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
 
-        if (error || !profile) {
-            console.warn(`Profile fetch attempt failed for ${userId}. Retries left: ${retries}`);
-            if (retries > 0) {
-                // Wait 1.5s then retry (gives time for DB trigger to finish)
-                setTimeout(() => fetchProfile(userId, retries - 1), 1500);
-                return;
+            if (error || !profile) {
+                console.warn(`Profile fetch attempt failed for ${userId}. Retries left: ${retries}`);
+                if (retries > 0) {
+                    setTimeout(() => fetchProfile(userId, retries - 1), 1500);
+                    return;
+                }
+                console.error('Final error fetching profile:', error);
+
+                // Fallback: use auth user metadata if profile table entry is missing
+                const { data: { user: authUser } } = await supabase.auth.getUser();
+                if (authUser) {
+                    setUser({
+                        id: authUser.id,
+                        email: authUser.email,
+                        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário',
+                        role: authUser.email === 'ivanrossi@outlook.com' ? 'ADMIN' : 'USER',
+                        plan: 'FREE'
+                    });
+                } else {
+                    setUser(null);
+                }
+            } else {
+                setUser(profile);
             }
-            console.error('Final error fetching profile:', error);
+        } catch (err) {
+            console.error('Fatal error in fetchProfile:', err);
             setUser(null);
-        } else {
-            setUser(profile);
+        } finally {
+            // Important: only set loading false if we're not retrying
+            if (retries <= 0 || user) {
+                setLoading(false);
+            }
         }
-        setLoading(false);
     };
 
     const login = async (email: string, password: string) => {
@@ -110,8 +131,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .update(updates)
             .eq('id', user.id);
 
-        if (error) throw error;
-        setUser({ ...user, ...updates });
+        if (error) {
+            console.error('Error updating profile:', error);
+            throw error;
+        }
+
+        // Fetch fresh data to ensure sync
+        await fetchProfile(user.id, 0);
     };
 
     const adminUpdateUserInfo = async (targetUserId: string, updates: any) => {

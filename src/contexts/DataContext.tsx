@@ -85,8 +85,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 budgets: [], // To be implemented if needed
                 userProfile: userProfile || undefined
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error loading data from Supabase:', error);
+            // Don't leave loading true on error
+            setLoading(false);
         } finally {
             setLoading(false);
         }

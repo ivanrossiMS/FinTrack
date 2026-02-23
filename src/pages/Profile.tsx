@@ -7,7 +7,7 @@ import { User, Camera, Lock, Eye, EyeOff, Phone, Mail, Shield, Sparkles, Save } 
 import './Profile.css';
 
 export const Profile: React.FC = () => {
-    const { data, updateProfile } = useData();
+    const { data } = useData();
     const { user, updateUser, changePassword } = useAuth();
 
     const [name, setName] = useState('');
@@ -65,22 +65,28 @@ export const Profile: React.FC = () => {
     };
 
     const handleSaveAvatar = async () => {
-        if (user && updateUser) {
-            await updateUser({ name, phone, profession, avatar_url: avatarUrl });
+        if (!user) return;
+        try {
+            await updateUser({ avatar_url: avatarUrl });
+            setAvatarDirty(false);
+            alert('Imagem atualizada com sucesso!');
+        } catch (error) {
+            console.error('Error saving avatar:', error);
+            alert('Erro ao salvar imagem.');
         }
-        await updateProfile({ name, email, phone, profession, avatar_url: avatarUrl } as any);
-        setAvatarDirty(false);
-        alert('Imagem atualizada com sucesso!');
     };
 
     const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setAvatarDirty(false);
-        if (user && updateUser) {
-            await updateUser({ name, phone, profession, avatar_url: avatarUrl });
+        try {
+            if (!user) return;
+            await updateUser({ name, phone, profession });
+            setAvatarDirty(false);
+            alert('Perfil atualizado com sucesso!');
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Erro ao atualizar perfil.');
         }
-        await updateProfile({ name, email, phone, profession, avatar_url: avatarUrl } as any);
-        alert('Perfil atualizado com sucesso!');
     };
 
     const handleChangePassword = async (e: React.FormEvent) => {
