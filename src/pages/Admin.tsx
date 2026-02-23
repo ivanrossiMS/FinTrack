@@ -11,7 +11,8 @@ import {
     X,
     Camera,
     Mail,
-    User
+    User,
+    AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SupabaseDataService } from '../services/supabaseData';
@@ -128,41 +129,56 @@ export const Admin: React.FC = () => {
     }
 
     return (
-        <div className="admin-container animate-fade-in">
+        <div className="admin-container">
+            {isImpersonating && (
+                <div className="impersonate-banner">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle size={20} />
+                        <span>MODO DE IMPERSONIFICAÇÃO ATIVO</span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={stopImpersonating}>
+                        Sair do Modo
+                    </Button>
+                </div>
+            )}
+
             <header className="admin-header">
                 <div className="header-title">
-                    <Shield className="header-icon" />
+                    <div className="header-icon">
+                        <Shield size={32} />
+                    </div>
                     <div>
-                        <h1>Painel Administrativo</h1>
-                        <p>Gerenciamento de usuários e permissões do sistema</p>
+                        <h1>Painel ADM</h1>
+                        <p>Controle total de usuários e infraestrutura</p>
                     </div>
                 </div>
-                {isImpersonating && (
-                    <Button variant="danger" onClick={stopImpersonating}>
-                        Parar Impersonificação
-                    </Button>
-                )}
             </header>
 
             <div className="admin-stats">
                 <div className="stat-card">
-                    <Users className="stat-icon" />
+                    <div className="stat-icon">
+                        <Users size={28} />
+                    </div>
                     <div className="stat-info">
-                        <span className="stat-label">Total de Usuários</span>
+                        <span className="stat-label">Usuários</span>
                         <span className="stat-value">{users.length}</span>
                     </div>
                 </div>
                 <div className="stat-card">
-                    <UserCheck className="stat-icon success" />
+                    <div className="stat-icon success">
+                        <UserCheck size={28} />
+                    </div>
                     <div className="stat-info">
-                        <span className="stat-label">Autorizados</span>
+                        <span className="stat-label">Ativos</span>
                         <span className="stat-value">{users.filter(u => u.is_authorized).length}</span>
                     </div>
                 </div>
                 <div className="stat-card">
-                    <Shield className="stat-icon warning" />
+                    <div className="stat-icon warning">
+                        <Shield size={28} />
+                    </div>
                     <div className="stat-info">
-                        <span className="stat-label">Administradores</span>
+                        <span className="stat-label">Admins</span>
                         <span className="stat-value">{users.filter(u => u.role === 'ADMIN').length}</span>
                     </div>
                 </div>
@@ -171,7 +187,7 @@ export const Admin: React.FC = () => {
             <div className="users-section">
                 <div className="section-header">
                     <div className="search-bar">
-                        <Search size={18} />
+                        <Search size={20} />
                         <input
                             type="text"
                             placeholder="Buscar por nome ou e-mail..."
@@ -185,25 +201,39 @@ export const Admin: React.FC = () => {
                     <table className="users-table">
                         <thead>
                             <tr>
-                                <th>Usuário</th>
+                                <th>Identidade</th>
                                 <th>Plano</th>
-                                <th>Status</th>
-                                <th>Privilégios</th>
-                                <th>Ações</th>
+                                <th>Autorização</th>
+                                <th>Cargo</th>
+                                <th style={{ textAlign: 'right' }}>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Carregando usuários...</td></tr>
+                                <tr>
+                                    <td colSpan={5} style={{ textAlign: 'center', padding: '4rem' }}>
+                                        <div className="font-bold text-text-muted animate-pulse">Sincronizando banco de dados...</div>
+                                    </td>
+                                </tr>
+                            ) : filteredUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} style={{ textAlign: 'center', padding: '4rem' }}>
+                                        <div className="font-bold text-text-muted">Nenhum usuário encontrado.</div>
+                                    </td>
+                                </tr>
                             ) : filteredUsers.map(u => (
                                 <tr key={u.id}>
                                     <td>
                                         <div className="user-info">
                                             <div className="user-avatar">
-                                                {u.avatar_url ? <img src={u.avatar_url} alt={u.name} /> : u.name?.charAt(0)}
+                                                {u.avatar_url ? (
+                                                    <img src={u.avatar_url} alt={u.name} />
+                                                ) : (
+                                                    <span>{u.name?.charAt(0) || u.email?.charAt(0)}</span>
+                                                )}
                                             </div>
                                             <div>
-                                                <span className="user-name">{u.name}</span>
+                                                <span className="user-name">{u.name || 'Sem Nome'}</span>
                                                 <span className="user-email">{u.email}</span>
                                             </div>
                                         </div>
@@ -224,9 +254,9 @@ export const Admin: React.FC = () => {
                                             onClick={() => handleToggleAuth(u.id, u.is_authorized)}
                                         >
                                             {u.is_authorized ? (
-                                                <><CheckCircle size={14} /> Autorizado</>
+                                                <><CheckCircle size={14} /> Ativo</>
                                             ) : (
-                                                <><XCircle size={14} /> Pendente</>
+                                                <><XCircle size={14} /> Bloqueado</>
                                             )}
                                         </button>
                                     </td>
@@ -234,9 +264,9 @@ export const Admin: React.FC = () => {
                                         <button
                                             className={`role-btn ${u.role === 'ADMIN' ? 'admin' : 'user'}`}
                                             onClick={() => handleToggleAdmin(u.id, u.role === 'ADMIN')}
-                                            disabled={u.email === 'ivanrossi@outlook.com'}
+                                            disabled={u.email === 'ivanrossi@outlook.com' || u.id === currentUser?.id}
                                         >
-                                            <Shield size={14} /> {u.role === 'ADMIN' ? 'Admin' : 'Usuário'}
+                                            <Shield size={14} /> {u.role === 'ADMIN' ? 'Admin' : 'Membro'}
                                         </button>
                                     </td>
                                     <td>
@@ -250,7 +280,7 @@ export const Admin: React.FC = () => {
                                                 <UserCheck size={18} />
                                             </button>
                                             <button
-                                                className="icon-btn impersonate"
+                                                className="icon-btn"
                                                 title="Editar"
                                                 onClick={() => handleOpenEdit(u)}
                                             >
