@@ -13,9 +13,10 @@ export const ProtectedRoute: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: 'var(--color-bg)',
-                fontFamily: 'var(--font-sans)'
+                fontFamily: 'var(--font-sans)',
+                padding: '2rem'
             }}>
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ textAlign: 'center', maxWidth: '300px' }}>
                     <div style={{
                         width: '48px',
                         height: '48px',
@@ -29,10 +30,31 @@ export const ProtectedRoute: React.FC = () => {
                         color: 'var(--color-primary)',
                         fontWeight: 700,
                         letterSpacing: '0.05em',
-                        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        marginBottom: '2rem'
                     }}>
                         AUTENTICANDO...
                     </p>
+                    <div style={{ paddingTop: '2rem', borderTop: '1px solid var(--color-border)' }}>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+                            Demorando demais?
+                        </p>
+                        <button
+                            onClick={() => {
+                                sessionStorage.clear();
+                                localStorage.clear();
+                                window.location.href = '/login';
+                            }}
+                            style={{
+                                color: 'var(--color-danger)',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            Voltar para o Login
+                        </button>
+                    </div>
                     <style>{`
                         @keyframes spin { to { transform: rotate(360deg); } }
                         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }

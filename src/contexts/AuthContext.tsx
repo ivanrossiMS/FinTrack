@@ -48,23 +48,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => subscription.unsubscribe();
     }, []);
 
-    const fetchProfile = async (userId: string, retries = 3) => {
+    const fetchProfile = async (userId: string) => {
+        const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
         let success = false;
-        try {
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single();
 
-            if (error || !profile) {
-                if (retries > 0) {
-                    console.warn(`Profile fetch failed for ${userId}, retrying... (${retries})`);
-                    setTimeout(() => fetchProfile(userId, retries - 1), 1500);
-                    return; // Recursion continues, don't stop loading
+        // Safety lock: ensure we never hang more than 4 seconds
+        const timeout = setTimeout(() => {
+            if (!success) {
+                console.error('Profile fetch timed out. Forcing fallback.');
+                setLoading(false);
+            }
+        }, 4000);
+
+        try {
+            for (let i = 3; i >= 0; i--) {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (profile && !error) {
+                    setUser(profile);
+                    success = true;
+                    break;
                 }
 
-                // Final Fallback if profile record doesn't exist
+                if (i > 0) {
+                    console.warn(`Profile fetch failed, retrying in 1.5s... (${i} left)`);
+                    await delay(1500);
+                }
+            }
+
+            // Final Fallback if loop finishes without success
+            if (!success) {
                 const { data: { user: authUser } } = await supabase.auth.getUser();
                 if (authUser) {
                     setUser({
@@ -75,17 +92,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         plan: 'FREE'
                     });
                 }
-            } else {
-                setUser(profile);
-                success = true;
             }
         } catch (err) {
             console.error('Fatal error in fetchProfile:', err);
         } finally {
-            // Only stop loading if we reach the end of the chain or succeeded
-            if (retries === 0 || success) {
-                setLoading(false);
-            }
+            clearTimeout(timeout);
+            setLoading(false);
         }
     };
 
@@ -135,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Fetch fresh data to ensure sync
-        await fetchProfile(user.id, 0);
+        await fetchProfile(user.id);
     };
 
     const adminUpdateUserInfo = async (targetUserId: string, updates: any) => {

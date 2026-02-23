@@ -170,18 +170,23 @@ ALTER TABLE public.savings_goals ENABLE ROW LEVEL SECURITY;
 
 -- ── FUNCTIONS & POLICIES ──
 
--- Admin check function
-CREATE OR REPLACE FUNCTION is_admin() 
+-- Admin check function (Optimized to prevent RLS recursion)
+CREATE OR REPLACE FUNCTION public.check_is_admin() 
 RETURNS BOOLEAN AS $$
+DECLARE
+  is_adm BOOLEAN;
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (role = 'ADMIN' OR email = 'ivanrossi@outlook.com')
-  );
+  -- We query the table directly. SECURITY DEFINER + SET search_path 
+  -- allows this function to bypass RLS and avoid recursion.
+  SELECT (role = 'ADMIN' OR email = 'ivanrossi@outlook.com') INTO is_adm
+  FROM public.profiles 
+  WHERE id = auth.uid();
+  
+  RETURN COALESCE(is_adm, FALSE);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Cleanup existing policies to avoid "already exists" errors
+-- Cleanup existing policies
 DO $$ 
 DECLARE 
   pol RECORD;
@@ -192,11 +197,18 @@ BEGIN
   END LOOP;
 END $$;
 
--- User Profiles Policies
-CREATE POLICY "Admin can view all profiles" ON public.profiles FOR SELECT USING (is_admin());
+-- User Profiles Policies (Carefully structured to avoid recursion)
+-- 1. Everyone can view their own profile (Static check, no function call)
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+
+-- 2. Admins can view everything (Using the safe function)
+CREATE POLICY "Admins can view all profiles" ON public.profiles FOR SELECT USING (public.check_is_admin());
+
+-- 3. Users can update their own profile
 CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admin can update all profiles" ON public.profiles FOR UPDATE USING (is_admin());
+
+-- 4. Admins can update all profiles
+CREATE POLICY "Admins can update all profiles" ON public.profiles FOR UPDATE USING (public.check_is_admin());
 
 -- Generic Multi-tenant Policies (Applied to all data tables)
 DO $$ 
@@ -205,7 +217,7 @@ DECLARE
 BEGIN
   FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('categories', 'suppliers', 'payment_methods', 'transactions', 'commitments', 'savings_goals')
   LOOP
-    EXECUTE format('CREATE POLICY "Manage own %I" ON public.%I FOR ALL USING (auth.uid() = user_id OR is_admin()) WITH CHECK (auth.uid() = user_id OR is_admin())', t, t);
+    EXECUTE format('CREATE POLICY "Manage own %I" ON public.%I FOR ALL USING (auth.uid() = user_id OR public.check_is_admin()) WITH CHECK (auth.uid() = user_id OR public.check_is_admin())', t, t);
   END LOOP;
 END $$;
 
