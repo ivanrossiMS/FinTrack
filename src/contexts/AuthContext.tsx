@@ -33,19 +33,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (fetchingLocks.current.has(userId)) return;
         fetchingLocks.current.add(userId);
 
-        const withTimeout = (promise: Promise<any>, ms: number) =>
+        const withTimeout = (promise: Promise<any>, ms: number, label: string) =>
             Promise.race([
                 promise,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
+                new Promise((_, reject) => setTimeout(() => reject(new Error(`TIMEOUT_${label}`)), ms))
             ]);
 
         let success = false;
         try {
-            // Attempt Supabase query with 4s timeout
+            // Attempt Supabase query with 8s timeout
             // @ts-ignore - PostgrestBuilder is Thenable
             const { data: profile, error } = await withTimeout(
                 supabase.from('profiles').select('*').eq('id', userId).single() as any,
-                4000
+                8000,
+                'DB_PROFILE'
             );
 
             if (profile && !error) {
@@ -54,14 +55,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } else if (error) {
                 console.warn('Profile fetch rejected:', error.message);
             }
-        } catch (err) {
-            console.error('Profile fetch timed out or failed');
+        } catch (err: any) {
+            console.error(`[AUTH] Profile fetch failed or timed out (${err.message}). Activating fallback.`);
         }
 
         // Fallback: If DB fetch fails but Auth session exists, synthesize user to prevent lock-out
         if (!success) {
             try {
-                const { data: { user: authUser } } = await supabase.auth.getUser();
+                // Wrap getUser in timeout too
+                const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser(), 5000, 'GET_USER_FALLBACK');
                 if (authUser && authUser.id === userId) {
                     setUser({
                         id: authUser.id,
@@ -71,12 +73,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         plan: 'FREE',
                         is_authorized: true
                     });
+                    success = true;
                 }
             } catch (e) {
-                console.error('Fallback synthesis failed');
+                console.error('[AUTH] Fallback synthesis also failed/timed out. Extreme fallback activation.');
             }
         }
 
+        // Final UI unlock
         fetchingLocks.current.delete(userId);
         setLoading(false);
     };
@@ -86,17 +90,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const syncAuth = async () => {
             if (authInitialized.current) return;
 
+            const withMsgTimeout = (promise: Promise<any>, ms: number, label: string) =>
+                Promise.race([
+                    promise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error(`TIMEOUT_${label}`)), ms))
+                ]);
+
             try {
-                // 1. Check current session
-                const { data: { session } } = await supabase.auth.getSession();
+                // 1. Check current session with timeout
+                const { data: { session } } = await withMsgTimeout(supabase.auth.getSession(), 8000, 'GET_SESSION_BOOT');
 
                 if (session) {
                     await fetchProfile(session.user.id);
                 } else {
                     setLoading(false);
                 }
-            } catch (err) {
-                console.error('Auth sync failed:', err);
+            } catch (err: any) {
+                console.error(`[AUTH] Boot sync failed or timed out (${err.message})`);
                 setLoading(false);
             } finally {
                 authInitialized.current = true;
