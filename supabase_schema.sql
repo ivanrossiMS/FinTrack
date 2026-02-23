@@ -24,13 +24,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- 2. Create Categories table
 CREATE TABLE IF NOT EXISTS public.categories (
-    id TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
     user_id UUID REFERENCES auth.users NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     color TEXT,
     icon TEXT,
-    is_default BOOLEAN DEFAULT FALSE
+    is_default BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (id, user_id)
 );
 
 -- 3. Create Suppliers table
@@ -45,11 +46,12 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
 
 -- 4. Create Payment Methods table
 CREATE TABLE IF NOT EXISTS public.payment_methods (
-    id TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
     user_id UUID REFERENCES auth.users NOT NULL,
     name TEXT NOT NULL,
     color TEXT,
-    is_default BOOLEAN DEFAULT FALSE
+    is_default BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (id, user_id)
 );
 
 -- ── TYPE STANDARDIZATION (Ensure TEXT IDs for categories and payment methods) ──
@@ -76,15 +78,15 @@ BEGIN
     ALTER TABLE public.payment_methods ALTER COLUMN id TYPE TEXT USING id::text;
   END IF;
   
-  -- 4. Re-add constraints (now with matched types)
+  -- 4. Re-add constraints (now with matched types and composite keys for extra security)
   ALTER TABLE public.transactions 
-    ADD CONSTRAINT transactions_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+    ADD CONSTRAINT transactions_category_id_fkey FOREIGN KEY (category_id, user_id) REFERENCES public.categories(id, user_id) ON DELETE SET NULL;
   ALTER TABLE public.transactions 
-    ADD CONSTRAINT transactions_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES public.payment_methods(id) ON DELETE SET NULL;
+    ADD CONSTRAINT transactions_payment_method_id_fkey FOREIGN KEY (payment_method_id, user_id) REFERENCES public.payment_methods(id, user_id) ON DELETE SET NULL;
   ALTER TABLE public.commitments 
-    ADD CONSTRAINT commitments_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+    ADD CONSTRAINT commitments_category_id_fkey FOREIGN KEY (category_id, user_id) REFERENCES public.categories(id, user_id) ON DELETE SET NULL;
   ALTER TABLE public.commitments 
-    ADD CONSTRAINT commitments_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES public.payment_methods(id) ON DELETE SET NULL;
+    ADD CONSTRAINT commitments_payment_method_id_fkey FOREIGN KEY (payment_method_id, user_id) REFERENCES public.payment_methods(id, user_id) ON DELETE SET NULL;
 
   -- 5. Ensure is_default columns exist
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'is_default') THEN
@@ -358,10 +360,13 @@ DO $$
 DECLARE 
   pol RECORD;
 BEGIN
-  FOR pol IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects') 
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', pol.policyname);
-  END LOOP;
+    -- Check if storage.objects table exists
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'storage' AND table_name = 'objects') THEN
+        FOR pol IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects') 
+        LOOP
+            EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', pol.policyname);
+        END LOOP;
+    END IF;
 END $$;
 
 -- Storage Policies for Avatars

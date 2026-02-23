@@ -362,28 +362,78 @@ export const SupabaseDataService = {
     },
 
     async seedDemoData(userId: string) {
-        // 1. First reset
-        await this.resetUserData(userId);
+        try {
+            // 1. First reset
+            await this.resetUserData(userId);
 
-        // 2. Inject Defaults (Categories & Methods)
-        const { error: catErr } = await supabase.from('categories').insert(
-            DEFAULT_CATEGORIES.map(c => ({ ...c, user_id: userId, is_default: true }))
-        );
-        const { error: pmErr } = await supabase.from('payment_methods').insert(
-            DEFAULT_METHODS.map(m => ({ ...m, user_id: userId, is_default: true }))
-        );
+            // 2. Inject Defaults (Categories & Methods)
+            const { error: catErr } = await supabase.from('categories').insert(
+                DEFAULT_CATEGORIES.map(c => ({
+                    id: c.id,
+                    user_id: userId,
+                    name: c.name,
+                    type: c.type,
+                    color: c.color,
+                    icon: c.icon,
+                    is_default: true
+                }))
+            );
 
-        if (catErr || pmErr) throw new Error('Falha ao injetar padrões');
+            const { error: pmErr } = await supabase.from('payment_methods').insert(
+                DEFAULT_METHODS.map(m => ({
+                    id: m.id,
+                    user_id: userId,
+                    name: m.name,
+                    color: m.color,
+                    is_default: true
+                }))
+            );
 
-        // 3. Inject some mock transactions
-        const mockTransactions = [
-            { type: 'INCOME', amount: 5000, description: 'Salário Mensal', date: new Date().toISOString(), user_id: userId },
-            { type: 'EXPENSE', amount: 1200, description: 'Aluguel', date: new Date().toISOString(), user_id: userId },
-            { type: 'EXPENSE', amount: 350, description: 'Supermercado', date: new Date().toISOString(), user_id: userId }
-        ];
+            if (catErr || pmErr) {
+                console.error('Seeding error details:', { catErr, pmErr });
+                throw new Error('Falha ao injetar padrões fundamentais.');
+            }
 
-        const { error: txErr } = await supabase.from('transactions').insert(mockTransactions);
-        if (txErr) throw txErr;
+            // 3. Inject mock suppliers
+            const mockSuppliers = [
+                { user_id: userId, name: 'Supermercado Elite', contact: 'contato@elite.com' },
+                { user_id: userId, name: 'Energia S.A.', contact: 'financeiro@energia.com' },
+                { user_id: userId, name: 'Internet Turbo', contact: 'suporte@turbo.com' }
+            ];
+            const { data: sups, error: supErr } = await supabase.from('suppliers').insert(mockSuppliers).select();
+            if (supErr) throw supErr;
+
+            // 4. Inject mock transactions
+            const now = new Date();
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+
+            const mockTransactions = [
+                { type: 'INCOME', amount: 8500, description: 'Salário de Consultoria', date: now.toISOString(), category_id: 'cat_salario', payment_method_id: 'pm_pix', user_id: userId },
+                { type: 'INCOME', amount: 1200, description: 'Dividendos Investimentos', date: now.toISOString(), category_id: 'cat_rendimentos', payment_method_id: 'pm_credito', user_id: userId },
+                { type: 'EXPENSE', amount: 2450, description: 'Aluguel Loft', date: lastMonth.toISOString(), category_id: 'cat_contas_casa', payment_method_id: 'pm_pix', user_id: userId },
+                { type: 'EXPENSE', amount: 840, description: 'Compras do Mês', date: now.toISOString(), category_id: 'cat_mercado', payment_method_id: 'pm_debito', user_id: userId, supplier_id: sups?.[0]?.id },
+                { type: 'EXPENSE', amount: 180, description: 'Internet e TV', date: now.toISOString(), category_id: 'cat_assinaturas', payment_method_id: 'pm_credito', user_id: userId, supplier_id: sups?.[2]?.id },
+                { type: 'EXPENSE', amount: 450, description: 'Jantar Romântico', date: now.toISOString(), category_id: 'cat_lazer', payment_method_id: 'pm_credito', user_id: userId }
+            ];
+
+            const { error: txErr } = await supabase.from('transactions').insert(mockTransactions);
+            if (txErr) throw txErr;
+
+            // 5. Inject a savings goal
+            await supabase.from('savings_goals').insert({
+                user_id: userId,
+                description: 'Viagem para Maldivas',
+                target_amount: 25000,
+                current_amount: 5000,
+                target_date: new Date(now.getFullYear() + 1, 11, 31).toISOString(),
+                color: '#06b6d4',
+                icon: 'Plane'
+            });
+
+        } catch (err) {
+            console.error('Fatal error in seedDemoData:', err);
+            throw err;
+        }
     },
 
     // ─── AUTH SYNC ───
@@ -420,12 +470,17 @@ export const SupabaseDataService = {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id);
 
-        if (catCount === 0) {
+        if (catCount === 0 || catCount === null) {
             const { error: catError } = await supabase
                 .from('categories')
                 .insert(DEFAULT_CATEGORIES.map(c => ({
-                    ...c,
-                    user_id: user.id
+                    id: c.id,
+                    user_id: user.id,
+                    name: c.name,
+                    type: c.type,
+                    color: c.color,
+                    icon: c.icon,
+                    is_default: true
                 })));
             if (catError) console.error('Error seeding categories:', catError);
         }
@@ -436,12 +491,15 @@ export const SupabaseDataService = {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id);
 
-        if (pmCount === 0) {
+        if (pmCount === 0 || pmCount === null) {
             const { error: pmError } = await supabase
                 .from('payment_methods')
                 .insert(DEFAULT_METHODS.map(m => ({
-                    ...m,
-                    user_id: user.id
+                    id: m.id,
+                    user_id: user.id,
+                    name: m.name,
+                    color: m.color,
+                    is_default: true
                 })));
             if (pmError) console.error('Error seeding payment methods:', pmError);
         }
