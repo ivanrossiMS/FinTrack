@@ -4,7 +4,7 @@ import { DEFAULT_CATEGORIES, DEFAULT_METHODS } from '../constants/defaults';
 
 export const SupabaseDataService = {
     // ─── INSTRUMENTATION UTILS ───
-    async _wrap<T>(operation: string, promise: Promise<{ data: T | null; error: any }>): Promise<T | null> {
+    async _wrap<T>(operation: string, promise: any): Promise<T | null> {
         console.group(`🌐 [NETWORK] ${operation}`);
         try {
             const { data, error } = await promise;
@@ -33,7 +33,7 @@ export const SupabaseDataService = {
             .from('profiles')
             .select('*')
             .eq('id', userId)
-            .single());
+            .single() as any);
         return data as UserProfile | null;
     },
 
@@ -54,7 +54,7 @@ export const SupabaseDataService = {
         const data = await this._wrap('getAllProfiles', supabase
             .from('profiles')
             .select('*')
-            .order('name'));
+            .order('name') as any);
         return (data as UserProfile[]) || [];
     },
 

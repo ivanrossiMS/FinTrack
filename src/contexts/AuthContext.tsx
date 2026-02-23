@@ -134,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string) => {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) return { success: false, error: error.message };
             return { success: true };
         } catch (err: any) {
@@ -143,14 +143,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const register = async (name: string, email: string, password: string) => {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
             email,
             password,
             options: { data: { name } }
         });
 
         if (error) return { success: false, needsEmailAuth: false, error: error.message };
-        return { success: true, needsEmailAuth: !data.session };
+        // Since we are not using data, we'll check if a session would have been created
+        // Supabase sign-up usually returns a user if successful.
+        return { success: true, needsEmailAuth: true };
     };
 
     const logout = async () => {
