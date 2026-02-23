@@ -6,13 +6,12 @@
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // System persona injected into every request
-const SYSTEM_PROMPT = `Você é o Especialista IA do FinTrack — um assistente financeiro pessoal de elite, focado exclusivamente em ajudar o usuário com as funcionalidades deste aplicativo.
-Você responde em Português Brasileiro, de forma clara, prestativa e extremamente inteligente.
-Recuse educadamente responder quaisquer perguntas que não sejam relacionadas ao FinTrack, finanças pessoais, economia ou ao uso do sistema.
-Se o usuário perguntar algo genérico (como história, ciência ou fofocas), responda que você é especializado no FinTrack e sugira uma funcionalidade do app.
-Seu objetivo é guiar o usuário pelas seções (Dashboard, Lançamentos, Compromissos, Economia, Relatórios, Cadastros) e responder dúvidas sobre seus dados financeiros.
-Para perguntas financeiras, use os dados do contexto de forma analítica e perspicaz.
-Seja CONCISO: no máximo 3 frases. Não use markdown ou listas.`;
+const SYSTEM_PROMPT = `Você é o Engenheiro de Machine Learning e Consultor Monetário de Elite do FinTrack.
+Sua inteligência é de nível superior, capaz de processar linguagem natural complexa e transformá-la em dados financeiros precisos.
+Responda em Português Brasileiro, de forma executiva, perspicaz e extremamente útil.
+Seu foco é otimizar a vida financeira do usuário através das seções: Dashboard, Lançamentos, Compromissos, Economia, Relatórios e Cadastros.
+Para análises, seja cirúrgico: use os dados reais do contexto para fornecer insights que tragam liberdade financeira.
+Seja CONCISO: no máximo 3 frases curtidas e diretas. Não use markdown.`;
 
 export interface FinancialContext {
     monthlyExpenses?: number;
@@ -120,6 +119,7 @@ export interface AIParseResult {
     paymentMethodName?: string;
     supplierName?: string;
     confidence: number;
+    reasoning?: string;
 }
 
 export async function parseTransactionWithAI(
@@ -129,40 +129,57 @@ export async function parseTransactionWithAI(
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
     if (!apiKey) return null;
 
-    const prompt = `Atue como um Engenheiro de Machine Learning Especialista em Fintech. Sua tarefa é converter um comando de voz natural em um objeto de transação financeira estruturado.
+    const prompt = `Atue como o Assistente Financeiro de Elite da FinTrack, com percepção cognitiva de 100%.
+Sua missão é extrair dados de transações de voz (mesmo que curtas/esparsas) e mapear para as categorias CORRETAS com precisão absoluta.
 
 Texto falado: "${text}"
 
-Categorias disponíveis no FinTrack: ${categories.join(', ')}
+CATEGORIAS DISPONÍVEIS (USE APENAS ESTAS):
+${categories.join(', ')}
 
-### Diretrizes de Elite para Percepção:
-1. **Mapeamento Semântico de Categorias:**
-   - "pão", "padaria", "almoço", "ifood" -> mapear para "Alimentação".
-   - "escola", "curso", "faculdade", "mensalidade" -> mapear para "Educação" (ou similar disponível).
-   - "luz", "água", "aluguel", "internet" -> mapear para "Moradia" ou "Contas Fixas".
-   - "plano de saúde", "remédio", "dentista" -> mapear para "Saúde".
-   - Caso o item não tenha categoria óbvia, use a categoria mais genérica disponível.
+### Protocolo de Hiper-Percepção (Elite 3.0):
+1. **Comandos Esparsos (Telegram-Style):**
+   - Se o usuário disser apenas "compra [item]" ou "[item]", deduza que é uma DESPESA.
+   - Se disser "[item] [valor]", extraia ambos de forma proativa.
+   - Se o valor não for mencionado, coloque 0 e deixe a confiança da categoria ALTA.
 
-2. **Extração de Descrição (Limpeza):**
-   - Remova preposições e termos de ação (ex: "de pão" -> "Pão", "pagamento da luz" -> "Luz").
-   - Capitalize a primeira letra.
+2. **Raciocínio Interno Proativo:**
+   - Identifique a NATUREZA semântica (O que é? Pra que serve?).
+   - Mapeie para a categoria mais específica disponível.
 
-3. **Formato de Saída (JSON Estrito):**
+2. **Heurísticas de Mapeamento Ultra-Refinadas:**
+   - Padaria, Pão, Café, Misto, Almoço, iFood (refeição) -> ALIMENTAÇÃO.
+   - Compras grandes, Supermercado, Carrefour, Atacadão, Mercado -> COMPRAS / MERCADO EXTRA.
+   - Cerveja, Chopp, Vinho, Bebidas (compradas) -> COMPRAS / MERCADO EXTRA.
+   - Netflix, Amazon Prime, Youtube, Spotify, Disney+, HBO, Assinaturas -> ASSINATURAS.
+   - IPVA, IPTU, Taxas governamentais, Impostos -> IMPOSTOS & TAXAS.
+   - Escola, Faculdade, Livro, Curso, Udemy, Mensalidade, Material Escolar -> EDUCAÇÃO & LIVROS.
+   - Remédio, Farmácia, Médico, Dentista, Hospital, Plano -> SAÚDE.
+   - Uber, Gasolina, Mecânico, Estacionamento, Pedágio -> TRANSPORTE / VEÍCULOS.
+   - Ração, Veterinário, Petshop -> PETS & CUIDADO.
+   - Bar, Barzinho, Balada, Boteco -> LAZER.
+   - Boné, Roupas, Tênis, Sapato, Camisa -> VESTUÁRIO.
+   - Barbeiro, Salão, Unha, Maquiagem, Perfume -> BELEZA & AUTOCUIDADO.
+   - Se não houver NENHUMA correspondência clara, use a categoria: EXTRAS.
+
+3. **Dedução Automática de Tipo e Fluxo:**
+   - Se o usuário disser "COMPRA" (ou derivado), o type é estritamente EXPENSE.
+   - Se o usuário disser "VENDA" (ou derivado), o type é estritamente INCOME.
+   - Se disser "Recebi", "Ganhei", "Salário", o type é INCOME.
+
+4. **Limpeza de Dados Executiva:**
+   - Descrição: Curta, direta, em Pascal Case (ex: "Compra Mercado", "Cerveja Gelada").
+   - Valor: Apenas o número puro.
+
+### Saída Obrigatória (JSON Estrito):
 {
+  "reasoning": "Breve explicação do porquê escolheu essa categoria",
   "type": "EXPENSE" | "INCOME",
-  "description": "descrição limpa e profissional",
-  "amount": valor numérico (remova "reais", "r$", etc),
-  "categoryName": "A categoria EXATA da lista acima",
-  "paymentMethodName": "método se mencionado (ex: pix, crédito)",
-  "supplierName": "loja/estabelecimento se mencionado",
-  "confidence": 0.0 a 1.0
-}
-
-### Exemplos:
-- "Paguei 100 reais de pão na padaria" -> {"type": "EXPENSE", "description": "Pão", "amount": 100, "categoryName": "Alimentação", "supplierName": "Padaria", "confidence": 0.98}
-- "Mensalidade escolar 1000 reais" -> {"type": "EXPENSE", "description": "Mensalidade escolar", "amount": 1000, "categoryName": "Educação", "confidence": 0.99}
-
-Retorne APENAS o JSON.`;
+  "description": string,
+  "amount": number,
+  "categoryName": string,
+  "confidence": number (0.0 - 1.0)
+}`;
 
     try {
         const response = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
@@ -184,7 +201,9 @@ Retorne APENAS o JSON.`;
         const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (!jsonText) return null;
 
-        return JSON.parse(jsonText);
+        // Clean potentially markdown-wrapped JSON
+        const cleanedJson = jsonText.replace(/```json|```/g, '').trim();
+        return JSON.parse(cleanedJson) as AIParseResult;
     } catch (err) {
         console.error('[geminiAI] AI Parse Error:', err);
         return null;
@@ -201,20 +220,20 @@ export async function getInvestmentRecommendations(
     Com base em um capital disponível de R$ ${availableCapital.toFixed(2)}, gere uma estratégia de alocação de investimentos diversificada.
     
     ### Regras de Negócio:
-    1. Se o valor for baixo (< R$ 1.000), foque 100% em Reserva de Emergência.
-    2. Se o valor for médio (R$ 1.000 a R$ 10.000), sugira 70% Pós-fixado e 30% Inflação ou Multimercado.
-    3. Se o valor for alto (> R$ 10.000), sugira uma carteira completa: Renda Fixa, FIIs e uma pequena parcela em Renda Variável/Cripto.
+    1. Se o valor for baixo(<R$ 1.000), foque 100 % em Reserva de Emergência.
+    2. Se o valor for médio(R$ 1.000 a R$ 10.000), sugira 70 % Pós - fixado e 30 % Inflação ou Multimercado.
+    3. Se o valor for alto(> R$ 10.000), sugira uma carteira completa: Renda Fixa, FIIs e uma pequena parcela em Renda Variável / Cripto.
 
     Retorne APENAS um JSON Array seguindo este formato de exemplo:
     [
-      {
-        "category": "Conservador",
-        "title": "Reserva de Emergência",
-        "description": "Foco total em liquidez diária e segurança para cobrir imprevistos.",
-        "allocation": "60%",
-        "products": ["Tesouro Selic", "CDB 100% CDI", "Fundo DI"],
-        "riskLevel": "LOW"
-      }
+        {
+            "category": "Conservador",
+            "title": "Reserva de Emergência",
+            "description": "Foco total em liquidez diária e segurança para cobrir imprevistos.",
+            "allocation": "60%",
+            "products": ["Tesouro Selic", "CDB 100% CDI", "Fundo DI"],
+            "riskLevel": "LOW"
+        }
     ]
     
     Gere 3 ou 4 cards de recomendações.`;

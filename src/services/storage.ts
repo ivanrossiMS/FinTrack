@@ -7,7 +7,7 @@ const GLOBAL_METHODS_KEY = 'fintrack_global_payment_methods';
 
 const DEFAULT_CATEGORIES: Category[] = [
     // --- DESPESAS (Elite Palette: Sleek, Modern, Categorized) ---
-    { id: 'cat_contas_casa', name: 'Contas da Casa', type: 'EXPENSE', color: '#6366f1', icon: 'Home', isDefault: true },
+    { id: 'cat_contas_casa', name: 'Contas', type: 'EXPENSE', color: '#6366f1', icon: 'Home', isDefault: true },
     { id: 'cat_impostos', name: 'Impostos & Taxas', type: 'EXPENSE', color: '#64748b', icon: 'FileText', isDefault: true },
     { id: 'cat_seguros', name: 'Seguros', type: 'EXPENSE', color: '#475569', icon: 'Shield', isDefault: true },
     { id: 'cat_dividas', name: 'Dívidas & Empréstimos', type: 'EXPENSE', color: '#ef4444', icon: 'TrendingDown', isDefault: true },
@@ -22,7 +22,7 @@ const DEFAULT_CATEGORIES: Category[] = [
     { id: 'cat_assinaturas', name: 'Assinaturas', type: 'EXPENSE', color: '#0ea5e9', icon: 'RefreshCw', isDefault: true },
     { id: 'cat_educacao', name: 'Educação & Livros', type: 'EXPENSE', color: '#f59e0b', icon: 'BookOpen', isDefault: true },
     { id: 'cat_pets', name: 'Pets & Cuidado', type: 'EXPENSE', color: '#14b8a6', icon: 'Dog', isDefault: true },
-    { id: 'cat_transporte', name: 'Transporte / Manutenção Véiculo', type: 'EXPENSE', color: '#f97316', icon: 'Car', isDefault: true },
+    { id: 'cat_transporte', name: 'Transporte / Veículos', type: 'EXPENSE', color: '#f97316', icon: 'Car', isDefault: true },
     { id: 'cat_alimentacao', name: 'Alimentação', type: 'EXPENSE', color: '#fb7185', icon: 'Utensils', isDefault: true },
     { id: 'cat_lazer', name: 'Lazer', type: 'EXPENSE', color: '#a855f7', icon: 'Gamepad2', isDefault: true },
     { id: 'cat_saude', name: 'Saúde', type: 'EXPENSE', color: '#f43f5e', icon: 'Activity', isDefault: true },

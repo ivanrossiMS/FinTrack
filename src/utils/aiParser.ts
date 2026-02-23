@@ -58,36 +58,79 @@ const INCOME_KEYWORDS = [
     'entrou', 'transferência recebida', 'reembolso', 'dividendos',
 ];
 
+const EXPENSE_KEYWORDS = [
+    'gastei', 'paguei', 'comprei', 'compra', 'débito', 'debito', 'crédito', 'credito',
+    'saiu', 'pagamento', 'boleto', 'conta', 'fatura',
+];
+
 // ── Category keyword heuristics (extended) ────────────────────────────────────
-// Maps broad theme → keywords that imply that theme in Portuguese speech
 const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
     {
+        keywords: ['mercado', 'supermercado', 'compras', 'carrefour', 'pão de açucar', 'extra', 'atacadão', 'atacadao', 'rancho',
+            'cerveja', 'cervejinha', 'bebida', 'refrigerante', 'suco', 'vinho', 'chopp', 'gelada'],
+        themes: ['Compras / Mercado Extra'],
+    },
+    {
+        keywords: ['almoço', 'almoco', 'jantar', 'ifood', 'rappi', 'lanche', 'restaurante', 'padaria', 'pão', 'pao', 'misto', 'bauru', 'café', 'cafe',
+            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira'],
+        themes: ['Alimentação'],
+    },
+    {
+        keywords: ['ipva', 'iptu', 'imposto', 'taxa', 'receita federal', 'tributo'],
+        themes: ['Impostos & Taxas'],
+    },
+    {
         keywords: ['aluguel', 'condomínio', 'condominio', 'luz', 'energia', 'cpfl', 'enel',
-            'água', 'agua', 'sabesp', 'sanepar', 'internet', 'wifi', 'gás', 'gas', 'reforma',
-            'iptu', 'imóvel', 'imovel', 'casa', 'apartamento', 'apto',
-            'manutenção', 'manutencao', 'encanador', 'eletricista', 'limpeza'],
-        themes: ['Contas da Casa', 'Casa & Manutenção', 'Moradia'],
+            'água', 'agua', 'sabesp', 'internet', 'vivo', 'claro', 'oi', 'tim', 'net', 'gás', 'gas', 'comgás'],
+        themes: ['Contas', 'Casa & Manutenção'],
     },
     {
-        keywords: ['farmácia', 'farmacia', 'médico', 'medico', 'exame', 'dentista',
-            'remédio', 'remedio', 'hospital', 'consulta', 'plano de saúde', 'plano saúde',
-            'plano saude', 'psicólogo', 'psicologo', 'psiquiatra', 'nutricionista',
-            'academia', 'gym', 'personal', 'cirurgia', 'check-up', 'unimed', 'bradesco saude', 'sulamerica'],
-        themes: ['Saúde', 'Beleza & Autocuidado'],
+        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade', 'aula', 'matrícula', 'matricula',
+            'pós', 'pos', 'mba', 'udemy', 'alura', 'coursera', 'idioma', 'inglês', 'ingles', 'espanhol',
+            'treinamento', 'workshop', 'estudo', 'papelaria', 'material escolar', 'caderno', 'lápis', 'caneta'],
+        themes: ['Educação & Livros'],
     },
     {
-        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade escolar', 'mensalidade escola',
-            'aula', 'matrícula', 'matricula', 'pós', 'pos', 'mba', 'udemy', 'alura', 'coursera',
-            'idioma', 'inglês', 'ingles', 'espanhol', 'treinamento', 'workshop'],
-        themes: ['Educação & Livros', 'Educação'],
+        keywords: ['remédio', 'remedio', 'farmácia', 'farmacia', 'drogaria', 'médico', 'medico', 'dentista', 'hospital',
+            'plano de saúde', 'saúde', 'exame', 'terapia', 'psicólogo', 'clínica'],
+        themes: ['Saúde'],
     },
     {
-        keywords: ['mercado', 'supermercado', 'almoço', 'almoco', 'jantar', 'ifood',
-            'rappi', 'lanche', 'restaurante', 'padaria', 'pão', 'pao', 'fruta', 'verdura', 'café', 'cafe',
-            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira', 'carrefour', 'pão de açucar',
-            'extra', 'atacadão', 'churrasco', 'açaí', 'acai', 'sorvete', 'refeição', 'refeicao',
-            'marmita', 'delivery', 'a praça', 'praça', 'china'],
-        themes: ['Alimentação', 'Compras / Mercado Extra'],
+        keywords: ['uber', '99', 'táxi', 'taxi', 'gasolina', 'combustível', 'combustivel', 'etanol', 'diesel',
+            'estacionamento', 'pedágio', 'pedagio', 'mecânico', 'mecanico', 'oficina', 'pneu', 'revisão', 'seguro auto'],
+        themes: ['Transporte / Veículos'],
+    },
+    {
+        keywords: ['ração', 'racao', 'veterinário', 'veterinario', 'petshop', 'pet', 'cachorro', 'gato', 'banho', 'tosa'],
+        themes: ['Pets & Cuidado'],
+    },
+    {
+        keywords: ['netflix', 'spotify', 'disney', 'hbo', 'prime', 'amazon', 'youtube', 'assinatura', 'plano', 'mensal mensal', 'globoplay'],
+        themes: ['Assinaturas'],
+    },
+    {
+        keywords: ['roupa', 'tênis', 'tenis', 'sapato', 'blusa', 'calça', 'vestuário', 'moda', 'shopee', 'shein', 'zara', 'renner', 'cea', 'boné', 'bone', 'bolsa'],
+        themes: ['Vestuário'],
+    },
+    {
+        keywords: ['cabeleireiro', 'barbeiro', 'barba', 'corte', 'maquiagem', 'perfume', 'cosmético', 'beleza', 'autocuidado', 'manicure', 'salão', 'unha'],
+        themes: ['Beleza & Autocuidado'],
+    },
+    {
+        keywords: ['cinema', 'show', 'festa', 'balada', 'viagem', 'hotel', 'passagem', 'turismo', 'lazer', 'game', 'jogo', 'bar', 'barzinho', 'boteco'],
+        themes: ['Lazer', 'Viagens'],
+    },
+    {
+        keywords: ['salário', 'salario', 'pagamento', 'recebi', 'pix recebido', 'transferência recebida', 'doc', 'ted', 'depósito'],
+        themes: ['Salário', 'Serviços / Consultorias'],
+    },
+    {
+        keywords: ['dividendos', 'juros', 'rendimento', 'bolsa', 'ações', 'fii', 'investimento', 'tesouro', 'cdb'],
+        themes: ['Rendimentos', 'Investimentos'],
+    },
+    {
+        keywords: ['outros', 'diverso', 'extra', 'geral', 'qualquer'],
+        themes: ['Extras'],
     },
 ];
 
@@ -150,7 +193,7 @@ export const parseTranscription = (
     const raw = text.trim();
     const norm = normalise(raw);
 
-    let type: TransactionType = 'EXPENSE';
+    let type: TransactionType = 'EXPENSE'; // Default
     let amount = 0;
     let date = format(new Date(), 'yyyy-MM-dd');
     let categoryId = '';
@@ -158,9 +201,20 @@ export const parseTranscription = (
     let supplierId: string | undefined;
     let confidence = 0.4;
 
-    // ── 1. Transaction type ──────────────────────────────────────────────────
-    if (INCOME_KEYWORDS.some(kw => norm.includes(normalise(kw)))) {
+    // ── 1. Transaction type deduction ────────────────────────────────────────
+    const isIncome = INCOME_KEYWORDS.some(kw => norm.includes(normalise(kw)));
+    const isExpense = EXPENSE_KEYWORDS.some(kw => norm.includes(normalise(kw)));
+
+    if (isIncome && !isExpense) {
         type = 'INCOME';
+        confidence += 0.2;
+    } else if (isExpense && !isIncome) {
+        type = 'EXPENSE';
+        confidence += 0.2;
+    } else if (isIncome && isExpense) {
+        // Ambiguous, but if it has "venda" it's likely income, if "compra" likely expense
+        if (norm.includes('venda')) type = 'INCOME';
+        else type = 'EXPENSE';
         confidence += 0.1;
     }
 
@@ -260,9 +314,10 @@ export const parseTranscription = (
         }
     }
 
-    // Strategy D: fallback to first matching type
+    // Strategy D: fallback to "Extras" or first matching type
     if (!bestCat) {
-        bestCat = categories.find(c => c.type === type || c.type === 'BOTH');
+        bestCat = categories.find(c => c.name === 'Extras') ||
+            categories.find(c => c.type === type || c.type === 'BOTH');
     }
 
     if (bestCat) { categoryId = bestCat.id; confidence += bestCatScore >= 50 ? 0.2 : 0.05; }
@@ -336,21 +391,19 @@ export const parseTranscription = (
     }
 
     confidence = Math.min(confidence, 1.0);
-    const needsClarification = amount === 0;
-    const question = needsClarification ? 'Qual o valor do lançamento?' : '';
 
     const result: ParsedTransaction = {
         type,
-        description: description || 'Novo Lançamento',
+        description: description || (type === 'EXPENSE' ? 'Compra' : 'Receita'),
         amount,
         date,
         categoryId,
         paymentMethodId,
         supplierId,
         observation: '',
-        confidence,
-        needsClarification,
-        question,
+        confidence: raw.split(/\s+/).length < 3 ? confidence + 0.2 : confidence, // Boost for short clear commands
+        needsClarification: amount === 0,
+        question: amount === 0 ? 'Qual o valor do lançamento?' : '',
     };
 
     console.log('[aiParser] Result:', result);
@@ -389,7 +442,7 @@ export const parseTranscriptionAsync = async (
                 description: aiResult.description,
                 amount: aiResult.amount,
                 date: format(new Date(), 'yyyy-MM-dd'),
-                categoryId: cat?.id || '',
+                categoryId: cat?.id || categories.find(c => c.name === 'Extras')?.id || '',
                 paymentMethodId: pay?.id || (paymentMethods.length > 0 ? paymentMethods[0].id : undefined),
                 supplierId: sup?.id,
                 confidence: aiResult.confidence,
