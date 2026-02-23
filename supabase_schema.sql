@@ -58,27 +58,34 @@ CREATE TABLE IF NOT EXISTS public.payment_methods (
 -- This handles migrations from older UUID versions of the schema.
 DO $$ 
 BEGIN
-  -- 1. Drop existing constraints to allow type changes
+  -- 1. Drop existing constraints to allow type and key changes
   ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_category_id_fkey;
   ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_payment_method_id_fkey;
   ALTER TABLE public.commitments DROP CONSTRAINT IF EXISTS commitments_category_id_fkey;
   ALTER TABLE public.commitments DROP CONSTRAINT IF EXISTS commitments_payment_method_id_fkey;
 
-  -- 2. Fix categories.id and its references
-  IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'id') = 'uuid' THEN
-    ALTER TABLE public.transactions ALTER COLUMN category_id TYPE TEXT USING category_id::text;
-    ALTER TABLE public.commitments ALTER COLUMN category_id TYPE TEXT USING category_id::text;
+  -- 2. Fix categories.id: convert to TEXT and update PRIMARY KEY to (id, user_id)
+  IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE table_name = 'categories' AND constraint_type = 'PRIMARY KEY') THEN
+    -- Check if it's already composite (simplified check: if it depends on multiple columns it's likely fine, but here we force the change if we're in migration)
+    ALTER TABLE public.categories DROP CONSTRAINT IF EXISTS categories_pkey;
     ALTER TABLE public.categories ALTER COLUMN id TYPE TEXT USING id::text;
+    ALTER TABLE public.categories ADD PRIMARY KEY (id, user_id);
   END IF;
 
-  -- 3. Fix payment_methods.id and its references
-  IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'payment_methods' AND column_name = 'id') = 'uuid' THEN
-    ALTER TABLE public.transactions ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
-    ALTER TABLE public.commitments ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
+  -- 3. Fix payment_methods.id: convert to TEXT and update PRIMARY KEY to (id, user_id)
+  IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE table_name = 'payment_methods' AND constraint_type = 'PRIMARY KEY') THEN
+    ALTER TABLE public.payment_methods DROP CONSTRAINT IF EXISTS payment_methods_pkey;
     ALTER TABLE public.payment_methods ALTER COLUMN id TYPE TEXT USING id::text;
+    ALTER TABLE public.payment_methods ADD PRIMARY KEY (id, user_id);
   END IF;
+
+  -- 4. Ensure Transactions/Commitments columns are TEXT
+  ALTER TABLE public.transactions ALTER COLUMN category_id TYPE TEXT USING category_id::text;
+  ALTER TABLE public.transactions ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
+  ALTER TABLE public.commitments ALTER COLUMN category_id TYPE TEXT USING category_id::text;
+  ALTER TABLE public.commitments ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
   
-  -- 4. Re-add constraints (now with matched types and composite keys for extra security)
+  -- 5. Re-add constraints (now with matched types and composite keys)
   ALTER TABLE public.transactions 
     ADD CONSTRAINT transactions_category_id_fkey FOREIGN KEY (category_id, user_id) REFERENCES public.categories(id, user_id) ON DELETE SET NULL;
   ALTER TABLE public.transactions 
