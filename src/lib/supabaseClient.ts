@@ -7,25 +7,30 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.error('SUPABASE CONFIG ERROR: VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não encontradas.');
 }
 
-// ── CUSTOM STORAGE: Cookie-based for "Logout on Browser Close" ──
-const CookieStorage = {
+// ── HYBRID STORAGE: localStorage for data + session cookie for lifecycle ──
+const HybridStorage = {
     getItem: (key: string) => {
-        const name = key + "=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1);
-            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+        // Check if the "session alive" cookie flag exists
+        const isSessionAlive = document.cookie.split(';').some((item) => item.trim().startsWith('fintrack_session_active='));
+
+        if (!isSessionAlive) {
+            // Browser was closed (cookie gone) -> Clear localStorage
+            localStorage.removeItem(key);
+            return null;
         }
-        return null;
+
+        return localStorage.getItem(key);
     },
     setItem: (key: string, value: string) => {
-        // No "Expires" makes it a session-only cookie
-        document.cookie = `${key}=${value}; path=/; SameSite=Lax`;
+        // 1. Set the data in localStorage (high capacity, persists on reload/tabs)
+        localStorage.setItem(key, value);
+
+        // 2. Set/Refresh a session-only cookie (no expires = cleared on browser close)
+        document.cookie = `fintrack_session_active=true; path=/; SameSite=Lax`;
     },
     removeItem: (key: string) => {
-        document.cookie = `${key}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax`;
+        localStorage.removeItem(key);
+        document.cookie = `fintrack_session_active=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax`;
     }
 };
 
@@ -40,7 +45,7 @@ export const supabase = createClient(
             autoRefreshToken: true,
             detectSessionInUrl: true,
             storageKey: 'fintrack_auth_session',
-            storage: CookieStorage as any
+            storage: HybridStorage as any
         }
     }
 );
