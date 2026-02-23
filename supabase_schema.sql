@@ -193,6 +193,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
+-- Authorization check function (Zero-Query via JWT)
+CREATE OR REPLACE FUNCTION public.check_is_authorized() 
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Master admin is always authorized
+  IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- Check JWT app_metadata
+  IF (auth.jwt() -> 'app_metadata' ->> 'is_authorized') = 'true' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- Fallback to DB
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND is_authorized = TRUE
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
 -- Cleanup existing policies
 DO $$ 
 DECLARE 
@@ -232,27 +254,6 @@ END $$;
 -- This ensures every user in auth.users has a record in public.user_profiles
 -- World-class approach: database triggers are more reliable than client-side sync.
 
--- Authorization check function (Zero-Query via JWT)
-CREATE OR REPLACE FUNCTION public.check_is_authorized() 
-RETURNS BOOLEAN AS $$
-BEGIN
-  -- Master admin is always authorized
-  IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
-    RETURN TRUE;
-  END IF;
-
-  -- Check JWT app_metadata
-  IF (auth.jwt() -> 'app_metadata' ->> 'is_authorized') = 'true' THEN
-    RETURN TRUE;
-  END IF;
-
-  -- Fallback to DB
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND is_authorized = TRUE
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
