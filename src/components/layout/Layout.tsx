@@ -7,7 +7,7 @@ import { clsx } from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { ViewModeBanner } from '../admin/ViewModeBanner';
 import { GlobalVoiceModal } from '../voice/GlobalVoiceModal';
-import { Logo } from './Logo';
+
 
 export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
@@ -63,7 +63,7 @@ export const Layout: React.FC = () => {
                     <button className="mob-prem-hamburger-btn" onClick={toggleMenu} aria-label="Abrir Menu">
                         <Menu size={24} strokeWidth={2.5} />
                     </button>
-                    <Logo size={32} />
+                    <img src="/icon.svg" alt="Finance+" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
                 </div>
 
                 <div className="mob-prem-header-right">
@@ -99,7 +99,7 @@ export const Layout: React.FC = () => {
             <div className={clsx("mob-prem-drawer-overlay", isMenuOpen && "active")} onClick={closeMenu}>
                 <aside className={clsx("mob-prem-drawer", isMenuOpen && "active")} onClick={e => e.stopPropagation()}>
                     <div className="mob-prem-drawer-header">
-                        <Logo size={28} />
+                        <img src="/icon.svg" alt="Finance+" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />
                         <button className="mob-prem-drawer-close" onClick={closeMenu}>
                             <X size={26} />
                         </button>
@@ -151,7 +151,13 @@ export const Layout: React.FC = () => {
             {/* Sidebar (DESKTOP) - DO NOT CHANGE STRUCTURE */}
             <aside className="sidebar bottom-nav">
                 <div className="sidebar-brand">
-                    <Logo size={48} />
+                    <img src="/icon.svg" alt="Finance+" className="sidebar-brand-icon" />
+                    <div className="sidebar-brand-text">
+                        <span className="sidebar-brand-name">
+                            FINANCE<span className="sidebar-brand-plus">+</span>
+                        </span>
+                        <span className="sidebar-brand-slogan">O jeito moderno de controlar gastos.</span>
+                    </div>
                 </div>
 
                 <div className="sidebar-header">
