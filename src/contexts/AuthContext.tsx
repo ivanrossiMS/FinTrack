@@ -23,8 +23,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isImpersonating, setIsImpersonating] = useState(false);
+    const fetchingLocks = React.useRef(new Set<string>());
     const authInitialized = React.useRef(false);
-    const currentFetchingUserId = React.useRef<string | null>(null);
 
     useEffect(() => {
         const initializeAuth = async () => {
@@ -37,30 +37,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const jwtMetadata = session.user.app_metadata;
                     const hasMetadata = jwtMetadata?.role && jwtMetadata?.is_authorized !== undefined;
 
-                    console.log('Vanta Auth Boot:', `User [${session.user.id}]`, hasMetadata ? '(Ready)' : '(Stale Token)');
+                    console.log('⚡ Vanta Boot Stage 1:', session.user.id, hasMetadata ? '(JWT Ready)' : '(JWT Stale)');
 
-                    // FORCED REFRESH: If token is stale (no metadata), refresh it to sync with RLS
                     if (!hasMetadata) {
-                        console.warn('🛡️ Vanta Refresh Shield: Stale token detected. Syncing permissions...');
-                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-
-                        if (!refreshError && refreshedSession) {
-                            console.log('🛡️ Vanta Refresh Shield: Permissions synchronized.');
-                            await fetchProfile(refreshedSession.user.id);
-                        } else {
-                            // Fallback to normal fetch if refresh fails
-                            await fetchProfile(session.user.id);
-                        }
+                        console.warn('🛡️ Vanta Shield: Refreshing session for metadata sync...');
+                        const { data: { session: refreshedSession } = {} } = await supabase.auth.refreshSession();
+                        await fetchProfile(refreshedSession?.user.id || session.user.id);
                     } else {
                         await fetchProfile(session.user.id);
                     }
                 } else {
-                    console.log('Vanta Auth Boot: Visitor');
+                    console.log('⚡ Vanta Boot: Visitor Mode');
                     setLoading(false);
                 }
                 authInitialized.current = true;
             } catch (err) {
-                console.error('Vanta Boot Error:', err);
+                console.error('⚡ Vanta Boot Error:', err);
                 setLoading(false);
                 authInitialized.current = true;
             }
@@ -69,25 +61,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         initializeAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`📡 Vanta Stream: ${event}`);
-
-            if (event === 'PASSWORD_RECOVERY') {
-                console.log('🗝️ Password Recovery Mode Activated');
-            }
+            console.log(`📡 Vanta Stream Event: ${event}`);
 
             if (session) {
-                // TERMINATE LOOP: Only fetch if session is new or metadata is missing
                 const jwtMetadata = session.user.app_metadata;
                 const hasMetadata = jwtMetadata?.role && jwtMetadata?.is_authorized !== undefined;
 
-                if (user && user.id === session.user.id && event !== 'PASSWORD_RECOVERY' && hasMetadata) return;
+                // Lock: If we already have the user data and token is ready, stop.
+                if (user && user.id === session.user.id && hasMetadata && event !== 'PASSWORD_RECOVERY') {
+                    setLoading(false);
+                    return;
+                }
 
                 await fetchProfile(session.user.id);
             } else {
                 setUser(null);
                 setIsImpersonating(false);
                 setLoading(false);
-                currentFetchingUserId.current = null;
+                fetchingLocks.current.clear();
             }
         });
 
@@ -95,28 +86,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [user?.id]);
 
     const fetchProfile = async (userId: string) => {
-        if (currentFetchingUserId.current === userId && user) {
-            const jwtMetadata = (await supabase.auth.getSession()).data.session?.user.app_metadata;
-            if (jwtMetadata?.role) {
-                setLoading(false);
-                return;
-            }
+        // NUCLEAR LOCK: Absolutely prevent parallel fetches for the same ID
+        if (fetchingLocks.current.has(userId)) {
+            console.log('🛡️ Vanta Lock: Parallel fetch blocked for', userId);
+            return;
         }
 
-        currentFetchingUserId.current = userId;
+        fetchingLocks.current.add(userId);
+
         const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
         let success = false;
 
-        const timeout = setTimeout(() => {
+        // Failsafe: Ensure UI always unlocks even if networking is totally broken
+        const failsafeTimeout = setTimeout(() => {
             if (!success) {
-                console.error('Profile fetch timed out. Forcing fallback.');
-                if (currentFetchingUserId.current === userId) {
-                    setLoading(false);
-                }
+                console.error('☢️ CRITICAL: Profile fetch stalled for 8s. Forcing UI Unlock.');
+                setLoading(false);
+                fetchingLocks.current.delete(userId);
             }
-        }, 6000);
+        }, 8000);
 
         try {
+            console.log('🚀 Vanta Fetch Start:', userId);
+
             for (let i = 2; i >= 0; i--) {
                 const { data: profile, error } = await supabase
                     .from('profiles')
@@ -127,40 +119,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (profile && !error) {
                     setUser(profile);
                     success = true;
+                    console.log('✅ Vanta Fetch Success:', userId);
                     break;
                 }
 
-                // If blocked by RLS (no profile returned but session exists), it's likely a stale token
                 if (i === 1) {
-                    console.warn('🛡️ Vanta Guard: Profile fetch rejected by RLS. Attempting emergency refresh...');
-                    const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
-                    if (refreshedSession) continue; // Try one last time with fresh token
+                    console.warn('🛡️ Vanta Shield: DB query failed/blocked. Attempting Token Refresh...');
+                    await supabase.auth.refreshSession();
                 }
 
-                if (i > 0) {
-                    await delay(1000);
-                }
+                if (i > 0) await delay(800);
             }
 
-            // Final Fallback if loop finishes without success
+            // High-Resolution Fallback
             if (!success) {
+                console.warn('🛡️ Vanta Fallback: DB inaccessible. Synthesizing Session State...');
                 const { data: { user: authUser } } = await supabase.auth.getUser();
                 if (authUser) {
                     setUser({
                         id: authUser.id,
                         email: authUser.email,
                         name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário',
-                        role: authUser.email === 'ivanrossi@outlook.com' ? 'ADMIN' : 'USER',
+                        role: authUser.email === 'ivanrossi@outlook.com' ? 'ADMIN' : (authUser.app_metadata?.role || 'USER'),
                         plan: 'FREE',
-                        is_authorized: true // Critical: Authorized in fallback ensure UI unlock
+                        is_authorized: true
                     });
+                    success = true;
                 }
             }
         } catch (err) {
-            console.error('Fatal error in fetchProfile:', err);
+            console.error('❌ Vanta Fetch Fatal:', err);
         } finally {
-            clearTimeout(timeout);
-            currentFetchingUserId.current = null;
+            clearTimeout(failsafeTimeout);
+            fetchingLocks.current.delete(userId);
             setLoading(false);
         }
     };

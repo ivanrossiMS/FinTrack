@@ -173,16 +173,19 @@ ALTER TABLE public.savings_goals ENABLE ROW LEVEL SECURITY;
 -- Admin check function (VANTA-BLACK OPTIMIZATION: JWT-Only, Zero-Query)
 CREATE OR REPLACE FUNCTION public.is_admin() 
 RETURNS BOOLEAN AS $$
+DECLARE
+  jwt_email TEXT;
+  jwt_role TEXT;
 BEGIN
-  -- 1. Hardcoded Fast-Path (Master Admin)
-  IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
-    RETURN TRUE;
-  END IF;
+  -- 1. Get JWT data ONCE
+  jwt_email := auth.jwt() ->> 'email';
+  jwt_role := auth.jwt() -> 'app_metadata' ->> 'role';
 
-  -- 2. JWT app_metadata Path (Absolute Performance - No DB query)
-  IF (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' THEN
-    RETURN TRUE;
-  END IF;
+  -- 2. Fast-Path master admin
+  IF jwt_email = 'ivanrossi@outlook.com' THEN RETURN TRUE; END IF;
+
+  -- 3. JWT app_metadata Path
+  IF jwt_role = 'ADMIN' THEN RETURN TRUE; END IF;
 
   RETURN FALSE;
 END;
@@ -191,16 +194,19 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 -- Authorization check function (VANTA-BLACK OPTIMIZATION: JWT-Only, Zero-Query)
 CREATE OR REPLACE FUNCTION public.check_is_authorized() 
 RETURNS BOOLEAN AS $$
+DECLARE
+  jwt_email TEXT;
+  jwt_auth TEXT;
 BEGIN
-  -- 1. Master Admin is always authorized
-  IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
-    RETURN TRUE;
-  END IF;
+  -- 1. Get JWT data ONCE
+  jwt_email := auth.jwt() ->> 'email';
+  jwt_auth := auth.jwt() -> 'app_metadata' ->> 'is_authorized';
 
-  -- 2. JWT app_metadata Path (Absolute Performance - No DB query)
-  IF (auth.jwt() -> 'app_metadata' ->> 'is_authorized')::BOOLEAN = TRUE THEN
-    RETURN TRUE;
-  END IF;
+  -- 2. Fast-Path master admin
+  IF jwt_email = 'ivanrossi@outlook.com' THEN RETURN TRUE; END IF;
+
+  -- 3. JWT app_metadata Path
+  IF jwt_auth = 'true' THEN RETURN TRUE; END IF;
 
   RETURN FALSE;
 END;
