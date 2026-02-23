@@ -44,11 +44,14 @@ const INITIAL_DATA: AppData = {
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [data, setData] = useState<AppData>(INITIAL_DATA);
     const [loading, setLoading] = useState(true);
 
     const loadData = useCallback(async () => {
+        // Wait for Auth to settle before making decisions
+        if (authLoading) return;
+
         if (!user) {
             setData(INITIAL_DATA);
             setLoading(false);

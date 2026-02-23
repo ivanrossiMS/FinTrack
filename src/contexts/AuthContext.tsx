@@ -23,119 +23,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isImpersonating, setIsImpersonating] = useState(false);
+
+    // Safety locks
     const fetchingLocks = React.useRef(new Set<string>());
     const authInitialized = React.useRef(false);
 
-    useEffect(() => {
-        const initializeAuth = async () => {
-            if (authInitialized.current) return;
-
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (session) {
-                    const jwtMetadata = session.user.app_metadata;
-                    const hasMetadata = jwtMetadata?.role && jwtMetadata?.is_authorized !== undefined;
-
-                    console.log('⚡ Vanta Boot Stage 1:', session.user.id, hasMetadata ? '(JWT Ready)' : '(JWT Stale)');
-
-                    if (!hasMetadata) {
-                        console.warn('🛡️ Vanta Shield: Refreshing session for metadata sync...');
-                        const { data: { session: refreshedSession } = {} } = await supabase.auth.refreshSession();
-                        await fetchProfile(refreshedSession?.user.id || session.user.id);
-                    } else {
-                        await fetchProfile(session.user.id);
-                    }
-                } else {
-                    console.log('⚡ Vanta Boot: Visitor Mode');
-                    setLoading(false);
-                }
-                authInitialized.current = true;
-            } catch (err) {
-                console.error('⚡ Vanta Boot Error:', err);
-                setLoading(false);
-                authInitialized.current = true;
-            }
-        };
-
-        initializeAuth();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`📡 Vanta Stream Event: ${event}`);
-
-            if (session) {
-                const jwtMetadata = session.user.app_metadata;
-                const hasMetadata = jwtMetadata?.role && jwtMetadata?.is_authorized !== undefined;
-
-                // Lock: If we already have the user data and token is ready, stop.
-                if (user && user.id === session.user.id && hasMetadata && event !== 'PASSWORD_RECOVERY') {
-                    setLoading(false);
-                    return;
-                }
-
-                await fetchProfile(session.user.id);
-            } else {
-                setUser(null);
-                setIsImpersonating(false);
-                setLoading(false);
-                fetchingLocks.current.clear();
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [user?.id]);
-
+    // Profile fetching with retry and timeout
     const fetchProfile = async (userId: string) => {
-        // NUCLEAR LOCK: Absolutely prevent parallel fetches for the same ID
-        if (fetchingLocks.current.has(userId)) {
-            console.log('🛡️ Vanta Lock: Parallel fetch blocked for', userId);
-            return;
-        }
-
+        if (fetchingLocks.current.has(userId)) return;
         fetchingLocks.current.add(userId);
 
-        const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+        const withTimeout = (promise: Promise<any>, ms: number) =>
+            Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
+            ]);
+
         let success = false;
-
-        // Failsafe: Ensure UI always unlocks even if networking is totally broken
-        const failsafeTimeout = setTimeout(() => {
-            if (!success) {
-                console.error('☢️ CRITICAL: Profile fetch stalled for 8s. Forcing UI Unlock.');
-                setLoading(false);
-                fetchingLocks.current.delete(userId);
-            }
-        }, 8000);
-
         try {
-            console.log('🚀 Vanta Fetch Start:', userId);
+            // Attempt Supabase query with 4s timeout
+            // @ts-ignore - PostgrestBuilder is Thenable
+            const { data: profile, error } = await withTimeout(
+                supabase.from('profiles').select('*').eq('id', userId).single() as any,
+                4000
+            );
 
-            for (let i = 2; i >= 0; i--) {
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
-
-                if (profile && !error) {
-                    setUser(profile);
-                    success = true;
-                    console.log('✅ Vanta Fetch Success:', userId);
-                    break;
-                }
-
-                if (i === 1) {
-                    console.warn('🛡️ Vanta Shield: DB query failed/blocked. Attempting Token Refresh...');
-                    await supabase.auth.refreshSession();
-                }
-
-                if (i > 0) await delay(800);
+            if (profile && !error) {
+                setUser(profile);
+                success = true;
+            } else if (error) {
+                console.warn('Profile fetch rejected:', error.message);
             }
+        } catch (err) {
+            console.error('Profile fetch timed out or failed');
+        }
 
-            // High-Resolution Fallback
-            if (!success) {
-                console.warn('🛡️ Vanta Fallback: DB inaccessible. Synthesizing Session State...');
+        // Fallback: If DB fetch fails but Auth session exists, synthesize user to prevent lock-out
+        if (!success) {
+            try {
                 const { data: { user: authUser } } = await supabase.auth.getUser();
-                if (authUser) {
+                if (authUser && authUser.id === userId) {
                     setUser({
                         id: authUser.id,
                         email: authUser.email,
@@ -144,45 +71,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         plan: 'FREE',
                         is_authorized: true
                     });
-                    success = true;
                 }
+            } catch (e) {
+                console.error('Fallback synthesis failed');
             }
-        } catch (err) {
-            console.error('❌ Vanta Fetch Fatal:', err);
-        } finally {
-            clearTimeout(failsafeTimeout);
-            fetchingLocks.current.delete(userId);
-            setLoading(false);
         }
+
+        fetchingLocks.current.delete(userId);
+        setLoading(false);
     };
 
-    const login = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
+    // Unified Auth Lifecycle
+    useEffect(() => {
+        const syncAuth = async () => {
+            if (authInitialized.current) return;
+
+            try {
+                // 1. Check current session
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (session) {
+                    await fetchProfile(session.user.id);
+                } else {
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('Auth sync failed:', err);
+                setLoading(false);
+            } finally {
+                authInitialized.current = true;
+            }
+        };
+
+        syncAuth();
+
+        // 2. Listen for changes (Login, Logout, Refresh, Multi-tab)
+        const { data: authData } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setIsImpersonating(false);
+                setLoading(false);
+                fetchingLocks.current.clear();
+                return;
+            }
+
+            if (session) {
+                // If we already have the same user and it's just a routine refresh, skip re-fetch
+                if (user && user.id === session.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
+                    setLoading(false);
+                    return;
+                }
+                await fetchProfile(session.user.id);
+            } else {
+                setUser(null);
+                setIsImpersonating(false);
+                setLoading(false);
+            }
         });
 
-        if (error) return { success: false, error: error.message };
-        return { success: true };
+        return () => authData.subscription.unsubscribe();
+    }, [user?.id]);
+
+    const login = async (email: string, password: string) => {
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) return { success: false, error: error.message };
+            return { success: true };
+        } catch (err: any) {
+            return { success: false, error: err.message };
+        }
     };
 
     const register = async (name: string, email: string, password: string) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
-            options: {
-                data: { name }
-            }
+            options: { data: { name } }
         });
 
         if (error) return { success: false, needsEmailAuth: false, error: error.message };
-
-        // If session exists immediate, they are logged in (auto-confirm)
-        // If not, they might need email verification
-        return {
-            success: true,
-            needsEmailAuth: !data.session
-        };
+        return { success: true, needsEmailAuth: !data.session };
     };
 
     const logout = async () => {
@@ -191,35 +159,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateUser = async (updates: any) => {
         if (!user) return;
-        const { error } = await supabase
-            .from('profiles')
-            .update(updates)
-            .eq('id', user.id);
-
-        if (error) {
-            console.error('Error updating profile:', error);
-            throw error;
-        }
-
-        // Fetch fresh data to ensure sync
+        const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+        if (error) throw error;
         await fetchProfile(user.id);
     };
 
     const adminUpdateUserInfo = async (targetUserId: string, updates: any) => {
-        const { error } = await supabase
-            .from('profiles')
-            .update(updates)
-            .eq('id', targetUserId);
-
+        const { error } = await supabase.from('profiles').update(updates).eq('id', targetUserId);
         if (error) throw error;
     };
 
     const impersonateUser = async (userId: string) => {
-        // Logic for impersonation with Supabase typically involves a custom claim or temporary token
-        // For this simple case, we'll store the target in session storage to "mimic" data fetching
         sessionStorage.setItem('fintrack_impersonated_id', userId);
         setIsImpersonating(true);
-        window.location.reload(); // Refresh to trigger data context reload with impersonated ID
+        window.location.reload();
     };
 
     const stopImpersonating = async () => {
@@ -233,6 +186,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) return { success: false, message: error.message };
         return { success: true, message: 'Senha alterada com sucesso!' };
     };
+
+    if (loading) {
+        return (
+            <div style={{
+                height: '100vh',
+                width: '100vw',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                background: '#0a0a0a',
+                color: 'white'
+            }}>
+                <div className="vanta-loader" style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid #333',
+                    borderTop: '3px solid #22c55e',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }} />
+                <style>{`
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                `}</style>
+            </div>
+        );
+    }
 
     return (
         <AuthContext.Provider value={{

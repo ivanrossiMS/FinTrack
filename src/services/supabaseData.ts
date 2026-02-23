@@ -3,41 +3,63 @@ import { Category, Transaction, PaymentMethod, Commitment, SavingsGoal, Supplier
 import { DEFAULT_CATEGORIES, DEFAULT_METHODS } from '../constants/defaults';
 
 export const SupabaseDataService = {
+    // ─── INSTRUMENTATION UTILS ───
+    async _wrap<T>(operation: string, promise: Promise<{ data: T | null; error: any }>): Promise<T | null> {
+        console.group(`🌐 [NETWORK] ${operation}`);
+        try {
+            const { data, error } = await promise;
+            if (error) {
+                console.error(`❌ [${operation}] Failed:`, {
+                    status: error.status || 'Unknown',
+                    code: error.code,
+                    message: error.message,
+                    details: error.details
+                });
+                if (error.status === 401 || error.status === 403) {
+                    console.warn(`🛑 [${operation}] AUTH REJECTION! Token might be invalid/expired.`);
+                }
+                return null;
+            }
+            console.log(`✅ [${operation}] Success! Data size:`, Array.isArray(data) ? data.length : 'Object');
+            return data;
+        } finally {
+            console.groupEnd();
+        }
+    },
+
     // ─── USER PROFILES ───
     async getProfile(userId: string): Promise<UserProfile | null> {
-        const { data, error } = await supabase
+        const data = await this._wrap('getProfile', supabase
             .from('profiles')
             .select('*')
             .eq('id', userId)
-            .single();
-
-        if (error) {
-            console.error('Error fetching profile:', error);
-            return null;
-        }
-        return data as UserProfile;
+            .single());
+        return data as UserProfile | null;
     },
 
     async updateProfile(userId: string, profile: Partial<UserProfile>) {
+        console.log(`📝 [SERVICE] updateProfile for ${userId}`);
         const { error } = await supabase
             .from('profiles')
             .update(profile)
             .eq('id', userId);
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ [updateProfile] Error:', error.message);
+            throw error;
+        }
     },
 
     async getAllProfiles(): Promise<UserProfile[]> {
-        const { data, error } = await supabase
+        const data = await this._wrap('getAllProfiles', supabase
             .from('profiles')
             .select('*')
-            .order('name');
-
-        if (error) throw error;
-        return data || [];
+            .order('name'));
+        return (data as UserProfile[]) || [];
     },
 
     async deleteProfile(userId: string) {
+        console.log(`🚮 [SERVICE] deleteProfile: ${userId}`);
         const { error } = await supabase
             .from('profiles')
             .delete()
@@ -51,10 +73,10 @@ export const SupabaseDataService = {
         let query = supabase.from('categories').select('*');
         if (userId) query = query.eq('user_id', userId);
 
-        const { data, error } = await query.order('name');
-        if (error) throw error;
+        const data = await this._wrap('getCategories', query.order('name'));
+        if (!data) return [];
 
-        return (data || []).map(item => ({
+        return (data as any[]).map(item => ({
             id: item.id,
             name: item.name,
             type: item.type,
@@ -65,6 +87,7 @@ export const SupabaseDataService = {
     },
 
     async upsertCategory(category: any) {
+        console.log('📝 [SERVICE] upsertCategory');
         const { error, data } = await supabase
             .from('categories')
             .upsert({
@@ -78,11 +101,15 @@ export const SupabaseDataService = {
             })
             .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ [upsertCategory] Error:', error.message);
+            throw error;
+        }
         return { data };
     },
 
     async deleteCategory(id: string) {
+        console.log(`🚮 [SERVICE] deleteCategory: ${id}`);
         const { error } = await supabase
             .from('categories')
             .delete()
@@ -96,12 +123,12 @@ export const SupabaseDataService = {
         let query = supabase.from('suppliers').select('*');
         if (userId) query = query.eq('user_id', userId);
 
-        const { data, error } = await query.order('name');
-        if (error) throw error;
-        return data || [];
+        const data = await this._wrap('getSuppliers', query.order('name'));
+        return (data as Supplier[]) || [];
     },
 
     async upsertSupplier(supplier: any) {
+        console.log('📝 [SERVICE] upsertSupplier');
         const { error, data } = await supabase
             .from('suppliers')
             .upsert({
@@ -131,10 +158,10 @@ export const SupabaseDataService = {
         let query = supabase.from('payment_methods').select('*');
         if (userId) query = query.eq('user_id', userId);
 
-        const { data, error } = await query.order('name');
-        if (error) throw error;
+        const data = await this._wrap('getPaymentMethods', query.order('name'));
+        if (!data) return [];
 
-        return (data || []).map(item => ({
+        return (data as any[]).map(item => ({
             id: item.id,
             name: item.name,
             color: item.color,
@@ -172,10 +199,10 @@ export const SupabaseDataService = {
         let query = supabase.from('transactions').select('*');
         if (userId) query = query.eq('user_id', userId);
 
-        const { data, error } = await query.order('date', { ascending: false });
-        if (error) throw error;
+        const data = await this._wrap('getTransactions', query.order('date', { ascending: false }));
+        if (!data) return [];
 
-        return (data || []).map(item => ({
+        return (data as any[]).map(item => ({
             id: item.id,
             type: item.type,
             date: item.date,
@@ -195,6 +222,7 @@ export const SupabaseDataService = {
     },
 
     async upsertTransaction(transaction: any) {
+        console.log('📝 [SERVICE] upsertTransaction');
         const { error } = await supabase
             .from('transactions')
             .upsert({
@@ -214,7 +242,10 @@ export const SupabaseDataService = {
                 user_id: transaction.user_id
             });
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ [upsertTransaction] Error:', error.message);
+            throw error;
+        }
     },
 
     async deleteTransaction(id: string) {
@@ -231,10 +262,10 @@ export const SupabaseDataService = {
         let query = supabase.from('commitments').select('*');
         if (userId) query = query.eq('user_id', userId);
 
-        const { data, error } = await query.order('due_date');
-        if (error) throw error;
+        const data = await this._wrap('getCommitments', query.order('due_date'));
+        if (!data) return [];
 
-        return (data || []).map(item => ({
+        return (data as any[]).map(item => ({
             id: item.id,
             description: item.description,
             dueDate: item.due_date,
@@ -290,10 +321,10 @@ export const SupabaseDataService = {
         let query = supabase.from('savings_goals').select('*');
         if (userId) query = query.eq('user_id', userId);
 
-        const { data, error } = await query.order('target_date');
-        if (error) throw error;
+        const data = await this._wrap('getSavingsGoals', query.order('target_date'));
+        if (!data) return [];
 
-        return (data || []).map(item => ({
+        return (data as any[]).map(item => ({
             id: item.id,
             description: item.description,
             targetAmount: item.target_amount,
@@ -338,6 +369,7 @@ export const SupabaseDataService = {
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `${userId}/${fileName}`;
 
+        console.log(`📡 [STORAGE] Uploading avatar to ${filePath}`);
         const { error: uploadError } = await supabase.storage
             .from('avatars')
             .upload(filePath, file);
@@ -353,7 +385,7 @@ export const SupabaseDataService = {
 
     // ─── UTILS / MAINTENANCE ───
     async resetUserData(userId: string) {
-        // RLS will handle security, but we explicitly delete from all tables
+        console.log(`🚮 [SERVICE] Resetting data for user: ${userId}`);
         const tables = ['transactions', 'commitments', 'savings_goals', 'suppliers', 'categories', 'payment_methods'];
         for (const table of tables) {
             const { error } = await supabase.from(table).delete().eq('user_id', userId);
@@ -363,10 +395,8 @@ export const SupabaseDataService = {
 
     async seedDemoData(userId: string) {
         try {
-            // 1. First reset
             await this.resetUserData(userId);
 
-            // 2. Inject Defaults (Categories & Methods)
             const { error: catErr } = await supabase.from('categories').insert(
                 DEFAULT_CATEGORIES.map(c => ({
                     id: c.id,
@@ -389,12 +419,8 @@ export const SupabaseDataService = {
                 }))
             );
 
-            if (catErr || pmErr) {
-                console.error('Seeding error details:', { catErr, pmErr });
-                throw new Error('Falha ao injetar padrões fundamentais.');
-            }
+            if (catErr || pmErr) throw new Error('Falha ao injetar padrões fundamentais.');
 
-            // 3. Inject mock suppliers
             const mockSuppliers = [
                 { user_id: userId, name: 'Supermercado Elite', contact: 'contato@elite.com' },
                 { user_id: userId, name: 'Energia S.A.', contact: 'financeiro@energia.com' },
@@ -403,7 +429,6 @@ export const SupabaseDataService = {
             const { data: sups, error: supErr } = await supabase.from('suppliers').insert(mockSuppliers).select();
             if (supErr) throw supErr;
 
-            // 4. Inject mock transactions
             const now = new Date();
             const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
@@ -411,15 +436,14 @@ export const SupabaseDataService = {
                 { type: 'INCOME', amount: 8500, description: 'Salário de Consultoria', date: now.toISOString(), category_id: 'cat_salario', payment_method_id: 'pm_pix', user_id: userId },
                 { type: 'INCOME', amount: 1200, description: 'Dividendos Investimentos', date: now.toISOString(), category_id: 'cat_rendimentos', payment_method_id: 'pm_credito', user_id: userId },
                 { type: 'EXPENSE', amount: 2450, description: 'Aluguel Loft', date: lastMonth.toISOString(), category_id: 'cat_contas_casa', payment_method_id: 'pm_pix', user_id: userId },
-                { type: 'EXPENSE', amount: 840, description: 'Compras do Mês', date: now.toISOString(), category_id: 'cat_mercado', payment_method_id: 'pm_debito', user_id: userId, supplier_id: sups?.[0]?.id },
-                { type: 'EXPENSE', amount: 180, description: 'Internet e TV', date: now.toISOString(), category_id: 'cat_assinaturas', payment_method_id: 'pm_credito', user_id: userId, supplier_id: sups?.[2]?.id },
+                { type: 'EXPENSE', amount: 840, description: 'Compras do Mês', date: now.toISOString(), category_id: 'cat_mercado', payment_method_id: 'pm_debito', user_id: userId, supplier_id: (sups as any)?.[0]?.id },
+                { type: 'EXPENSE', amount: 180, description: 'Internet e TV', date: now.toISOString(), category_id: 'cat_assinaturas', payment_method_id: 'pm_credito', user_id: userId, supplier_id: (sups as any)?.[2]?.id },
                 { type: 'EXPENSE', amount: 450, description: 'Jantar Romântico', date: now.toISOString(), category_id: 'cat_lazer', payment_method_id: 'pm_credito', user_id: userId }
             ];
 
             const { error: txErr } = await supabase.from('transactions').insert(mockTransactions);
             if (txErr) throw txErr;
 
-            // 5. Inject a savings goal
             await supabase.from('savings_goals').insert({
                 user_id: userId,
                 description: 'Viagem para Maldivas',
@@ -436,11 +460,9 @@ export const SupabaseDataService = {
         }
     },
 
-    // ─── AUTH SYNC ───
     async syncUserToProfile(user: any) {
         if (!user) return;
 
-        // 1. Ensure Profile exists
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
@@ -464,7 +486,6 @@ export const SupabaseDataService = {
             }
         }
 
-        // 2. Check and Seed Categories if 0 exist
         const { count: catCount } = await supabase
             .from('categories')
             .select('*', { count: 'exact', head: true })
@@ -485,7 +506,6 @@ export const SupabaseDataService = {
             if (catError) console.error('Error seeding categories:', catError);
         }
 
-        // 3. Check and Seed Payment Methods if 0 exist
         const { count: pmCount } = await supabase
             .from('payment_methods')
             .select('*', { count: 'exact', head: true })
