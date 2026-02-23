@@ -341,7 +341,7 @@
 }
 
 .rep-cm-grid {
-    grid-template-columns: 70px 1.2fr 50px 100px 110px !important;
+    grid-template-columns: 70px 1.2fr 100px 110px !important;
 }
 
 .rep-grid-row:hover {

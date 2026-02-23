@@ -348,7 +348,6 @@ export const Reports: React.FC = () => {
                         <div className="rep-grid-header rep-cm-grid">
                             <span className="rep-col-h">Data</span>
                             <span className="rep-col-h">Compromisso</span>
-                            <span className="rep-col-h">Supl.</span>
                             <span className="rep-col-h">Status</span>
                             <span className="rep-col-h" style={{ textAlign: 'right' }}>Valor</span>
                         </div>
@@ -368,11 +367,6 @@ export const Reports: React.FC = () => {
                                                 <div className="rep-desc-content">
                                                     <span className="rep-main-text">{cm.description}</span>
                                                     <span className="rep-sub-text">{sup?.name || 'Sem Fornecedor'}</span>
-                                                </div>
-                                            </div>
-                                            <div className="rep-col-supl">
-                                                <div className="rep-supplier-avatar">
-                                                    {sup?.name?.charAt(0) || '?'}
                                                 </div>
                                             </div>
                                             <div className="rep-col-status">{getStatusBadge(cm)}</div>

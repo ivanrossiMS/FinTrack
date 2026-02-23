@@ -24,6 +24,15 @@ export interface FinancialContext {
     currency?: string;
 }
 
+export interface InvestmentRecommendation {
+    category: string;
+    title: string;
+    description: string;
+    allocation: string; // e.g. "40%"
+    products: string[];
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
 export async function askGemini(
     question: string,
     financialContext?: FinancialContext
@@ -179,6 +188,61 @@ Retorne APENAS o JSON.`;
     } catch (err) {
         console.error('[geminiAI] AI Parse Error:', err);
         return null;
+    }
+}
+
+export async function getInvestmentRecommendations(
+    availableCapital: number
+): Promise<InvestmentRecommendation[]> {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+    if (!apiKey) return [];
+
+    const prompt = `Atue como um Engenheiro de Machine Learning e Consultor Quantitativo de Elite. 
+    Com base em um capital disponível de R$ ${availableCapital.toFixed(2)}, gere uma estratégia de alocação de investimentos diversificada.
+    
+    ### Regras de Negócio:
+    1. Se o valor for baixo (< R$ 1.000), foque 100% em Reserva de Emergência.
+    2. Se o valor for médio (R$ 1.000 a R$ 10.000), sugira 70% Pós-fixado e 30% Inflação ou Multimercado.
+    3. Se o valor for alto (> R$ 10.000), sugira uma carteira completa: Renda Fixa, FIIs e uma pequena parcela em Renda Variável/Cripto.
+
+    Retorne APENAS um JSON Array seguindo este formato de exemplo:
+    [
+      {
+        "category": "Conservador",
+        "title": "Reserva de Emergência",
+        "description": "Foco total em liquidez diária e segurança para cobrir imprevistos.",
+        "allocation": "60%",
+        "products": ["Tesouro Selic", "CDB 100% CDI", "Fundo DI"],
+        "riskLevel": "LOW"
+      }
+    ]
+    
+    Gere 3 ou 4 cards de recomendações.`;
+
+    try {
+        const response = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.2,
+                    maxOutputTokens: 1000,
+                    responseMimeType: "application/json"
+                }
+            })
+        });
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!jsonText) return [];
+
+        return JSON.parse(jsonText);
+    } catch (err) {
+        console.error('[geminiAI] Recommendation Error:', err);
+        return [];
     }
 }
 

@@ -269,6 +269,161 @@
     line-height: 1.5;
 }
 
+@keyframes pulse-emerald {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.inv-ai-rec-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.inv-ai-rec-card:hover {
+    transform: translateX(8px);
+    border-color: #10b981 !important;
+    background: #f0fdf4 !important;
+}
+
+.inv-rec-allocation {
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: #10b981;
+    background: #ecfdf5;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+}
+
+.inv-rec-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.inv-product-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.inv-loading-box {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    background: #f8fafc;
+    border-radius: 24px;
+    gap: 1rem;
+    color: #64748b;
+    font-weight: 600;
+    border: 2px dashed #e2e8f0;
+}
+
+/* Currency Card Styles */
+.inv-currency-card {
+    background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
+    border-radius: 24px !important;
+    padding: 1.5rem !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+.inv-currency-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.inv-currency-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+}
+
+.inv-currency-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.inv-currency-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inv-curr-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.inv-curr-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #334155;
+}
+
+.inv-curr-code {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+}
+
+.inv-curr-name {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin: 0;
+    font-weight: 500;
+}
+
+.inv-curr-value {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 900;
+    color: #0f172a;
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
+}
+
+.inv-tier-icon.low {
+    background: #f0fdf4;
+    color: #10b981;
+}
+
+.inv-tier-icon.medium {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.inv-tier-icon.high {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
 @media (max-width: 768px) {
     .inv-ai-card {
         padding: 1.5rem;
