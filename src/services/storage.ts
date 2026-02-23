@@ -80,6 +80,17 @@ export const StorageService = {
                 supabase.from('savings_goals').select('*').eq('user_id', userId)
             ]);
 
+            // Sort categories: Income first, then Expense, then Alphabetically
+            const sortedCategories = (categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES)
+                .sort((a, b) => {
+                    if (a.type !== b.type) return a.type === 'INCOME' ? -1 : 1;
+                    return a.name.localeCompare(b.name);
+                });
+
+            // Sort payment methods alphabetically
+            const sortedMethods = (methods && methods.length > 0 ? methods : DEFAULT_METHODS)
+                .sort((a, b) => a.name.localeCompare(b.name));
+
             return {
                 transactions: (transactions || []).map(t => ({
                     ...t,
@@ -87,9 +98,9 @@ export const StorageService = {
                     paymentMethodId: t.payment_method_id,
                     supplierId: t.supplier_id
                 })),
-                categories: categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES,
+                categories: sortedCategories,
                 suppliers: suppliers || [],
-                paymentMethods: methods && methods.length > 0 ? methods : DEFAULT_METHODS,
+                paymentMethods: sortedMethods,
                 budgets: [],
                 commitments: (commitments || []).map(c => ({
                     ...c,

@@ -96,22 +96,16 @@ export const Profile: React.FC = () => {
         }
     };
 
-    const handleSaveAvatar = () => {
-        if (user && updateUser) {
-            updateUser({ ...user, avatar });
-        }
-        updateProfile({ name, email, phone, profession, avatar });
+    const handleSaveAvatar = async () => {
+        await updateProfile({ name, email, phone, profession, avatar });
         setAvatarDirty(false);
         alert('Imagem salva com sucesso!');
     };
 
-    const handleProfileSubmit = (e: React.FormEvent) => {
+    const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setAvatarDirty(false);
-        if (user && updateUser) {
-            updateUser({ ...user, name, phone, profession, avatar });
-        }
-        updateProfile({ name, email, phone, profession, avatar });
+        await updateProfile({ name, email, phone, profession, avatar });
         alert('Perfil atualizado com sucesso!');
     };
 

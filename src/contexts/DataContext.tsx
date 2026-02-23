@@ -34,7 +34,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [data, setData] = useState<AppData>({
         transactions: [],
         categories: [],
@@ -158,6 +158,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const deleteCategory = async (id: string) => {
+        const cat = data.categories.find(c => c.id === id);
+        if (cat?.isDefault) {
+            console.warn('DataContext: Negação de exclusão de categoria de sistema.');
+            return;
+        }
         await StorageService.deleteCategory(id);
         refresh();
     };
@@ -203,12 +208,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const deletePaymentMethod = async (id: string) => {
+        const method = data.paymentMethods.find(m => m.id === id);
+        if (!method) return;
+        // Default methods start with pm_ or should have an isDefault flag if we add it, 
+        if (id.startsWith('pm_')) {
+            console.warn('DataContext: Negação de exclusão de método de sistema.');
+            return;
+        }
         await StorageService.deletePaymentMethod(id);
         refresh();
     };
 
     const updateProfile = async (profile: UserProfile) => {
-        setData(prev => ({ ...prev, userProfile: profile }));
+        if (!user?.id) return;
+        try {
+            await updateUser(profile);
+            setData(prev => ({ ...prev, userProfile: profile }));
+            await refresh();
+        } catch (err) {
+            console.error('DataContext: Failed to update profile:', err);
+        }
     };
 
     const addCommitment = async (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {

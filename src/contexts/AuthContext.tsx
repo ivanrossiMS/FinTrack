@@ -61,10 +61,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     if (session?.user) {
                         setIsAuthenticated(true);
+                        const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
                         setUser((prev: any) => prev || {
                             id: session.user.id,
                             email: session.user.email,
-                            name: session.user.user_metadata?.name || 'Usuário'
+                            name: session.user.user_metadata?.name || 'Usuário',
+                            isAdmin: isMaster,
+                            isAuthorized: isMaster
                         });
 
                         // Sync Profile em background com Auto-Heal
@@ -73,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 if (isMounted) {
                                     if (!pError && profile) {
                                         console.log('Auth: Profile sincronizado.');
-                                        const isMaster = session.user.email?.toLowerCase() === 'ivanrossi@outlook.com';
+                                        const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
                                         const finalUser = {
                                             id: session.user.id,
                                             name: profile.name,
@@ -81,20 +84,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                             avatar: profile.avatar,
                                             isAdmin: isMaster || profile.is_admin,
                                             isAuthorized: isMaster || profile.is_authorized,
-                                            plan: profile.plan || 'FREE'
+                                            plan: isMaster ? 'PREMIUM' : (profile.plan || 'FREE')
                                         };
                                         setUser(finalUser);
                                     } else if (pError && pError.code === 'PGRST116') {
                                         // Auto-Heal: Perfil não existe no DB, vamos criar agora
                                         console.warn('Auth: [AUTO-HEAL] Criando perfil inexistente...');
-                                        const isMaster = session.user.email?.toLowerCase() === 'ivanrossi@outlook.com';
+                                        const isMaster = session.user.email?.trim().toLowerCase() === 'ivanrossi@outlook.com';
                                         const newProfile = {
                                             id: session.user.id,
                                             name: session.user.user_metadata?.name || 'Usuário',
-                                            email: session.user.email?.toLowerCase() || '',
+                                            email: session.user.email?.toLowerCase().trim() || '',
                                             is_admin: isMaster,
-                                            is_authorized: isMaster,
-                                            plan: 'FREE'
+                                            is_authorized: isMaster || true,
+                                            plan: isMaster ? 'PREMIUM' : 'FREE'
                                         };
 
                                         const { error: iError } = await supabase.from('user_profiles').upsert([newProfile]);
