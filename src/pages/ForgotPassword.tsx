@@ -9,26 +9,21 @@ import { KeyRound, ArrowLeft } from 'lucide-react';
 export const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState('');
     const [step, setStep] = useState<1 | 2>(1);
-    const [code, setCode] = useState('');
-    const [newPassword, setNewPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSendCode = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/reset-password`,
         });
 
+        setLoading(false);
         if (error) {
             alert(`Erro: ${error.message}`);
         } else {
-            alert(`Instruções de recuperação enviadas para ${email}. Verifique sua caixa de entrada.`);
             setStep(2);
         }
-    };
-
-    const handleReset = (e: React.FormEvent) => {
-        e.preventDefault();
-        alert('Para sua segurança, use o link enviado ao seu e-mail para definir uma nova senha.');
     };
 
     return (
@@ -64,7 +59,9 @@ export const ForgotPassword: React.FC = () => {
                     </div>
                     <h1 className="text-lg font-bold">Recuperar Senha</h1>
                     <p style={{ color: 'var(--color-text-muted)' }}>
-                        {step === 1 ? 'Informe seu e-mail para continuar' : 'Crie uma nova senha'}
+                        {step === 1
+                            ? 'Informe seu e-mail para receber o link de recuperação'
+                            : 'Verifique sua caixa de entrada'}
                     </p>
                 </div>
 
@@ -73,30 +70,25 @@ export const ForgotPassword: React.FC = () => {
                         <Input
                             type="email"
                             label="E-mail"
+                            placeholder="seu@email.com"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             required
                         />
-                        <Button type="submit" fullWidth>Enviar Código</Button>
+                        <Button type="submit" fullWidth disabled={loading}>
+                            {loading ? 'Enviando...' : 'Enviar Link de Recuperação'}
+                        </Button>
                     </form>
                 ) : (
-                    <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <Input
-                            label="Código de Verificação"
-                            value={code}
-                            onChange={e => setCode(e.target.value)}
-                            placeholder="1234"
-                            required
-                        />
-                        <Input
-                            type="password"
-                            label="Nova Senha"
-                            value={newPassword}
-                            onChange={e => setNewPassword(e.target.value)}
-                            required
-                        />
-                        <Button type="submit" fullWidth>Alterar Senha</Button>
-                    </form>
+                    <div style={{ textAlign: 'center' }}>
+                        <p style={{ marginBottom: '2rem', fontSize: '0.9375rem', lineHeight: '1.5' }}>
+                            Enviamos as instruções para <strong>{email}</strong>.<br />
+                            Clique no link enviado para definir sua nova senha.
+                        </p>
+                        <Link to="/login" style={{ width: '100%' }}>
+                            <Button fullWidth variant="secondary">Voltar para Login</Button>
+                        </Link>
+                    </div>
                 )}
 
                 <div className="text-center mt-6">
