@@ -291,25 +291,27 @@ export const Reports: React.FC = () => {
                                             <span className="day">{new Date(tx.date).getDate()}</span>
                                             <span className="month">{formatDate(tx.date).split('/')[1]}</span>
                                         </div>
-                                        <div className="rep-col-desc" title={tx.description}>
-                                            <div className="rep-desc-content">
-                                                <span className="rep-main-text">{tx.description}</span>
-                                                <span className="rep-sub-text">{tx.paymentMethodId || '—'}</span>
+                                        <div className="rep-col-info">
+                                            <div className="rep-col-desc" title={tx.description}>
+                                                <div className="rep-desc-content">
+                                                    <span className="rep-main-text">{tx.description}</span>
+                                                    <span className="rep-sub-text">{tx.paymentMethodId || '—'}</span>
+                                                </div>
+                                                {tx.isFixed && <span className="rep-fixed-tag">Fixa</span>}
                                             </div>
-                                            {tx.isFixed && <span className="rep-fixed-tag">Fixa</span>}
-                                        </div>
-                                        <div className="rep-col-cat">
-                                            <span
-                                                className="rep-badge-pill"
-                                                style={{
-                                                    backgroundColor: (cat?.color || '#94a3b8') + '12',
-                                                    color: cat?.color || '#64748b',
-                                                    border: `1px solid ${cat?.color}25`
-                                                }}
-                                            >
-                                                <div className="dot" style={{ backgroundColor: cat?.color }} />
-                                                {cat?.name || 'Geral'}
-                                            </span>
+                                            <div className="rep-col-cat">
+                                                <span
+                                                    className="rep-badge-pill"
+                                                    style={{
+                                                        backgroundColor: (cat?.color || '#94a3b8') + '12',
+                                                        color: cat?.color || '#64748b',
+                                                        border: `1px solid ${cat?.color}25`
+                                                    }}
+                                                >
+                                                    <div className="dot" style={{ backgroundColor: cat?.color }} />
+                                                    {cat?.name || 'Geral'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className={`rep-col-val ${isExpense ? 'expense' : 'income'}`}>
                                             <span className="symbol">{isExpense ? '−' : '+'}</span>
@@ -363,13 +365,15 @@ export const Reports: React.FC = () => {
                                                 <span className="day">{new Date(cm.dueDate).getDate()}</span>
                                                 <span className="month">{formatDate(cm.dueDate).split('/')[1]}</span>
                                             </div>
-                                            <div className="rep-col-desc">
-                                                <div className="rep-desc-content">
-                                                    <span className="rep-main-text">{cm.description}</span>
-                                                    <span className="rep-sub-text">{sup?.name || 'Sem Fornecedor'}</span>
+                                            <div className="rep-col-info">
+                                                <div className="rep-col-desc">
+                                                    <div className="rep-desc-content">
+                                                        <span className="rep-main-text">{cm.description}</span>
+                                                        <span className="rep-sub-text">{sup?.name || 'Sem Fornecedor'}</span>
+                                                    </div>
                                                 </div>
+                                                <div className="rep-col-status">{getStatusBadge(cm)}</div>
                                             </div>
-                                            <div className="rep-col-status">{getStatusBadge(cm)}</div>
                                             <div className="rep-col-val expense">
                                                 {formatCurrency(cm.amount).replace('R$', '').trim()}
                                             </div>
