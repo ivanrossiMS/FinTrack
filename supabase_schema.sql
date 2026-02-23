@@ -162,15 +162,63 @@ END $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
+  -- 1. Create Profile
   INSERT INTO public.profiles (id, name, email, role, is_authorized)
   VALUES (
     NEW.id, 
     COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1), 'Usuário'), 
     NEW.email,
     CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END,
-    TRUE -- Always authorize initial admin, others follow default
+    TRUE
   )
   ON CONFLICT (id) DO NOTHING;
+
+  -- 2. Seed Default Categories
+  INSERT INTO public.categories (id, user_id, name, type, color, icon, is_default)
+  VALUES
+    ('cat_contas_casa', NEW.id, 'Contas', 'EXPENSE', '#6366f1', 'Home', true),
+    ('cat_impostos', NEW.id, 'Impostos & Taxas', 'EXPENSE', '#64748b', 'FileText', true),
+    ('cat_seguros', NEW.id, 'Seguros', 'EXPENSE', '#475569', 'Shield', true),
+    ('cat_dividas', NEW.id, 'Dívidas & Empréstimos', 'EXPENSE', '#ef4444', 'TrendingDown', true),
+    ('cat_cartao', NEW.id, 'Cartão de Crédito', 'EXPENSE', '#f43f5e', 'CreditCard', true),
+    ('cat_mercado', NEW.id, 'Compras / Mercado Extra', 'EXPENSE', '#10b981', 'ShoppingBag', true),
+    ('cat_vestuario', NEW.id, 'Vestuário', 'EXPENSE', '#ec4899', 'Shirt', true),
+    ('cat_beleza', NEW.id, 'Beleza & Autocuidado', 'EXPENSE', '#f472b6', 'Sparkles', true),
+    ('cat_casa_manut', NEW.id, 'Casa & Manutenção', 'EXPENSE', '#06b6d4', 'Hammer', true),
+    ('cat_tecnologia', NEW.id, 'Tecnologia', 'EXPENSE', '#3b82f6', 'Cpu', true),
+    ('cat_viagens', NEW.id, 'Viagens', 'EXPENSE', '#8b5cf6', 'Plane', true),
+    ('cat_presentes', NEW.id, 'Presentes & Doações', 'EXPENSE', '#d946ef', 'Gift', true),
+    ('cat_assinaturas', NEW.id, 'Assinaturas', 'EXPENSE', '#0ea5e9', 'RefreshCw', true),
+    ('cat_educacao', NEW.id, 'Educação & Livros', 'EXPENSE', '#f59e0b', 'BookOpen', true),
+    ('cat_pets', NEW.id, 'Pets & Cuidado', 'EXPENSE', '#14b8a6', 'Dog', true),
+    ('cat_transporte', NEW.id, 'Transporte / Veículos', 'EXPENSE', '#f97316', 'Car', true),
+    ('cat_alimentacao', NEW.id, 'Alimentação', 'EXPENSE', '#fb7185', 'Utensils', true),
+    ('cat_lazer', NEW.id, 'Lazer', 'EXPENSE', '#a855f7', 'Gamepad2', true),
+    ('cat_saude', NEW.id, 'Saúde', 'EXPENSE', '#f43f5e', 'Activity', true),
+    ('cat_investimentos', NEW.id, 'Investimentos', 'EXPENSE', '#06b6d4', 'TrendingUp', true),
+    ('cat_extras', NEW.id, 'Extras', 'EXPENSE', '#94a3b8', 'MoreHorizontal', true),
+    ('cat_salario', NEW.id, 'Salário', 'INCOME', '#22c55e', 'Wallet', true),
+    ('cat_bonus', NEW.id, 'Bônus / 13º', 'INCOME', '#16a34a', 'Coins', true),
+    ('cat_comissoes', NEW.id, 'Comissões', 'INCOME', '#10b981', 'Percentage', true),
+    ('cat_aluguel', NEW.id, 'Renda de Aluguel', 'INCOME', '#0d9488', 'Key', true),
+    ('cat_rendimentos', NEW.id, 'Rendimentos', 'INCOME', '#06b6d4', 'TrendingUp', true),
+    ('cat_reembolsos', NEW.id, 'Reembolsos', 'INCOME', '#38bdf8', 'ArrowLeftRight', true),
+    ('cat_restituicao', NEW.id, 'Restituição / Devoluções', 'INCOME', '#4ade80', 'Undo2', true),
+    ('cat_premios', NEW.id, 'Prêmios / Sorteios', 'INCOME', '#fbbf24', 'Trophy', true),
+    ('cat_servicos', NEW.id, 'Serviços / Consultorias', 'INCOME', '#3b82f6', 'Briefcase', true),
+    ('cat_vendas', NEW.id, 'Vendas', 'INCOME', '#4f46e5', 'ShoppingBag', true)
+  ON CONFLICT (id) DO NOTHING;
+
+  -- 3. Seed Default Payment Methods
+  INSERT INTO public.payment_methods (id, user_id, name, color, is_default)
+  VALUES
+    ('pm_dinheiro', NEW.id, 'Dinheiro', '#10b981', true),
+    ('pm_pix', NEW.id, 'Pix', '#06b6d4', true),
+    ('pm_credito', NEW.id, 'Cartão de Crédito', '#6366f1', true),
+    ('pm_debito', NEW.id, 'Cartão de Débito', '#3b82f6', true),
+    ('pm_permuta', NEW.id, 'Permuta', '#8b5cf6', true)
+  ON CONFLICT (id) DO NOTHING;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -181,7 +229,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- ── REPAIR ORPHAN PROFILES ──
+-- ── REPAIR ORPHAN PROFILES & SEED DEFAULTS ──
 INSERT INTO public.profiles (id, name, email, role, is_authorized)
 SELECT 
   id, 
@@ -191,6 +239,65 @@ SELECT
   TRUE
 FROM auth.users
 ON CONFLICT (id) DO NOTHING;
+
+-- Seed defaults for ANY profile that has 0 categories (EXISTING USERS REPAIR)
+DO $$
+DECLARE
+    user_record RECORD;
+BEGIN
+    FOR user_record IN SELECT id FROM public.profiles
+    LOOP
+        -- Se não tiver categorias, injeta
+        IF NOT EXISTS (SELECT 1 FROM public.categories WHERE user_id = user_record.id) THEN
+            INSERT INTO public.categories (id, user_id, name, type, color, icon, is_default)
+            VALUES
+                ('cat_contas_casa', user_record.id, 'Contas', 'EXPENSE', '#6366f1', 'Home', true),
+                ('cat_impostos', user_record.id, 'Impostos & Taxas', 'EXPENSE', '#64748b', 'FileText', true),
+                ('cat_seguros', user_record.id, 'Seguros', 'EXPENSE', '#475569', 'Shield', true),
+                ('cat_dividas', user_record.id, 'Dívidas & Empréstimos', 'EXPENSE', '#ef4444', 'TrendingDown', true),
+                ('cat_cartao', user_record.id, 'Cartão de Crédito', 'EXPENSE', '#f43f5e', 'CreditCard', true),
+                ('cat_mercado', user_record.id, 'Compras / Mercado Extra', 'EXPENSE', '#10b981', 'ShoppingBag', true),
+                ('cat_vestuario', user_record.id, 'Vestuário', 'EXPENSE', '#ec4899', 'Shirt', true),
+                ('cat_beleza', user_record.id, 'Beleza & Autocuidado', 'EXPENSE', '#f472b6', 'Sparkles', true),
+                ('cat_casa_manut', user_record.id, 'Casa & Manutenção', 'EXPENSE', '#06b6d4', 'Hammer', true),
+                ('cat_tecnologia', user_record.id, 'Tecnologia', 'EXPENSE', '#3b82f6', 'Cpu', true),
+                ('cat_viagens', user_record.id, 'Viagens', 'EXPENSE', '#8b5cf6', 'Plane', true),
+                ('cat_presentes', user_record.id, 'Presentes & Doações', 'EXPENSE', '#d946ef', 'Gift', true),
+                ('cat_assinaturas', user_record.id, 'Assinaturas', 'EXPENSE', '#0ea5e9', 'RefreshCw', true),
+                ('cat_educacao', user_record.id, 'Educação & Livros', 'EXPENSE', '#f59e0b', 'BookOpen', true),
+                ('cat_pets', user_record.id, 'Pets & Cuidado', 'EXPENSE', '#14b8a6', 'Dog', true),
+                ('cat_transporte', user_record.id, 'Transporte / Veículos', 'EXPENSE', '#f97316', 'Car', true),
+                ('cat_alimentacao', user_record.id, 'Alimentação', 'EXPENSE', '#fb7185', 'Utensils', true),
+                ('cat_lazer', user_record.id, 'Lazer', 'EXPENSE', '#a855f7', 'Gamepad2', true),
+                ('cat_saude', user_record.id, 'Saúde', 'EXPENSE', '#f43f5e', 'Activity', true),
+                ('cat_investimentos', user_record.id, 'Investimentos', 'EXPENSE', '#06b6d4', 'TrendingUp', true),
+                ('cat_extras', user_record.id, 'Extras', 'EXPENSE', '#94a3b8', 'MoreHorizontal', true),
+                ('cat_salario', user_record.id, 'Salário', 'INCOME', '#22c55e', 'Wallet', true),
+                ('cat_bonus', user_record.id, 'Bônus / 13º', 'INCOME', '#16a34a', 'Coins', true),
+                ('cat_comissoes', user_record.id, 'Comissões', 'INCOME', '#10b981', 'Percentage', true),
+                ('cat_aluguel', user_record.id, 'Renda de Aluguel', 'INCOME', '#0d9488', 'Key', true),
+                ('cat_rendimentos', user_record.id, 'Rendimentos', 'INCOME', '#06b6d4', 'TrendingUp', true),
+                ('cat_reembolsos', user_record.id, 'Reembolsos', 'INCOME', '#38bdf8', 'ArrowLeftRight', true),
+                ('cat_restituicao', user_record.id, 'Restituição / Devoluções', 'INCOME', '#4ade80', 'Undo2', true),
+                ('cat_premios', user_record.id, 'Prêmios / Sorteios', 'INCOME', '#fbbf24', 'Trophy', true),
+                ('cat_servicos', user_record.id, 'Serviços / Consultorias', 'INCOME', '#3b82f6', 'Briefcase', true),
+                ('cat_vendas', user_record.id, 'Vendas', 'INCOME', '#4f46e5', 'ShoppingBag', true)
+            ON CONFLICT (id) DO NOTHING;
+        END IF;
+
+        -- Mesma lógica para payment methods
+        IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE user_id = user_record.id) THEN
+            INSERT INTO public.payment_methods (id, user_id, name, color, is_default)
+            VALUES
+                ('pm_dinheiro', user_record.id, 'Dinheiro', '#10b981', true),
+                ('pm_pix', user_record.id, 'Pix', '#06b6d4', true),
+                ('pm_credito', user_record.id, 'Cartão de Crédito', '#6366f1', true),
+                ('pm_debito', user_record.id, 'Cartão de Débito', '#3b82f6', true),
+                ('pm_permuta', user_record.id, 'Permuta', '#8b5cf6', true)
+            ON CONFLICT (id) DO NOTHING;
+        END IF;
+    END LOOP;
+END $$;
 
 -- 8. Storage Buckets Setup
 INSERT INTO storage.buckets (id, name, public) 

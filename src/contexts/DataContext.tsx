@@ -85,6 +85,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 budgets: [], // To be implemented if needed
                 userProfile: userProfile || undefined
             });
+
+            // Safety net: Seed defaults if missing
+            if ((!categories || categories.length === 0) || (!paymentMethods || paymentMethods.length === 0)) {
+                console.info('No categories or payment methods found. Triggering seeding...');
+                await SupabaseDataService.syncUserToProfile(user);
+                // Refresh to get seeded data
+                await refresh();
+            }
         } catch (error: any) {
             console.error('Error loading data from Supabase:', error);
             // Don't leave loading true on error

@@ -390,6 +390,7 @@ export const SupabaseDataService = {
     async syncUserToProfile(user: any) {
         if (!user) return;
 
+        // 1. Ensure Profile exists
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
@@ -397,7 +398,6 @@ export const SupabaseDataService = {
             .single();
 
         if (!existingProfile) {
-            // 1. Create Profile
             const { error: profileError } = await supabase
                 .from('profiles')
                 .insert({
@@ -409,27 +409,41 @@ export const SupabaseDataService = {
                 });
 
             if (profileError) {
-                console.error('Erro ao criar perfil de usuário:', profileError);
+                console.error('Error creating user profile:', profileError);
                 return;
             }
+        }
 
-            // 2. Inject Default Categories
+        // 2. Check and Seed Categories if 0 exist
+        const { count: catCount } = await supabase
+            .from('categories')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+
+        if (catCount === 0) {
             const { error: catError } = await supabase
                 .from('categories')
                 .insert(DEFAULT_CATEGORIES.map(c => ({
                     ...c,
                     user_id: user.id
                 })));
-            if (catError) console.error('Erro ao injetar categorias default:', catError);
+            if (catError) console.error('Error seeding categories:', catError);
+        }
 
-            // 3. Inject Default Payment Methods
+        // 3. Check and Seed Payment Methods if 0 exist
+        const { count: pmCount } = await supabase
+            .from('payment_methods')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+
+        if (pmCount === 0) {
             const { error: pmError } = await supabase
                 .from('payment_methods')
                 .insert(DEFAULT_METHODS.map(m => ({
                     ...m,
                     user_id: user.id
                 })));
-            if (pmError) console.error('Erro ao injetar métodos default:', pmError);
+            if (pmError) console.error('Error seeding payment methods:', pmError);
         }
     }
 };
