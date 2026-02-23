@@ -314,10 +314,13 @@ export const parseTranscription = (
         }
     }
 
-    // Strategy D: fallback to "Extras" or first matching type
+    // Strategy D: fallback to "Extras" (Expense) or "Rendimentos" (Income)
     if (!bestCat) {
-        bestCat = categories.find(c => c.name === 'Extras') ||
-            categories.find(c => c.type === type || c.type === 'BOTH');
+        if (type === 'INCOME') {
+            bestCat = categories.find(c => c.name === 'Rendimentos') || categories.find(c => c.type === 'INCOME');
+        } else {
+            bestCat = categories.find(c => c.name === 'Extras') || categories.find(c => c.type === 'EXPENSE');
+        }
     }
 
     if (bestCat) { categoryId = bestCat.id; confidence += bestCatScore >= 50 ? 0.2 : 0.05; }
@@ -423,32 +426,23 @@ export const parseTranscriptionAsync = async (
         const categoryNames = categories.map(c => c.name);
         const aiResult = await parseTransactionWithAI(text, categoryNames);
 
-        if (aiResult && aiResult.confidence > 0.6) {
+        if (aiResult && aiResult.confianca > 0.6) {
             console.log('[aiParser] AI perception success:', aiResult);
 
-            const cat = categories.find(c => normalise(c.name) === normalise(aiResult.categoryName)) ||
-                categories.find(c => c.type === aiResult.type || c.type === 'BOTH');
-
-            const pay = aiResult.paymentMethodName ?
-                paymentMethods.find(p => normalise(p.name).includes(normalise(aiResult.paymentMethodName!))) :
-                undefined;
-
-            const sup = aiResult.supplierName ?
-                suppliers.find(s => normalise(s.name).includes(normalise(aiResult.supplierName!))) :
-                undefined;
+            const cat = categories.find(c => normalise(c.name) === normalise(aiResult.categoria)) ||
+                categories.find(c => c.type === (aiResult.tipo === 'RECEITA' ? 'INCOME' : 'EXPENSE') || c.type === 'BOTH');
 
             return {
-                type: aiResult.type,
-                description: aiResult.description,
-                amount: aiResult.amount,
+                type: aiResult.tipo === 'RECEITA' ? 'INCOME' : 'EXPENSE',
+                description: aiResult.descricao,
+                amount: aiResult.valor || 0,
                 date: format(new Date(), 'yyyy-MM-dd'),
                 categoryId: cat?.id || categories.find(c => c.name === 'Extras')?.id || '',
-                paymentMethodId: pay?.id || (paymentMethods.length > 0 ? paymentMethods[0].id : undefined),
-                supplierId: sup?.id,
-                confidence: aiResult.confidence,
-                needsClarification: aiResult.amount === 0,
-                question: aiResult.amount === 0 ? 'Qual o valor do lançamento?' : '',
-                observation: 'Processado por Inteligência de Elite (Gemini)'
+                paymentMethodId: paymentMethods.length > 0 ? paymentMethods[0].id : undefined,
+                confidence: aiResult.confianca,
+                needsClarification: aiResult.precisa_confirmacao || !aiResult.valor,
+                question: !aiResult.valor ? 'Qual o valor do lançamento?' : '',
+                observation: 'Processado por Inteligência de Elite (ML Engineer)'
             };
         }
     } catch (err) {

@@ -112,14 +112,14 @@ export async function askGemini(
 
 // ── Semantic Transaction Parsing ───────────────────────────────────────────
 export interface AIParseResult {
-    type: 'EXPENSE' | 'INCOME';
-    description: string;
-    amount: number;
-    categoryName: string;
-    paymentMethodName?: string;
-    supplierName?: string;
-    confidence: number;
-    reasoning?: string;
+    tipo: 'RECEITA' | 'DESPESA';
+    descricao: string;
+    valor: number;
+    categoria: string;
+    texto_original: string;
+    confianca: number;
+    precisa_confirmacao: boolean;
+    motivo: string;
 }
 
 export async function parseTransactionWithAI(
@@ -129,56 +129,75 @@ export async function parseTransactionWithAI(
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
     if (!apiKey) return null;
 
-    const prompt = `Atue como o Assistente Financeiro de Elite da FinTrack, com percepção cognitiva de 100%.
-Sua missão é extrair dados de transações de voz (mesmo que curtas/esparsas) e mapear para as categorias CORRETAS com precisão absoluta.
+    const prompt = `Atue como o melhor programador e Engenheiro(a) de Machine Learning (Machine Learning Engineer) e um classificador inteligente de lançamentos financeiros de um app pessoal.
 
-Texto falado: "${text}"
+Sua função é analisar uma frase curta em português falada no assistente IA, extrair o valor e classificar o lançamento em UMA categoria existente do sistema.
+
+REGRAS GERAIS:
+1) Nunca invente categorias fora da lista.
+2) Sempre retorne exatamente um tipo: "RECEITA" ou "DESPESA".
+3) Sempre retorne exatamente uma categoria do tipo escolhido.
+4) Quando não identificar a categoria com confiança, use:
+   - DESPESA -> "Extras"
+   - RECEITA -> "Rendimentos"
+5) Se houver conflito entre palavras, priorize a palavra mais específica. Ex: "farmácia pet" -> "Pets & Cuidado"
+6) Aceite erros de digitação, abreviações e fala informal.
+7) Se o valor não estiver claro, tente extrair mesmo assim. Se não conseguir, retorne valor = null.
+8) Se a frase não indicar claramente se é receita ou despesa, use contexto da palavra-chave.
+9) Se ainda ambíguo, assumir DESPESA e categoria "Extras".
+
+TEXTO FALADO: "${text}"
 
 CATEGORIAS DISPONÍVEIS (USE APENAS ESTAS):
 ${categories.join(', ')}
 
-### Protocolo de Hiper-Percepção (Elite 3.0):
-1. **Comandos Esparsos (Telegram-Style):**
-   - Se o usuário disser apenas "compra [item]" ou "[item]", deduza que é uma DESPESA.
-   - Se disser "[item] [valor]", extraia ambos de forma proativa.
-   - Se o valor não for mencionado, coloque 0 e deixe a confiança da categoria ALTA.
+MAPEAMENTO DE REFERÊNCIA (PALAVRAS-CHAVE):
 
-2. **Raciocínio Interno Proativo:**
-   - Identifique a NATUREZA semântica (O que é? Pra que serve?).
-   - Mapeie para a categoria mais específica disponível.
+### RECEITAS
+"Bônus / 13°": bonus, 13, decimo terceiro, gratificação
+"Comissões": comissão, percentual, comissionamento
+"Prêmios / Sorteios": premio, sorteio, recompensa
+"Reembolsos": reembolso, ressarcimento, reembolsaram
+"Renda de Aluguel": aluguel recebido, inquilino pagou
+"Rendimentos": rendimento, juros, dividendos, lucro investimento, cdi, poupança, cashback
+"Restituição / Devoluções": restituição, devolução, estorno
+"Salário": salário, pagamento empresa, folha, holerite, adiantamento
+"Serviços / Consultorias": serviço prestado, consultoria, honorário, freela, projeto
+"Vendas": venda, vendi, cliente pagou, produto vendido
 
-2. **Heurísticas de Mapeamento Ultra-Refinadas:**
-   - Padaria, Pão, Café, Misto, Almoço, iFood (refeição) -> ALIMENTAÇÃO.
-   - Compras grandes, Supermercado, Carrefour, Atacadão, Mercado -> COMPRAS / MERCADO EXTRA.
-   - Cerveja, Chopp, Vinho, Bebidas (compradas) -> COMPRAS / MERCADO EXTRA.
-   - Netflix, Amazon Prime, Youtube, Spotify, Disney+, HBO, Assinaturas -> ASSINATURAS.
-   - IPVA, IPTU, Taxas governamentais, Impostos -> IMPOSTOS & TAXAS.
-   - Escola, Faculdade, Livro, Curso, Udemy, Mensalidade, Material Escolar -> EDUCAÇÃO & LIVROS.
-   - Remédio, Farmácia, Médico, Dentista, Hospital, Plano -> SAÚDE.
-   - Uber, Gasolina, Mecânico, Estacionamento, Pedágio -> TRANSPORTE / VEÍCULOS.
-   - Ração, Veterinário, Petshop -> PETS & CUIDADO.
-   - Bar, Barzinho, Balada, Boteco -> LAZER.
-   - Boné, Roupas, Tênis, Sapato, Camisa -> VESTUÁRIO.
-   - Barbeiro, Salão, Unha, Maquiagem, Perfume -> BELEZA & AUTOCUIDADO.
-   - Se não houver NENHUMA correspondência clara, use a categoria: EXTRAS.
+### DESPESAS
+"Alimentação": mercado, padaria, restaurante, almoço, jantar, lanche, ifood, delivery, comida, café
+"Assinaturas": assinatura, mensalidade app, netflix, spotify, prime, chatgpt, icloud
+"Beleza & Autocuidado": salão, barbearia, manicure, skincare, estética, cabelo
+"Cartão de Crédito": cartão, fatura, cartão de crédito
+"Casa & Manutenção": manutenção casa, reparo, móveis, material construção
+"Compras / Mercado Extra": compra extra, comprinhas, conveniência, utilidades
+"Contas": água, luz, internet, wifi, gás, condomínio, aluguel, iptu, boleto
+"Dívidas & Empréstimos": dívida, empréstimo, financiamento, parcela banco
+"Educação & Livros": escola, faculdade, curso, livro, apostila, inglês, estudo
+"Extras": use para baixíssima confiança
+"Impostos & Taxas": imposto, taxa, darf, das, inss, ir, ipva, licenciamento, multa
+"Investimentos": aporte, investimento, investir, compra ações, tesouro, corretora
+"Lazer": cinema, show, passeio, festa, bar, games, jogo, hobby
+"Pets & Cuidado": pet, ração, veterinário, banho e tosa, remédio pet
+"Presentes & Doações": presente, doação, ajuda, mimo
+"Saúde": academia, farmácia, remédio, consulta, médico, dentista, exame, terapia, plano de saúde
+"Seguros": seguro, seguro carro, seguro vida, apólice
+"Tecnologia": celular, notebook, hardware, software, licença, hospedagem
+"Transporte / Veículos": gasolina, combustível, uber, taxi, ônibus, metrô, estacionamento, pedágio, oficina
+"Vestuário": roupa, camisa, calça, tênis, sapato, bolsa
+"Viagens": viagem, passagem, hotel, hospedagem, aérea, avião, airbnb
 
-3. **Dedução Automática de Tipo e Fluxo:**
-   - Se o usuário disser "COMPRA" (ou derivado), o type é estritamente EXPENSE.
-   - Se o usuário disser "VENDA" (ou derivado), o type é estritamente INCOME.
-   - Se disser "Recebi", "Ganhei", "Salário", o type é INCOME.
-
-4. **Limpeza de Dados Executiva:**
-   - Descrição: Curta, direta, em Pascal Case (ex: "Compra Mercado", "Cerveja Gelada").
-   - Valor: Apenas o número puro.
-
-### Saída Obrigatória (JSON Estrito):
+FORMATO DE SAÍDA (JSON PURO):
 {
-  "reasoning": "Breve explicação do porquê escolheu essa categoria",
-  "type": "EXPENSE" | "INCOME",
-  "description": string,
-  "amount": number,
-  "categoryName": string,
-  "confidence": number (0.0 - 1.0)
+  "texto_original": "${text}",
+  "valor": number,
+  "tipo": "RECEITA" | "DESPESA",
+  "categoria": "nome exato da categoria",
+  "descricao": "descrição curta normalizada",
+  "confianca": number (0.0 to 1.0),
+  "precisa_confirmacao": boolean,
+  "motivo": "resumo curto"
 }`;
 
     try {
@@ -201,9 +220,7 @@ ${categories.join(', ')}
         const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (!jsonText) return null;
 
-        // Clean potentially markdown-wrapped JSON
-        const cleanedJson = jsonText.replace(/```json|```/g, '').trim();
-        return JSON.parse(cleanedJson) as AIParseResult;
+        return JSON.parse(jsonText) as AIParseResult;
     } catch (err) {
         console.error('[geminiAI] AI Parse Error:', err);
         return null;
