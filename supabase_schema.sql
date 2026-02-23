@@ -56,21 +56,37 @@ CREATE TABLE IF NOT EXISTS public.payment_methods (
 -- This handles migrations from older UUID versions of the schema.
 DO $$ 
 BEGIN
-  -- Fix categories.id and its references
+  -- 1. Drop existing constraints to allow type changes
+  ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_category_id_fkey;
+  ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_payment_method_id_fkey;
+  ALTER TABLE public.commitments DROP CONSTRAINT IF EXISTS commitments_category_id_fkey;
+  ALTER TABLE public.commitments DROP CONSTRAINT IF EXISTS commitments_payment_method_id_fkey;
+
+  -- 2. Fix categories.id and its references
   IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'id') = 'uuid' THEN
     ALTER TABLE public.transactions ALTER COLUMN category_id TYPE TEXT USING category_id::text;
     ALTER TABLE public.commitments ALTER COLUMN category_id TYPE TEXT USING category_id::text;
     ALTER TABLE public.categories ALTER COLUMN id TYPE TEXT USING id::text;
   END IF;
 
-  -- Fix payment_methods.id and its references
+  -- 3. Fix payment_methods.id and its references
   IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'payment_methods' AND column_name = 'id') = 'uuid' THEN
     ALTER TABLE public.transactions ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
     ALTER TABLE public.commitments ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
     ALTER TABLE public.payment_methods ALTER COLUMN id TYPE TEXT USING id::text;
   END IF;
   
-  -- Ensure is_default columns exist if they were missing
+  -- 4. Re-add constraints (now with matched types)
+  ALTER TABLE public.transactions 
+    ADD CONSTRAINT transactions_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+  ALTER TABLE public.transactions 
+    ADD CONSTRAINT transactions_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES public.payment_methods(id) ON DELETE SET NULL;
+  ALTER TABLE public.commitments 
+    ADD CONSTRAINT commitments_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+  ALTER TABLE public.commitments 
+    ADD CONSTRAINT commitments_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES public.payment_methods(id) ON DELETE SET NULL;
+
+  -- 5. Ensure is_default columns exist
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'is_default') THEN
     ALTER TABLE public.categories ADD COLUMN is_default BOOLEAN DEFAULT FALSE;
   END IF;
