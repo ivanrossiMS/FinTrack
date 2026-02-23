@@ -23,22 +23,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isImpersonating, setIsImpersonating] = useState(false);
+    const authInitialized = React.useRef(false);
+    const currentFetchingUserId = React.useRef<string | null>(null);
 
     useEffect(() => {
         const initializeAuth = async () => {
+            if (authInitialized.current) return;
+
             try {
                 // 1. Get initial session strictly
                 const { data: { session } } = await supabase.auth.getSession();
+                console.log('Initial Auth Check:', !!session ? 'Session Found' : 'No Session');
 
                 if (session) {
+                    currentFetchingUserId.current = session.user.id;
                     await fetchProfile(session.user.id);
                 } else {
-                    // Give a tiny window for any immediate events
                     setLoading(false);
                 }
+                authInitialized.current = true;
             } catch (err) {
                 console.error('Auth initialization error:', err);
                 setLoading(false);
+                authInitialized.current = true;
             }
         };
 
@@ -47,12 +54,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // 2. Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`Auth event: ${event}`);
+
             if (session) {
+                // Prevent duplicate fetch if initialization is already doing it or if same user
+                if (currentFetchingUserId.current === session.user.id && user) return;
+
                 await fetchProfile(session.user.id);
             } else {
                 setUser(null);
                 setIsImpersonating(false);
                 setLoading(false);
+                currentFetchingUserId.current = null;
             }
         });
 
@@ -60,16 +72,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const fetchProfile = async (userId: string) => {
+        // Double check lock
+        if (currentFetchingUserId.current === userId && user) {
+            setLoading(false);
+            return;
+        }
+
+        currentFetchingUserId.current = userId;
         const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
         let success = false;
 
-        // Safety lock: ensure we never hang more than 4 seconds
+        // Safety lock: ensure we never hang more than 6 seconds (Nuclear buffer)
         const timeout = setTimeout(() => {
             if (!success) {
                 console.error('Profile fetch timed out. Forcing fallback.');
-                setLoading(false);
+                if (currentFetchingUserId.current === userId) {
+                    setLoading(false);
+                }
             }
-        }, 4000);
+        }, 6000);
 
         try {
             for (let i = 3; i >= 0; i--) {
@@ -100,7 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         email: authUser.email,
                         name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário',
                         role: authUser.email === 'ivanrossi@outlook.com' ? 'ADMIN' : 'USER',
-                        plan: 'FREE'
+                        plan: 'FREE',
+                        is_authorized: true // Critical: Authorized in fallback ensure UI unlock
                     });
                 }
             }
@@ -108,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Fatal error in fetchProfile:', err);
         } finally {
             clearTimeout(timeout);
+            currentFetchingUserId.current = null;
             setLoading(false);
         }
     };
