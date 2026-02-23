@@ -55,9 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`📡 Vanta Stream: ${event}`);
 
+            if (event === 'PASSWORD_RECOVERY') {
+                console.log('🗝️ Password Recovery Mode Activated');
+            }
+
             if (session) {
                 // TERMINATE LOOP: Only fetch if session is new or different
-                if (user && user.id === session.user.id) return;
+                if (user && user.id === session.user.id && event !== 'PASSWORD_RECOVERY') return;
 
                 await fetchProfile(session.user.id);
             } else {
