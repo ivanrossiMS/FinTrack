@@ -215,6 +215,11 @@ CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE
 CREATE POLICY "Admins can update all profiles" ON public.profiles FOR UPDATE USING (public.is_admin());
 
 -- Generic Multi-tenant Policies (Applied to all data tables)
+DO $$ 
+DECLARE 
+  t text;
+BEGIN
+  FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('categories', 'suppliers', 'payment_methods', 'transactions', 'commitments', 'savings_goals')
   LOOP
     EXECUTE format('CREATE POLICY "Manage own %I" ON public.%I FOR ALL USING (auth.uid() = user_id OR public.is_admin()) WITH CHECK (auth.uid() = user_id OR public.is_admin())', t, t);
   END LOOP;
