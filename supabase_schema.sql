@@ -235,7 +235,7 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1), 'Usuário'), 
     NEW.email,
     CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END,
-    TRUE
+    CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN TRUE ELSE FALSE END
   )
   ON CONFLICT (id) DO NOTHING;
 
@@ -302,7 +302,7 @@ SELECT
   COALESCE(raw_user_meta_data->>'name', split_part(email, '@', 1), 'Usuário'), 
   email,
   CASE WHEN email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END,
-  TRUE
+  CASE WHEN email = 'ivanrossi@outlook.com' THEN TRUE ELSE FALSE END
 FROM auth.users
 ON CONFLICT (id) DO NOTHING;
 

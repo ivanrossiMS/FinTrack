@@ -254,9 +254,9 @@ export const Admin: React.FC = () => {
                                             onClick={() => handleToggleAuth(u.id, u.is_authorized)}
                                         >
                                             {u.is_authorized ? (
-                                                <><CheckCircle size={14} /> Ativo</>
+                                                <><CheckCircle size={14} /> Liberado</>
                                             ) : (
-                                                <><XCircle size={14} /> Bloqueado</>
+                                                <><XCircle size={14} /> Pendente</>
                                             )}
                                         </button>
                                     </td>
@@ -273,11 +273,20 @@ export const Admin: React.FC = () => {
                                         <div className="action-btns">
                                             <button
                                                 className="icon-btn impersonate"
-                                                title="Impersonar"
+                                                title="Acessar Conta do Usuário"
                                                 onClick={() => impersonateUser(u.id)}
                                                 disabled={u.id === currentUser?.id}
+                                                style={{
+                                                    backgroundColor: 'var(--color-primary-light)',
+                                                    color: 'var(--color-primary)',
+                                                    padding: '0.4rem 0.8rem',
+                                                    gap: '0.5rem',
+                                                    width: 'auto',
+                                                    borderRadius: 'var(--radius-md)'
+                                                }}
                                             >
                                                 <UserCheck size={18} />
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>ACESSAR</span>
                                             </button>
                                             <button
                                                 className="icon-btn"

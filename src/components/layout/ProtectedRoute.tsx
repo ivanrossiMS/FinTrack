@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const ProtectedRoute: React.FC = () => {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, user, logout } = useAuth();
 
     if (loading) {
         return (
@@ -55,10 +56,6 @@ export const ProtectedRoute: React.FC = () => {
                             Voltar para o Login
                         </button>
                     </div>
-                    <style>{`
-                        @keyframes spin { to { transform: rotate(360deg); } }
-                        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-                    `}</style>
                 </div>
             </div>
         );
@@ -66,6 +63,70 @@ export const ProtectedRoute: React.FC = () => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
+    }
+
+    // Check for authorization (Phase K)
+    if (user && user.is_authorized === false) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'var(--color-bg)',
+                fontFamily: 'var(--font-sans)',
+                padding: '2rem'
+            }}>
+                <div style={{
+                    textAlign: 'center',
+                    maxWidth: '400px',
+                    padding: '3rem',
+                    background: 'var(--color-surface)',
+                    backdropFilter: 'var(--glass-blur)',
+                    borderRadius: 'var(--radius-xl)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-lg)'
+                }}>
+                    <div style={{
+                        width: '64px',
+                        height: '64px',
+                        backgroundColor: 'var(--color-warning-light)',
+                        color: 'var(--color-warning)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 1.5rem'
+                    }}>
+                        <AlertTriangle size={32} />
+                    </div>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '0.5rem' }}>
+                        Acesso Pendente
+                    </h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '2rem' }}>
+                        Sua conta foi criada com sucesso, mas ainda precisa ser <strong>liberada por um administrador</strong> para que você possa acessar o sistema.
+                    </p>
+                    <div style={{ paddingTop: '2rem', borderTop: '1px solid var(--color-border)' }}>
+                        <button
+                            onClick={() => logout()}
+                            style={{
+                                width: '100%',
+                                padding: '1rem',
+                                backgroundColor: 'var(--color-bg)',
+                                color: 'var(--color-text)',
+                                fontWeight: 700,
+                                borderRadius: 'var(--radius-lg)',
+                                border: '1px solid var(--color-border)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Sair da Conta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return <Outlet />;
