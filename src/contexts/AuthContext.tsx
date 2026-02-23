@@ -31,14 +31,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (authInitialized.current) return;
 
             try {
-                // 1. Core Logic: localStorage persistence is handled by Supabase Client.
-                // We just need to sync the React state.
                 const { data: { session } } = await supabase.auth.getSession();
-                console.log('Vanta Auth Boot:', session ? `User [${session.user.id}]` : 'Visitor');
 
                 if (session) {
-                    await fetchProfile(session.user.id);
+                    const jwtMetadata = session.user.app_metadata;
+                    const hasMetadata = jwtMetadata?.role && jwtMetadata?.is_authorized !== undefined;
+
+                    console.log('Vanta Auth Boot:', `User [${session.user.id}]`, hasMetadata ? '(Ready)' : '(Stale Token)');
+
+                    // FORCED REFRESH: If token is stale (no metadata), refresh it to sync with RLS
+                    if (!hasMetadata) {
+                        console.warn('🛡️ Vanta Refresh Shield: Stale token detected. Syncing permissions...');
+                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+
+                        if (!refreshError && refreshedSession) {
+                            console.log('🛡️ Vanta Refresh Shield: Permissions synchronized.');
+                            await fetchProfile(refreshedSession.user.id);
+                        } else {
+                            // Fallback to normal fetch if refresh fails
+                            await fetchProfile(session.user.id);
+                        }
+                    } else {
+                        await fetchProfile(session.user.id);
+                    }
                 } else {
+                    console.log('Vanta Auth Boot: Visitor');
                     setLoading(false);
                 }
                 authInitialized.current = true;
@@ -51,7 +68,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         initializeAuth();
 
-        // 2. Atomic Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`📡 Vanta Stream: ${event}`);
 
@@ -60,8 +76,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (session) {
-                // TERMINATE LOOP: Only fetch if session is new or different
-                if (user && user.id === session.user.id && event !== 'PASSWORD_RECOVERY') return;
+                // TERMINATE LOOP: Only fetch if session is new or metadata is missing
+                const jwtMetadata = session.user.app_metadata;
+                const hasMetadata = jwtMetadata?.role && jwtMetadata?.is_authorized !== undefined;
+
+                if (user && user.id === session.user.id && event !== 'PASSWORD_RECOVERY' && hasMetadata) return;
 
                 await fetchProfile(session.user.id);
             } else {
@@ -73,20 +92,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => subscription.unsubscribe();
-    }, [user?.id]); // Pin to user.id
+    }, [user?.id]);
 
     const fetchProfile = async (userId: string) => {
-        // Double check lock
         if (currentFetchingUserId.current === userId && user) {
-            setLoading(false);
-            return;
+            const jwtMetadata = (await supabase.auth.getSession()).data.session?.user.app_metadata;
+            if (jwtMetadata?.role) {
+                setLoading(false);
+                return;
+            }
         }
 
         currentFetchingUserId.current = userId;
         const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
         let success = false;
 
-        // Safety lock: ensure we never hang more than 6 seconds (Nuclear buffer)
         const timeout = setTimeout(() => {
             if (!success) {
                 console.error('Profile fetch timed out. Forcing fallback.');
@@ -97,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }, 6000);
 
         try {
-            for (let i = 3; i >= 0; i--) {
+            for (let i = 2; i >= 0; i--) {
                 const { data: profile, error } = await supabase
                     .from('profiles')
                     .select('*')
@@ -110,9 +130,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     break;
                 }
 
+                // If blocked by RLS (no profile returned but session exists), it's likely a stale token
+                if (i === 1) {
+                    console.warn('🛡️ Vanta Guard: Profile fetch rejected by RLS. Attempting emergency refresh...');
+                    const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+                    if (refreshedSession) continue; // Try one last time with fresh token
+                }
+
                 if (i > 0) {
-                    console.warn(`Profile fetch failed, retrying in 1.5s... (${i} left)`);
-                    await delay(1500);
+                    await delay(1000);
                 }
             }
 
