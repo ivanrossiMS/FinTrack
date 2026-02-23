@@ -37,6 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('ResetAppCache: Limpando TUDO e recarregando...');
         localStorage.clear();
         sessionStorage.clear();
+
+        // Limpa cookies (importante para o novo storage de sessão)
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
         window.location.reload();
     };
 
