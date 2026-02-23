@@ -38,7 +38,7 @@ export const Layout: React.FC = () => {
         { path: '/manage', label: 'Cadastros', icon: List },
         { path: '/profile', label: 'Perfil', icon: User },
         { path: '/help', label: 'Ajuda', icon: HelpCircle },
-        ...(user?.isAdmin ? [
+        ...(user?.role === 'ADMIN' ? [
             { path: '/admin', label: 'ADM', icon: ShieldCheck },
             { path: '/settings', label: 'Ajustes', icon: Settings }
         ] : []),
@@ -89,8 +89,8 @@ export const Layout: React.FC = () => {
                                 )}
                             </span>
                         </div>
-                        {user?.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="mob-prem-avatar-pill" />
+                        {user?.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.name} className="mob-prem-avatar-pill" />
                         ) : (
                             <div className="mob-prem-avatar-pill default">
                                 <User size={20} />
@@ -168,8 +168,8 @@ export const Layout: React.FC = () => {
 
                 <div className="sidebar-header">
                     <NavLink to="/profile" className="sidebar-avatar-container">
-                        {user?.avatar ? (
-                            <img src={user.avatar} alt={user.name} />
+                        {user?.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.name} />
                         ) : (
                             <User size={24} className="text-text-light" />
                         )}

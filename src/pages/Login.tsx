@@ -14,12 +14,14 @@ export const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (login(email, password)) {
+        setError('');
+        const { success, error: authError } = await login(email, password);
+        if (success) {
             navigate('/');
         } else {
-            setError('E-mail ou senha incorretos');
+            setError(authError || 'E-mail ou senha incorretos');
         }
     };
 

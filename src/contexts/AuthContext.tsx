@@ -1,281 +1,153 @@
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { StorageService } from '../services/storage';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthContextType {
     isAuthenticated: boolean;
     user: any;
-    login: (email: string, pass: string) => boolean;
-    register: (name: string, email: string, pass: string) => boolean;
-    logout: () => void;
-    updateUser: (user: any) => void;
-    adminUpdateUserInfo: (targetEmail: string, updates: any) => void;
-    impersonateUser: (email: string) => void;
-    stopImpersonating: () => void;
-    changePassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; message: string }>;
+    loading: boolean;
+    login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+    register: (name: string, email: string, pass: string) => Promise<{ success: boolean; needsEmailAuth: boolean; error?: string }>;
+    logout: () => Promise<void>;
+    updateUser: (updates: any) => Promise<void>;
+    adminUpdateUserInfo: (targetUserId: string, updates: any) => Promise<void>;
+    impersonateUser: (userId: string) => Promise<void>;
+    stopImpersonating: () => Promise<void>;
+    changePassword: (newPass: string) => Promise<{ success: boolean; message: string }>;
     isImpersonating: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [user, setUser] = useState<any>(null); // To store current user info
+    const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isImpersonating, setIsImpersonating] = useState(false);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('fintrack_current_user');
-        const impersonating = localStorage.getItem('fintrack_impersonating') === 'true';
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-            setIsImpersonating(impersonating);
-        }
-        setLoading(false);
+        // 1. Get initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                fetchProfile(session.user.id);
+            } else {
+                setLoading(false);
+            }
+        });
+
+        // 2. Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session) {
+                await fetchProfile(session.user.id);
+            } else {
+                setUser(null);
+                setIsImpersonating(false);
+                setLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
-    const login = (email: string, password: string): boolean => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+    const fetchProfile = async (userId: string, retries = 3) => {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
 
-        // Check for Master Admin fallback
-        const isMasterAdminEmail = email === 'ivanrossi@outlook.com';
-        const isMasterPassword = password === 'ivanross';
-        const exists = users.some((u: any) => u.email === 'ivanrossi@outlook.com');
-
-        if (isMasterAdminEmail && isMasterPassword && !exists) {
-            const masterAdmin = {
-                name: 'Ivan Rossi',
-                email: 'ivanrossi@outlook.com',
-                password: 'ivanross',
-                avatar: '',
-                isAdmin: true,
-                isAuthorized: true,
-                plan: 'PREMIUM'
-            };
-            users.push(masterAdmin);
-            localStorage.setItem('fintrack_users', JSON.stringify(users));
-        }
-
-        const foundUser = users.find((u: any) => u.email === email && u.password === password);
-
-        if (foundUser) {
-            const isMasterAdmin = foundUser.email === 'ivanrossi@outlook.com';
-
-            // Check authorization
-            if (!isMasterAdmin && foundUser.isAuthorized === false) {
-                alert("Acesso negado. Aguarde a autorização do administrador.");
-                return false;
+        if (error || !profile) {
+            console.warn(`Profile fetch attempt failed for ${userId}. Retries left: ${retries}`);
+            if (retries > 0) {
+                // Wait 1.5s then retry (gives time for DB trigger to finish)
+                setTimeout(() => fetchProfile(userId, retries - 1), 1500);
+                return;
             }
-
-            const userSession = {
-                name: foundUser.name,
-                email: foundUser.email,
-                avatar: foundUser.avatar,
-                isAdmin: isMasterAdmin || foundUser.isAdmin,
-                isAuthorized: foundUser.isAuthorized !== false, // default true if missing for legacy
-                plan: foundUser.plan || 'FREE'
-            };
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-            setUser(userSession);
-            setIsAuthenticated(true);
-            return true;
+            console.error('Final error fetching profile:', error);
+            setUser(null);
+        } else {
+            setUser(profile);
         }
-        return false;
+        setLoading(false);
     };
 
-    const register = (name: string, email: string, password: string): boolean => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const existingUserIndex = users.findIndex((u: any) => u.email === email);
-
-        if (existingUserIndex >= 0) {
-            // User exists: Update the record (Password Recovery / Fix)
-            const existingUser = users[existingUserIndex];
-            const updatedUser = { ...existingUser, name, password }; // Update name and password
-            users[existingUserIndex] = updatedUser;
-            localStorage.setItem('fintrack_users', JSON.stringify(users));
-
-            // Auto login
-            const userSession = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatar,
-                phone: updatedUser.phone
-            };
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-            setUser(userSession);
-            setIsAuthenticated(true);
-            return true;
-        }
-
-        const isMasterAdmin = email === 'ivanrossi@outlook.com';
-        const newUser = {
-            name,
+    const login = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
-            avatar: '',
-            isAdmin: isMasterAdmin,
-            isAuthorized: isMasterAdmin ? true : false,
-            plan: 'FREE'
+        });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+    };
+
+    const register = async (name: string, email: string, password: string) => {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { name }
+            }
+        });
+
+        if (error) return { success: false, needsEmailAuth: false, error: error.message };
+
+        // If session exists immediate, they are logged in (auto-confirm)
+        // If not, they might need email verification
+        return {
+            success: true,
+            needsEmailAuth: !data.session
         };
-        users.push(newUser);
-        localStorage.setItem('fintrack_users', JSON.stringify(users));
-
-        // Auto login ONLY if auto-authorized (master admin)
-        if (newUser.isAuthorized) {
-            const userSession = {
-                name,
-                email,
-                avatar: '',
-                isAdmin: isMasterAdmin,
-                isAuthorized: true,
-                plan: 'FREE'
-            };
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-            setUser(userSession);
-            setIsAuthenticated(true);
-            return true;
-        }
-
-        alert("Conta criada! Aguarde a autorização do administrador para acessar o sistema.");
-        return true;
     };
 
-    const logout = () => {
-        localStorage.removeItem('fintrack_current_user');
-        setIsAuthenticated(false);
-        setUser(null);
+    const logout = async () => {
+        await supabase.auth.signOut();
     };
 
-    const updateUser = (updatedUser: any) => {
-        // Read the authoritative user record from registered users to get admin-set fields
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const registeredUser = users.find((u: any) => u.email === updatedUser.email);
+    const updateUser = async (updates: any) => {
+        if (!user) return;
+        const { error } = await supabase
+            .from('profiles')
+            .update(updates)
+            .eq('id', user.id);
 
-        const userSession = {
-            name: updatedUser.name,
-            email: updatedUser.email,
-            avatar: updatedUser.avatar,
-            phone: updatedUser.phone,
-            profession: updatedUser.profession,
-            isAdmin: updatedUser.isAdmin || updatedUser.email === 'ivanrossi@outlook.com',
-            isAuthorized: registeredUser?.isAuthorized ?? updatedUser.isAuthorized ?? true,
-            plan: registeredUser?.plan || updatedUser.plan || 'FREE',
-        };
-        setUser(userSession);
-        localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-
-        // Also update the user in the registered users list, preserving existing fields like password & plan
-        const newUsers = users.map((u: any) =>
-            u.email === updatedUser.email
-                ? { ...u, name: updatedUser.name, avatar: updatedUser.avatar, phone: updatedUser.phone, profession: updatedUser.profession }
-                : u
-        );
-        localStorage.setItem('fintrack_users', JSON.stringify(newUsers));
+        if (error) throw error;
+        setUser({ ...user, ...updates });
     };
 
-    const adminUpdateUserInfo = (targetEmail: string, updates: any) => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const userIndex = users.findIndex((u: any) => u.email === targetEmail);
-        if (userIndex === -1) return;
+    const adminUpdateUserInfo = async (targetUserId: string, updates: any) => {
+        const { error } = await supabase
+            .from('profiles')
+            .update(updates)
+            .eq('id', targetUserId);
 
-        const oldUser = users[userIndex];
-        const updatedUser = { ...oldUser, ...updates };
-
-        // Handle email change and migration
-        if (updates.email && updates.email !== targetEmail) {
-            StorageService.renameUserKey(targetEmail, updates.email);
-        }
-
-        users[userIndex] = updatedUser;
-        localStorage.setItem('fintrack_users', JSON.stringify(users));
-
-        // If currently impersonating this user, update session
-        if (user?.email === targetEmail) {
-            const userSession = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatar,
-                isAdmin: updatedUser.isAdmin || updatedUser.email === 'ivanrossi@outlook.com',
-                isAuthorized: updatedUser.isAuthorized,
-                plan: updatedUser.plan
-            };
-            setUser(userSession);
-            localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-        }
+        if (error) throw error;
     };
 
-    const impersonateUser = (email: string) => {
-        if (!user || (!user.isAdmin && !isImpersonating)) return;
-
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const target = users.find((u: any) => u.email === email);
-        if (!target) return;
-
-        // Store original admin if not already impersonating
-        if (!isImpersonating) {
-            localStorage.setItem('fintrack_original_admin', JSON.stringify(user));
-        }
-
-        const userSession = {
-            name: target.name,
-            email: target.email,
-            avatar: target.avatar,
-            isAdmin: target.isAdmin || target.email === 'ivanrossi@outlook.com'
-        };
-
-        setUser(userSession);
-        localStorage.setItem('fintrack_current_user', JSON.stringify(userSession));
-        localStorage.setItem('fintrack_impersonating', 'true');
+    const impersonateUser = async (userId: string) => {
+        // Logic for impersonation with Supabase typically involves a custom claim or temporary token
+        // For this simple case, we'll store the target in session storage to "mimic" data fetching
+        sessionStorage.setItem('fintrack_impersonated_id', userId);
         setIsImpersonating(true);
+        window.location.reload(); // Refresh to trigger data context reload with impersonated ID
     };
 
-    const stopImpersonating = () => {
-        const originalAdmin = localStorage.getItem('fintrack_original_admin');
-        if (!originalAdmin) {
-            logout();
-            return;
-        }
-
-        const adminSession = JSON.parse(originalAdmin);
-        setUser(adminSession);
-        localStorage.setItem('fintrack_current_user', JSON.stringify(adminSession));
-        localStorage.removeItem('fintrack_impersonating');
-        localStorage.removeItem('fintrack_original_admin');
+    const stopImpersonating = async () => {
+        sessionStorage.removeItem('fintrack_impersonated_id');
         setIsImpersonating(false);
+        window.location.reload();
     };
 
-    const changePassword = async (currentPass: string, newPass: string): Promise<{ success: boolean; message: string }> => {
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const userIndex = users.findIndex((u: any) => u.email === user.email);
-
-        if (userIndex === -1) return { success: false, message: 'Usuário não encontrado.' };
-
-        const registeredUser = users[userIndex];
-
-        // In this app, we are using plain text passwords for simplicity as inherited from previous code, 
-        // but normally we would use bcrypt.
-        if (registeredUser.password !== currentPass) {
-            return { success: false, message: 'Senha atual incorreta.' };
-        }
-
-        if (currentPass === newPass) {
-            return { success: false, message: 'A nova senha não pode ser igual à atual.' };
-        }
-
-        // Update password
-        users[userIndex].password = newPass;
-        localStorage.setItem('fintrack_users', JSON.stringify(users));
-
+    const changePassword = async (newPass: string): Promise<{ success: boolean; message: string }> => {
+        const { error } = await supabase.auth.updateUser({ password: newPass });
+        if (error) return { success: false, message: error.message };
         return { success: true, message: 'Senha alterada com sucesso!' };
     };
 
-    if (loading) return null;
-
     return (
         <AuthContext.Provider value={{
-            isAuthenticated,
+            isAuthenticated: !!user,
             user,
+            loading,
             login,
             register,
             logout,
@@ -286,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             changePassword,
             isImpersonating
         }}>
-            {children}
+            {!loading && children}
         </AuthContext.Provider>
     );
 };

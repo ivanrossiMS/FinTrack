@@ -15,7 +15,7 @@ export const Register: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
@@ -23,10 +23,18 @@ export const Register: React.FC = () => {
             return;
         }
 
-        if (register(name, email, password)) {
-            navigate('/');
+        setError('');
+        const { success, needsEmailAuth, error } = await register(name, email, password);
+
+        if (success) {
+            if (needsEmailAuth) {
+                alert('Conta criada! Verifique seu e-mail para confirmar o cadastro antes de entrar.');
+            } else {
+                alert('Conta criada com sucesso!');
+            }
+            navigate('/login');
         } else {
-            setError('E-mail já cadastrado');
+            setError(error || 'Erro ao criar conta');
         }
     };
 

@@ -61,13 +61,14 @@ export interface Budget {
 }
 
 export interface UserProfile {
+    id: string; // Ensure id is present
     name: string;
     email: string;
     phone?: string;
     profession?: string;
-    avatar?: string;
-    isAdmin?: boolean;
-    isAuthorized?: boolean;
+    avatar_url?: string;
+    role?: 'ADMIN' | 'USER';
+    is_authorized?: boolean;
     plan?: 'FREE' | 'PREMIUM';
 }
 

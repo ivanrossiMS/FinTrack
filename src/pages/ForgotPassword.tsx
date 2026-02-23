@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { KeyRound, ArrowLeft } from 'lucide-react';
@@ -11,28 +12,23 @@ export const ForgotPassword: React.FC = () => {
     const [code, setCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
 
-    const handleSendCode = (e: React.FormEvent) => {
+    const handleSendCode = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulation
-        alert(`Código de verificação enviado para ${email} (Simulado: use 1234)`);
-        setStep(2);
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`,
+        });
+
+        if (error) {
+            alert(`Erro: ${error.message}`);
+        } else {
+            alert(`Instruções de recuperação enviadas para ${email}. Verifique sua caixa de entrada.`);
+            setStep(2);
+        }
     };
 
     const handleReset = (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulation - In a real app we would verify code
-        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const userIndex = users.findIndex((u: any) => u.email === email);
-
-        if (userIndex >= 0) {
-            users[userIndex].password = newPassword;
-            localStorage.setItem('fintrack_users', JSON.stringify(users));
-            alert('Senha alterada com sucesso! Faça login com a nova senha.');
-            window.location.href = '/login';
-        } else {
-            alert('E-mail não encontrado.');
-            setStep(1);
-        }
+        alert('Para sua segurança, use o link enviado ao seu e-mail para definir uma nova senha.');
     };
 
     return (

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { SupabaseDataService } from '../services/supabaseData';
 import { User, Camera, Lock, Eye, EyeOff, Phone, Mail, Shield, Sparkles, Save } from 'lucide-react';
 import './Profile.css';
 
@@ -13,7 +14,7 @@ export const Profile: React.FC = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [profession, setProfession] = useState('');
-    const [avatar, setAvatar] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -28,52 +29,17 @@ export const Profile: React.FC = () => {
             setEmail(data.userProfile.email);
             setPhone(data.userProfile.phone || '');
             setProfession(data.userProfile.profession || '');
-            setAvatar(data.userProfile.avatar || '');
+            setAvatarUrl(data.userProfile.avatar_url || '');
             setAvatarDirty(false);
         } else if (user) {
             setName(user.name);
             setEmail(user.email);
             setPhone(user.phone || '');
             setProfession(user.profession || '');
-            setAvatar(user.avatar || '');
+            setAvatarUrl(user.avatar_url || '');
             setAvatarDirty(false);
         }
     }, [data.userProfile, user]);
-
-    const processProfileImage = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const TARGET_SIZE = 240;
-                    canvas.width = TARGET_SIZE;
-                    canvas.height = TARGET_SIZE;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) { reject('Could not get canvas context'); return; }
-
-                    ctx.fillStyle = '#f3f4f6';
-                    ctx.fillRect(0, 0, TARGET_SIZE, TARGET_SIZE);
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-
-                    const scale = Math.min(TARGET_SIZE / img.width, TARGET_SIZE / img.height);
-                    const width = img.width * scale;
-                    const height = img.height * scale;
-                    const x = (TARGET_SIZE - width) / 2;
-                    const y = (TARGET_SIZE - height) / 2;
-
-                    ctx.drawImage(img, x, y, width, height);
-                    resolve(canvas.toDataURL('image/webp', 0.85));
-                };
-                img.onerror = () => reject('Error loading image');
-                img.src = event.target?.result as string;
-            };
-            reader.onerror = () => reject('Error reading file');
-            reader.readAsDataURL(file);
-        });
-    };
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -86,32 +52,34 @@ export const Profile: React.FC = () => {
             alert('O arquivo deve ter no máximo 2MB.');
             return;
         }
+
         try {
-            const processedImage = await processProfileImage(file);
-            setAvatar(processedImage);
+            if (!user) return;
+            const publicUrl = await SupabaseDataService.uploadAvatar(user.id, file);
+            setAvatarUrl(publicUrl);
             setAvatarDirty(true);
         } catch (error) {
-            console.error('Error processing image:', error);
-            alert('Erro ao processar a imagem.');
+            console.error('Error uploading avatar:', error);
+            alert('Erro ao fazer upload da imagem.');
         }
     };
 
-    const handleSaveAvatar = () => {
+    const handleSaveAvatar = async () => {
         if (user && updateUser) {
-            updateUser({ ...user, avatar });
+            await updateUser({ name, phone, profession, avatar_url: avatarUrl });
         }
-        updateProfile({ name, email, phone, profession, avatar });
+        await updateProfile({ name, email, phone, profession, avatar_url: avatarUrl } as any);
         setAvatarDirty(false);
-        alert('Imagem salva com sucesso!');
+        alert('Imagem atualizada com sucesso!');
     };
 
-    const handleProfileSubmit = (e: React.FormEvent) => {
+    const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setAvatarDirty(false);
         if (user && updateUser) {
-            updateUser({ ...user, name, phone, profession, avatar });
+            await updateUser({ name, phone, profession, avatar_url: avatarUrl });
         }
-        updateProfile({ name, email, phone, profession, avatar });
+        await updateProfile({ name, email, phone, profession, avatar_url: avatarUrl } as any);
         alert('Perfil atualizado com sucesso!');
     };
 
@@ -131,7 +99,7 @@ export const Profile: React.FC = () => {
         }
         setIsChangingPass(true);
         try {
-            const result = await changePassword(currentPassword, newPassword);
+            const result = await changePassword(newPassword);
             if (result.success) {
                 alert(result.message);
                 setCurrentPassword('');
@@ -310,8 +278,8 @@ export const Profile: React.FC = () => {
                                     justifyContent: 'center',
                                     overflow: 'hidden',
                                 }}>
-                                    {avatar ? (
-                                        <img src={avatar} alt="Profile" style={{
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="Profile" style={{
                                             width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
                                         }} />
                                     ) : (
