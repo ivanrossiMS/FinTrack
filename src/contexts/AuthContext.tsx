@@ -49,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const fetchProfile = async (userId: string, retries = 3) => {
+        let success = false;
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
@@ -60,10 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (retries > 0) {
                     console.warn(`Profile fetch failed for ${userId}, retrying... (${retries})`);
                     setTimeout(() => fetchProfile(userId, retries - 1), 1500);
-                    return; // Return early, the recursive call will handle setLoading
+                    return; // Recursion continues, don't stop loading
                 }
 
-                // Fallback if profile record literally doesn't exist yet
+                // Final Fallback if profile record doesn't exist
                 const { data: { user: authUser } } = await supabase.auth.getUser();
                 if (authUser) {
                     setUser({
@@ -76,12 +77,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
             } else {
                 setUser(profile);
+                success = true;
             }
         } catch (err) {
             console.error('Fatal error in fetchProfile:', err);
         } finally {
-            // Only stop loading if we are NOT in the middle of a retry loop
-            if (retries === 0 || !loading) {
+            // Only stop loading if we reach the end of the chain or succeeded
+            if (retries === 0 || success) {
                 setLoading(false);
             }
         }
