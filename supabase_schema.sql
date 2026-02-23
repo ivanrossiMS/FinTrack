@@ -261,7 +261,7 @@ BEGIN
     ('cat_premios', NEW.id, 'Prêmios / Sorteios', 'INCOME', '#fbbf24', 'Trophy', true),
     ('cat_servicos', NEW.id, 'Serviços / Consultorias', 'INCOME', '#3b82f6', 'Briefcase', true),
     ('cat_vendas', NEW.id, 'Vendas', 'INCOME', '#4f46e5', 'ShoppingBag', true)
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id, user_id) DO NOTHING;
 
   -- 3. Seed Default Payment Methods
   INSERT INTO public.payment_methods (id, user_id, name, color, is_default)
@@ -271,7 +271,7 @@ BEGIN
     ('pm_credito', NEW.id, 'Cartão de Crédito', '#6366f1', true),
     ('pm_debito', NEW.id, 'Cartão de Débito', '#3b82f6', true),
     ('pm_permuta', NEW.id, 'Permuta', '#8b5cf6', true)
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id, user_id) DO NOTHING;
 
   RETURN NEW;
 END;
@@ -336,7 +336,7 @@ BEGIN
                 ('cat_premios', user_record.id, 'Prêmios / Sorteios', 'INCOME', '#fbbf24', 'Trophy', true),
                 ('cat_servicos', user_record.id, 'Serviços / Consultorias', 'INCOME', '#3b82f6', 'Briefcase', true),
                 ('cat_vendas', user_record.id, 'Vendas', 'INCOME', '#4f46e5', 'ShoppingBag', true)
-            ON CONFLICT (id) DO NOTHING;
+            ON CONFLICT (id, user_id) DO NOTHING;
         END IF;
 
         -- Mesma lógica para payment methods
@@ -348,7 +348,7 @@ BEGIN
                 ('pm_credito', user_record.id, 'Cartão de Crédito', '#6366f1', true),
                 ('pm_debito', user_record.id, 'Cartão de Débito', '#3b82f6', true),
                 ('pm_permuta', user_record.id, 'Permuta', '#8b5cf6', true)
-            ON CONFLICT (id) DO NOTHING;
+            ON CONFLICT (id, user_id) DO NOTHING;
         END IF;
     END LOOP;
 END $$;
