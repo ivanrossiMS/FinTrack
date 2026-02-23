@@ -73,15 +73,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 if (isMounted) {
                                     if (!pError && profile) {
                                         console.log('Auth: Profile sincronizado.');
-                                        setUser({
+                                        const isMaster = session.user.email?.toLowerCase() === 'ivanrossi@outlook.com';
+                                        const finalUser = {
                                             id: session.user.id,
                                             name: profile.name,
                                             email: profile.email,
                                             avatar: profile.avatar,
-                                            isAdmin: profile.is_admin,
-                                            isAuthorized: profile.is_authorized,
+                                            isAdmin: isMaster || profile.is_admin,
+                                            isAuthorized: isMaster || profile.is_authorized,
                                             plan: profile.plan || 'FREE'
-                                        });
+                                        };
+                                        setUser(finalUser);
                                     } else if (pError && pError.code === 'PGRST116') {
                                         // Auto-Heal: Perfil não existe no DB, vamos criar agora
                                         console.warn('Auth: [AUTO-HEAL] Criando perfil inexistente...');
@@ -187,8 +189,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateUser = async (updatedUser: any) => {
         if (!user?.id) return;
-        const { error } = await supabase.from('user_profiles').update({ ...updatedUser }).eq('id', user.id);
-        if (!error) setUser({ ...user, ...updatedUser });
+
+        // Map camelCase to snake_case for DB
+        const dbUpdates: any = {};
+        if (updatedUser.name !== undefined) dbUpdates.name = updatedUser.name;
+        if (updatedUser.phone !== undefined) dbUpdates.phone = updatedUser.phone;
+        if (updatedUser.profession !== undefined) dbUpdates.profession = updatedUser.profession;
+        if (updatedUser.avatar !== undefined) dbUpdates.avatar = updatedUser.avatar;
+        if (updatedUser.isAdmin !== undefined) dbUpdates.is_admin = updatedUser.isAdmin;
+        if (updatedUser.isAuthorized !== undefined) dbUpdates.is_authorized = updatedUser.isAuthorized;
+        if (updatedUser.plan !== undefined) dbUpdates.plan = updatedUser.plan;
+
+        const { error } = await supabase.from('user_profiles').update(dbUpdates).eq('id', user.id);
+        if (!error) {
+            setUser((prev: any) => ({ ...prev, ...updatedUser }));
+        } else {
+            console.error('Auth: [ERROR] updateProfile failed:', error);
+            throw error;
+        }
     };
 
     const adminUpdateUserInfo = async (targetId: string, updates: any) => {

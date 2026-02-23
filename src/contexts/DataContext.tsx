@@ -163,21 +163,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const addSupplier = async (supplier: Omit<Supplier, 'id'>) => {
+        if (!user?.id) return '';
         const id = uuidv4();
-        // Skip Supabase for now as we don't have a table for suppliers yet, or add it to StorageService
-        setData(prev => ({ ...prev, suppliers: [...prev.suppliers, { ...supplier, id }] }));
+        const newSupplier: Supplier = { ...supplier, id };
+        await StorageService.saveSupplier(newSupplier, user.id);
+        refresh();
         return id;
     };
 
     const updateSupplier = async (id: string, updates: Partial<Supplier>) => {
-        setData(prev => ({
-            ...prev,
-            suppliers: prev.suppliers.map(s => s.id === id ? { ...s, ...updates } : s)
-        }));
+        if (!user?.id) return;
+        const current = data.suppliers.find(s => s.id === id);
+        if (!current) return;
+        const updated = { ...current, ...updates };
+        await StorageService.saveSupplier(updated, user.id);
+        refresh();
     };
 
     const deleteSupplier = async (id: string) => {
-        setData(prev => ({ ...prev, suppliers: prev.suppliers.filter(s => s.id !== id) }));
+        if (!user?.id) return;
+        await StorageService.deleteSupplier(id);
+        refresh();
     };
 
     const addPaymentMethod = async (method: Omit<PaymentMethod, 'id'>) => {
@@ -352,7 +358,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
      * Merges current categories with defaults, ensuring all defaults are present and marked.
      */
     const resetCategories = async () => {
-        // Implementation for Supabase: Would involve deleting current and inserting defaults
+        if (!user?.id) return;
+        const defaults = StorageService.DEFAULT_CATEGORIES_SOURCE;
+        await Promise.all(defaults.map(cat => StorageService.saveCategory(cat, user.id)));
         refresh();
     };
 

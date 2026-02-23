@@ -1,4 +1,4 @@
-import type { AppData, Category, Transaction, PaymentMethod, Commitment, SavingsGoal } from '../models/types';
+import type { AppData, Category, Transaction, PaymentMethod, Commitment, SavingsGoal, Supplier } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabaseClient';
 
@@ -49,12 +49,17 @@ const DEFAULT_CATEGORIES: Category[] = [
 const DEFAULT_METHODS: PaymentMethod[] = [
     { id: 'pm_dinheiro', name: 'Dinheiro', color: '#10b981' },
     { id: 'pm_pix', name: 'Pix', color: '#06b6d4' },
-    { id: 'pm_credito', name: 'Cartão de Crédito', color: '#6366f1' },
     { id: 'pm_debito', name: 'Cartão de Débito', color: '#3b82f6' },
+    { id: 'pm_credito', name: 'Cartão de Crédito', color: '#6366f1' },
+    { id: 'pm_cripto', name: 'Cripto', color: '#f59e0b' },
+    { id: 'pm_cheque', name: 'Cheque', color: '#64748b' },
     { id: 'pm_permuta', name: 'Permuta', color: '#8b5cf6' },
 ];
 
 export const StorageService = {
+    DEFAULT_CATEGORIES_SOURCE: DEFAULT_CATEGORIES,
+    DEFAULT_METHODS_SOURCE: DEFAULT_METHODS,
+
     async load(userId?: string): Promise<AppData> {
         if (!userId) return INITIAL_DATA;
 
@@ -63,12 +68,14 @@ export const StorageService = {
                 { data: transactions },
                 { data: categories },
                 { data: methods },
+                { data: suppliers },
                 { data: commitments },
                 { data: goals }
             ] = await Promise.all([
                 supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
                 supabase.from('categories').select('*').eq('user_id', userId),
                 supabase.from('payment_methods').select('*').eq('user_id', userId),
+                supabase.from('suppliers').select('*').eq('user_id', userId),
                 supabase.from('commitments').select('*').eq('user_id', userId),
                 supabase.from('savings_goals').select('*').eq('user_id', userId)
             ]);
@@ -81,7 +88,7 @@ export const StorageService = {
                     supplierId: t.supplier_id
                 })),
                 categories: categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES,
-                suppliers: [],
+                suppliers: suppliers || [],
                 paymentMethods: methods && methods.length > 0 ? methods : DEFAULT_METHODS,
                 budgets: [],
                 commitments: (commitments || []).map(c => ({
@@ -155,6 +162,23 @@ export const StorageService = {
 
     async deletePaymentMethod(id: string) {
         const { error } = await supabase.from('payment_methods').delete().eq('id', id);
+        if (error) throw error;
+    },
+
+    async saveSupplier(supplier: Supplier, userId: string) {
+        const { error } = await supabase.from('suppliers').upsert({
+            id: supplier.id,
+            user_id: userId,
+            name: supplier.name,
+            contact: supplier.contact,
+            notes: supplier.notes,
+            updated_at: new Date().toISOString()
+        });
+        if (error) throw error;
+    },
+
+    async deleteSupplier(id: string) {
+        const { error } = await supabase.from('suppliers').delete().eq('id', id);
         if (error) throw error;
     },
 
