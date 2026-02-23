@@ -25,17 +25,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isImpersonating, setIsImpersonating] = useState(false);
 
     useEffect(() => {
-        // 1. Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                fetchProfile(session.user.id);
-            } else {
+        const initializeAuth = async () => {
+            try {
+                // 1. Get initial session strictly
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (session) {
+                    await fetchProfile(session.user.id);
+                } else {
+                    // Give a tiny window for any immediate events
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('Auth initialization error:', err);
                 setLoading(false);
             }
-        });
+        };
+
+        initializeAuth();
 
         // 2. Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log(`Auth event: ${event}`);
             if (session) {
                 await fetchProfile(session.user.id);
             } else {

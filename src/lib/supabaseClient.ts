@@ -12,17 +12,24 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const cookieStorage = {
     getItem: (key: string) => {
         const name = `${key}=`;
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
+        const ca = document.cookie.split(';');
         for (let i = 0; i < ca.length; i++) {
             let c = ca[i].trim();
-            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+            if (c.indexOf(name) === 0) {
+                const value = c.substring(name.length, c.length);
+                try {
+                    return decodeURIComponent(value);
+                } catch (e) {
+                    return value;
+                }
+            }
         }
         return null;
     },
     setItem: (key: string, value: string) => {
+        const encodedValue = encodeURIComponent(value);
         // Cookie sem "Expires" ou "Max-Age" = Cookie de Sessão
-        document.cookie = `${key}=${value};path=/;SameSite=Lax`;
+        document.cookie = `${key}=${encodedValue};path=/;SameSite=Lax`;
     },
     removeItem: (key: string) => {
         document.cookie = `${key}=;path=/;Max-Age=-99999999;`;
