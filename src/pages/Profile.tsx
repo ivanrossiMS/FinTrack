@@ -7,7 +7,7 @@ import './Profile.css';
 
 export const Profile: React.FC = () => {
     const { data, updateProfile } = useData();
-    const { user, updateUser, changePassword } = useAuth();
+    const { user, changePassword } = useAuth();
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
