@@ -13,24 +13,13 @@ export const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setIsSubmitLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
-        setIsSubmitLoading(true);
-
-        try {
-            const result = await login(email, password);
-            if (result.success) {
-                navigate('/');
-            } else {
-                setError(result.error || 'E-mail ou senha incorretos ou conta ainda não autorizada.');
-            }
-        } catch (err: any) {
-            setError(err.message || 'Ocorreu um erro inesperado.');
-        } finally {
-            setIsSubmitLoading(false);
+        if (login(email, password)) {
+            navigate('/');
+        } else {
+            setError('E-mail ou senha incorretos');
         }
     };
 
@@ -72,19 +61,14 @@ export const Login: React.FC = () => {
                             Esqueceu a senha?
                         </Link>
                     </div>
-                    <Button type="submit" fullWidth size="lg" disabled={loading}>
-                        {loading ? 'Entrando...' : 'Entrar na conta'}
-                    </Button>
+                    <Button type="submit" fullWidth size="lg">Entrar na conta</Button>
                 </form>
 
                 <div className="register-footer">
                     <p>
                         Ainda não tem conta? <Link to="/register" className="register-link">Criar conta grátis</Link>
                     </p>
-
-                    {/* Removed debug info for cleaner UI */}
-
-                    <p style={{ marginTop: '1rem', fontSize: '0.75rem', opacity: 0.5 }}>
+                    <p style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.5 }}>
                         @copyright by Ivan Rossi - todos direitos reservados
                     </p>
                 </div>

@@ -17,3 +17,7 @@ dist-ssr
 
 # Backups and Large Files
 *.zip
+
+# App Specific
+ts_errors.log
+.env

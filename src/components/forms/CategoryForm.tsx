@@ -17,12 +17,12 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ onClose, initialData
     const [type, setType] = useState<'INCOME' | 'EXPENSE' | 'BOTH'>(initialData?.type || 'EXPENSE');
     const [color, setColor] = useState(initialData?.color || '#3b82f6');
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (initialData) {
-            await updateCategory(initialData.id, { name, type, color });
+            updateCategory(initialData.id, { name, type, color });
         } else {
-            await addCategory({ name, type, color, isDefault: false });
+            addCategory({ name, type, color, isDefault: false });
         }
         onClose();
     };

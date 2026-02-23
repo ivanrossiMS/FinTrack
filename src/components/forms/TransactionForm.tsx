@@ -62,7 +62,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
 
         // 1. Handle Inline Category Creation
         if (isCreatingCategory && newCategoryName.trim()) {
-            finalCategoryId = await addCategory({
+            finalCategoryId = addCategory({
                 name: newCategoryName.trim(),
                 type: type as 'INCOME' | 'EXPENSE',
                 color: newCategoryColor,
@@ -72,7 +72,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
 
         // 2. Handle Inline Supplier Creation
         if (isCreatingSupplier && newSupplierName.trim()) {
-            finalSupplierId = await addSupplier({
+            finalSupplierId = addSupplier({
                 name: newSupplierName.trim()
             });
         }
@@ -93,9 +93,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         };
 
         if (initialData && initialData.id) {
-            await updateTransaction(initialData.id, payload);
+            updateTransaction(initialData.id, payload);
         } else {
-            await addTransaction(payload);
+            addTransaction(payload);
         }
         onClose();
     };

@@ -12,17 +12,16 @@ export const Settings: React.FC = () => {
     const { user } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleReset = async () => {
+    const handleReset = () => {
         const confirmMsg = user?.isAdmin
             ? 'ATENÇÃO: Isso apagará TODOS os seus dados pessoais. Deseja também apagar as Categorias/Métodos Globais (Admin)?'
             : 'ATENÇÃO: Isso apagará TODOS os seus dados. Deseja continuar?';
 
         if (confirm(confirmMsg)) {
             if (user?.isAdmin && confirm('Apagar também as configurações GLOBAIS (Categorias e Métodos para todos)?')) {
-                await StorageService.clearGlobals();
+                StorageService.clearGlobals();
             }
-            await StorageService.clear(user?.id);
-            await refresh();
+            StorageService.clear(user?.email);
         }
     };
 
@@ -45,13 +44,13 @@ export const Settings: React.FC = () => {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = async (event) => {
+        reader.onload = (event) => {
             try {
                 const json = JSON.parse(event.target?.result as string);
                 if (json.transactions && json.categories) {
                     if (confirm('Isso substituirá seus dados atuais pelos dados do arquivo. Confirmar?')) {
-                        await StorageService.save(json, user?.id);
-                        await refresh();
+                        StorageService.save(json, user?.email);
+                        refresh();
                         alert('Dados importados com sucesso!');
                     }
                 } else {
@@ -131,10 +130,10 @@ export const Settings: React.FC = () => {
                             <Button
                                 variant="ghost"
                                 className="border border-border gap-2"
-                                onClick={async () => {
+                                onClick={() => {
                                     if (confirm('Isso apagará seus dados atuais e criará dados de teste. Continuar?')) {
-                                        await StorageService.seedDemoData(user?.id);
-                                        await refresh();
+                                        StorageService.seedDemoData(user?.email);
+                                        refresh();
                                     }
                                 }}
                             >

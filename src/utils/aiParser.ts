@@ -36,7 +36,9 @@ const PURE_FILLER = new Set([
     'no', 'na', 'nos', 'nas',
     'pelo', 'pela', 'pelos', 'pelas',
     'ao', 'aos', 'à', 'às',
-    'por', 'pra', 'pro',
+    'por', 'pra', 'pro', 'com',
+    // action/noisy words
+    'gastei', 'paguei', 'comprei', 'gastos', 'gasto', 'valor',
     // conclusion words
     'ok', 'okay', 'finalizar', 'pronto', 'concluir', 'confirmar',
 ]);
@@ -60,88 +62,32 @@ const INCOME_KEYWORDS = [
 // Maps broad theme → keywords that imply that theme in Portuguese speech
 const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
     {
-        keywords: ['aluguel', 'condomínio', 'condominio', 'luz', 'energia',
-            'água', 'agua', 'internet', 'wifi', 'gás', 'gas', 'reforma',
+        keywords: ['aluguel', 'condomínio', 'condominio', 'luz', 'energia', 'cpfl', 'enel',
+            'água', 'agua', 'sabesp', 'sanepar', 'internet', 'wifi', 'gás', 'gas', 'reforma',
             'iptu', 'imóvel', 'imovel', 'casa', 'apartamento', 'apto',
             'manutenção', 'manutencao', 'encanador', 'eletricista', 'limpeza'],
-        themes: ['Contas da Casa', 'Casa & Manutenção'],
+        themes: ['Contas da Casa', 'Casa & Manutenção', 'Moradia'],
     },
     {
         keywords: ['farmácia', 'farmacia', 'médico', 'medico', 'exame', 'dentista',
             'remédio', 'remedio', 'hospital', 'consulta', 'plano de saúde', 'plano saúde',
             'plano saude', 'psicólogo', 'psicologo', 'psiquiatra', 'nutricionista',
-            'academia', 'gym', 'personal', 'cirurgia', 'check-up'],
+            'academia', 'gym', 'personal', 'cirurgia', 'check-up', 'unimed', 'bradesco saude', 'sulamerica'],
         themes: ['Saúde', 'Beleza & Autocuidado'],
     },
     {
-        keywords: ['cinema', 'viagem', 'show', 'bar', 'festa', 'netflix', 'amazon prime',
-            'disney', 'hbo', 'spotify', 'jogo', 'jogos', 'ingresso', 'parque', 'teatro',
-            'balada', 'clube', 'hobbie', 'hobby', 'photoshop', 'adobé', 'adobe'],
-        themes: ['Lazer', 'Viagens', 'Assinaturas'],
-    },
-    {
-        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade escolar',
-            'aula', 'matrícula', 'matricula', 'pós', 'pos', 'mba',
+        keywords: ['escola', 'faculdade', 'curso', 'livro', 'mensalidade escolar', 'mensalidade escola',
+            'aula', 'matrícula', 'matricula', 'pós', 'pos', 'mba', 'udemy', 'alura', 'coursera',
             'idioma', 'inglês', 'ingles', 'espanhol', 'treinamento', 'workshop'],
-        themes: ['Educação & Livros'],
-    },
-    {
-        keywords: ['uber', '99', 'táxi', 'taxi', 'ônibus', 'onibus', 'metrô', 'metro',
-            'gasolina', 'combustível', 'combustivel', 'carro', 'estacionamento',
-            'pedágio', 'pedagio', 'moto', 'bicicleta', 'passagem', 'transporte'],
-        themes: ['Transporte / Manutenção Véiculo'],
+        themes: ['Educação & Livros', 'Educação'],
     },
     {
         keywords: ['mercado', 'supermercado', 'almoço', 'almoco', 'jantar', 'ifood',
-            'rappi', 'lanche', 'restaurante', 'padaria', 'fruta', 'verdura', 'café', 'cafe',
-            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira',
-            'churrasco', 'açaí', 'acai', 'sorvete', 'refeição', 'refeicao',
+            'rappi', 'lanche', 'restaurante', 'padaria', 'pão', 'pao', 'fruta', 'verdura', 'café', 'cafe',
+            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira', 'carrefour', 'pão de açucar',
+            'extra', 'atacadão', 'churrasco', 'açaí', 'acai', 'sorvete', 'refeição', 'refeicao',
             'marmita', 'delivery', 'a praça', 'praça', 'china'],
         themes: ['Alimentação', 'Compras / Mercado Extra'],
-    },
-    {
-        keywords: ['roupa', 'clothes', 'tênis', 'tenis', 'camisa', 'calça', 'calca',
-            'sapato', 'sandália', 'sandalia', 'bolsa', 'acessório', 'acessorio',
-            'loja', 'shopping', 'moda', 'vestido', 'jaqueta', 'jeans'],
-        themes: ['Vestuário'],
-    },
-    {
-        keywords: ['assinatura', 'streaming', 'plano mensal', 'mensalidade',
-            'apple', 'google', 'microsoft', 'adobe', 'canva', 'dropbox',
-            'icloud', 'antivírus', 'antivirus', 'vpn'],
-        themes: ['Assinaturas', 'Tecnologia'],
-    },
-    {
-        keywords: ['salário', 'salario', 'ordenado', 'pagamento', 'holerite', 'pró-labore',
-            'prolabore', 'freelance', 'consultoria', 'serviços prestados', 'renda extra'],
-        themes: ['Salário', 'Serviços / Consultorias'],
-    },
-    {
-        keywords: ['investimento', 'ações', 'acoes', 'bolsa', 'fundo', 'tesouro', 'cdb',
-            'poupança', 'poupanca', 'renda fixa', 'cripto', 'bitcoin', 'aplicação', 'investir'],
-        themes: ['Rendimentos', 'Investimentos'],
-    },
-    {
-        keywords: ['pet', 'cachorro', 'gato', 'ração', 'racao', 'veterinário', 'veterinario',
-            'banho tosa', 'petshop'],
-        themes: ['Pets & Cuidado'],
-    },
-    {
-        keywords: ['imposto', 'taxa', 'irpf', 'iptu', 'ipva', 'juros', 'iof'],
-        themes: ['Impostos & Taxas'],
-    },
-    {
-        keywords: ['seguro', 'apólice', 'porto seguro', 'liberty', 'allianz'],
-        themes: ['Seguros'],
-    },
-    {
-        keywords: ['presente', 'doação', 'aniversário', 'ajuda', 'caridade'],
-        themes: ['Presentes & Doações'],
-    },
-    {
-        keywords: ['cartão', 'cartao', 'fatura', 'boleto', 'empréstimo', 'emprestimo',
-            'financiamento', 'parcela', 'juros', 'dívida', 'divida'],
-        themes: ['Dívidas & Empréstimos', 'Cartão de Crédito'],
     },
 ];
 
@@ -361,9 +307,9 @@ export const parseTranscription = (
         if (PURE_FILLER.has(tokNorm)) continue;
         if (DATE_SIGNALS.has(tokNorm)) { skipNext = true; continue; } // skip "dia X"
         if (PAYMENT_SIGNALS.has(tokNorm)) continue;
-        if (/^r\$/.test(tokNorm)) continue; // skip "r$" or "r$50" currency tokens
+        if (/^r\$/.test(tokNorm)) continue; // skip "r$"
         if (/^\$/.test(tokNorm)) continue;   // skip bare "$"
-        if (/^\d+([.,]\d{1,2})?$/.test(tokNorm)) continue; // bare numbers
+        if (/^\d+([.,]\d{1,2})?$/.test(tokNorm)) continue; // bare numbers or amounts
         if (tok.length <= 1) continue;
 
         descTokens.push(tok);

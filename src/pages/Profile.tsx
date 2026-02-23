@@ -7,7 +7,7 @@ import './Profile.css';
 
 export const Profile: React.FC = () => {
     const { data, updateProfile } = useData();
-    const { user, changePassword } = useAuth();
+    const { user, updateUser, changePassword } = useAuth();
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -96,16 +96,22 @@ export const Profile: React.FC = () => {
         }
     };
 
-    const handleSaveAvatar = async () => {
-        await updateProfile({ name, email, phone, profession, avatar });
+    const handleSaveAvatar = () => {
+        if (user && updateUser) {
+            updateUser({ ...user, avatar });
+        }
+        updateProfile({ name, email, phone, profession, avatar });
         setAvatarDirty(false);
         alert('Imagem salva com sucesso!');
     };
 
-    const handleProfileSubmit = async (e: React.FormEvent) => {
+    const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setAvatarDirty(false);
-        await updateProfile({ name, email, phone, profession, avatar });
+        if (user && updateUser) {
+            updateUser({ ...user, name, phone, profession, avatar });
+        }
+        updateProfile({ name, email, phone, profession, avatar });
         alert('Perfil atualizado com sucesso!');
     };
 

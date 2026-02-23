@@ -28,6 +28,7 @@ export interface PaymentMethod {
     id: string;
     name: string;
     color?: string;
+    isDefault?: boolean;
 }
 
 export interface Transaction {

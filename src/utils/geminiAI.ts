@@ -120,25 +120,40 @@ export async function parseTransactionWithAI(
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
     if (!apiKey) return null;
 
-    const prompt = `Analise o seguinte comando de voz para um lançamento financeiro: "${text}"
+    const prompt = `Atue como um Engenheiro de Machine Learning Especialista em Fintech. Sua tarefa é converter um comando de voz natural em um objeto de transação financeira estruturado.
 
-Categorias disponíveis: ${categories.join(', ')}
+Texto falado: "${text}"
 
-Extraia os dados no seguinte formato JSON estrito:
+Categorias disponíveis no FinTrack: ${categories.join(', ')}
+
+### Diretrizes de Elite para Percepção:
+1. **Mapeamento Semântico de Categorias:**
+   - "pão", "padaria", "almoço", "ifood" -> mapear para "Alimentação".
+   - "escola", "curso", "faculdade", "mensalidade" -> mapear para "Educação" (ou similar disponível).
+   - "luz", "água", "aluguel", "internet" -> mapear para "Moradia" ou "Contas Fixas".
+   - "plano de saúde", "remédio", "dentista" -> mapear para "Saúde".
+   - Caso o item não tenha categoria óbvia, use a categoria mais genérica disponível.
+
+2. **Extração de Descrição (Limpeza):**
+   - Remova preposições e termos de ação (ex: "de pão" -> "Pão", "pagamento da luz" -> "Luz").
+   - Capitalize a primeira letra.
+
+3. **Formato de Saída (JSON Estrito):**
 {
   "type": "EXPENSE" | "INCOME",
-  "description": "descrição curta e limpa",
-  "amount": valor numérico,
-  "categoryName": "escolha a melhor categoria da lista acima",
-  "paymentMethodName": "método de pagamento se mencionado",
-  "supplierName": "fornecedor se mencionado",
+  "description": "descrição limpa e profissional",
+  "amount": valor numérico (remova "reais", "r$", etc),
+  "categoryName": "A categoria EXATA da lista acima",
+  "paymentMethodName": "método se mencionado (ex: pix, crédito)",
+  "supplierName": "loja/estabelecimento se mencionado",
   "confidence": 0.0 a 1.0
 }
 
-Regras:
-1. Se a categoria não estiver na lista, escolha a mais óbvia (ex: "pão" -> "Alimentação", "luz" -> "Moradia").
-2. Descrição deve ser o item/serviço (ex: "pão", "mensalidade escolar").
-3. Retorne APENAS o JSON.`;
+### Exemplos:
+- "Paguei 100 reais de pão na padaria" -> {"type": "EXPENSE", "description": "Pão", "amount": 100, "categoryName": "Alimentação", "supplierName": "Padaria", "confidence": 0.98}
+- "Mensalidade escolar 1000 reais" -> {"type": "EXPENSE", "description": "Mensalidade escolar", "amount": 1000, "categoryName": "Educação", "confidence": 0.99}
+
+Retorne APENAS o JSON.`;
 
     try {
         const response = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {

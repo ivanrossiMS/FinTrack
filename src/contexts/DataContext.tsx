@@ -7,55 +7,54 @@ import { addMonths, parseISO } from 'date-fns';
 
 interface DataContextType {
     data: AppData;
-    addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => Promise<void>;
-    updateTransaction: (id: string, tx: Partial<Transaction>) => Promise<void>;
-    deleteTransaction: (id: string) => Promise<void>;
-    addCategory: (cat: Omit<Category, 'id'>) => Promise<string>;
-    updateCategory: (id: string, cat: Partial<Category>) => Promise<void>;
-    deleteCategory: (id: string) => Promise<void>;
-    addSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<string>;
-    updateSupplier: (id: string, supplier: Partial<Supplier>) => Promise<void>;
-    deleteSupplier: (id: string) => Promise<void>;
-    addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => Promise<void>;
-    updatePaymentMethod: (id: string, method: Partial<PaymentMethod>) => Promise<void>;
-    deletePaymentMethod: (id: string) => Promise<void>;
-    updateProfile: (profile: UserProfile) => Promise<void>;
-    addCommitment: (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => Promise<void>;
-    updateCommitment: (id: string, updates: Partial<Commitment>) => Promise<void>;
-    deleteCommitment: (id: string) => Promise<void>;
-    payCommitment: (id: string, paymentMethodId: string, installments?: number) => Promise<void>;
-    refresh: () => Promise<void>;
-    addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-    updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>) => Promise<void>;
-    deleteSavingsGoal: (id: string) => Promise<void>;
-    resetCategories: () => Promise<void>;
+    addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => void;
+    updateTransaction: (id: string, tx: Partial<Transaction>) => void;
+    deleteTransaction: (id: string) => void;
+    addCategory: (cat: Omit<Category, 'id'>) => string;
+    updateCategory: (id: string, cat: Partial<Category>) => void;
+    deleteCategory: (id: string) => void;
+    addSupplier: (supplier: Omit<Supplier, 'id'>) => string;
+    updateSupplier: (id: string, supplier: Partial<Supplier>) => void;
+    deleteSupplier: (id: string) => void;
+    addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => void;
+    updatePaymentMethod: (id: string, method: Partial<PaymentMethod>) => void;
+    deletePaymentMethod: (id: string) => void;
+    updateProfile: (profile: UserProfile) => void;
+    addCommitment: (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => void;
+    updateCommitment: (id: string, updates: Partial<Commitment>) => void;
+    deleteCommitment: (id: string) => void;
+    payCommitment: (id: string, paymentMethodId: string, installments?: number) => void;
+    refresh: () => void;
+    addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
+    updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>) => void;
+    deleteSavingsGoal: (id: string) => void;
+    resetCategories: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, updateUser } = useAuth();
-    const [data, setData] = useState<AppData>({
-        transactions: [],
-        categories: [],
-        suppliers: [],
-        paymentMethods: [],
-        budgets: [],
-        commitments: [],
-        savingsGoals: []
-    });
+    const { user } = useAuth();
+    const [data, setData] = useState<AppData>(StorageService.load(user?.email));
 
     // Reload data when user changes
     useEffect(() => {
-        if (!user?.id) return;
+        const loadedData = StorageService.load(user?.email);
+        setData(loadedData);
 
-        const loadData = async () => {
-            const loadedData = await StorageService.load(user.id);
-            setData(loadedData);
-        };
+        // One-time sync: If admin, and global keys are empty, initialize them with admin's current data
+        if (user?.isAdmin) {
+            const hasGlobalCats = StorageService.loadGlobalCategories();
+            const hasGlobalMethods = StorageService.loadGlobalMethods();
 
-        loadData();
-    }, [user?.id]);
+            if (!hasGlobalCats && loadedData.categories.length > 0) {
+                StorageService.saveGlobalCategories(loadedData.categories);
+            }
+            if (!hasGlobalMethods && loadedData.paymentMethods.length > 0) {
+                StorageService.saveGlobalMethods(loadedData.paymentMethods);
+            }
+        }
+    }, [user?.email, user?.isAdmin]);
 
     useEffect(() => {
         // --- AUTO-SYNC FIXED CATEGORIES ---
@@ -78,320 +77,373 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [data.categories.length]); // Track length to avoid infinite loops but catch additions
 
-    const refresh = async () => {
-        if (user?.id) {
-            setData(await StorageService.load(user.id));
-        }
+    useEffect(() => {
+        // Sincronizar qualquer mudança de estado com o localStorage relativo ao usuário
+        StorageService.save(data, user?.email);
+    }, [data, user?.email]);
+
+    const refresh = () => {
+        setData(StorageService.load(user?.email));
     };
 
-    const addTransaction = async (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => {
-        if (!user?.id) return;
+    const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> & { installments?: number; recurrenceCount?: number }) => {
         const { installments, recurrenceCount, ...baseTx } = tx;
 
+        // Determine how many entries to generate:
+        // - Credit card installments (despesas parceladas)
+        // - Recurring income (receitas recorrentes)
         const count = (baseTx.isRecurring && recurrenceCount && recurrenceCount > 1)
             ? recurrenceCount
             : (installments || 1);
 
         const groupId = count > 1 ? uuidv4() : undefined;
+
+        const newTransactions: Transaction[] = [];
         const baseDate = parseISO(baseTx.date);
-
-        try {
-            for (let i = 0; i < count; i++) {
-                const date = addMonths(baseDate, i).toISOString();
-                const description = count > 1 ? `${baseTx.description} [${i + 1}/${count}]` : baseTx.description;
-                const installmentAmount = (!baseTx.isRecurring && count > 1)
-                    ? Math.round((baseTx.amount / count) * 100) / 100
-                    : baseTx.amount;
-
-                const newTx: Transaction = {
-                    ...baseTx,
-                    id: uuidv4(),
-                    date,
-                    amount: installmentAmount,
-                    description,
-                    installmentId: groupId,
-                    installmentNumber: i + 1,
-                    totalInstallments: count > 1 ? count : undefined,
-                    isRecurring: baseTx.isRecurring || false,
-                    recurrenceCount: baseTx.isRecurring ? count : undefined,
-                    createdAt: Date.now(),
-                    updatedAt: Date.now()
-                };
-
-                await StorageService.saveTransaction(newTx, user.id);
-            }
-            await refresh();
-        } catch (err) {
-            console.error('DataContext: Error adding transaction:', err);
-            alert('Erro ao salvar lançamento. Verifique sua conexão ou permissões.');
-            throw err;
-        }
-    };
-
-    const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
-        if (!user?.id) return;
-        const currentTx = data.transactions.find(t => t.id === id);
-        if (!currentTx) return;
-
-        const updatedTx = { ...currentTx, ...updates, updatedAt: Date.now() };
-        await StorageService.saveTransaction(updatedTx, user.id);
-        refresh();
-    };
-
-    const deleteTransaction = async (id: string) => {
-        await StorageService.deleteTransaction(id);
-        refresh();
-    };
-
-    const addCategory = async (cat: Omit<Category, 'id'>) => {
-        if (!user?.id) return '';
-        const id = uuidv4();
-        const newCat: Category = { ...cat, id };
-        await StorageService.saveCategory(newCat, user.id);
-        refresh();
-        return id;
-    };
-
-    const updateCategory = async (id: string, updates: Partial<Category>) => {
-        if (!user?.id) return;
-        const currentCat = data.categories.find(c => c.id === id);
-        if (!currentCat) return;
-
-        const updatedCat = { ...currentCat, ...updates };
-        await StorageService.saveCategory(updatedCat, user.id);
-        refresh();
-    };
-
-    const deleteCategory = async (id: string) => {
-        const cat = data.categories.find(c => c.id === id);
-        if (cat?.isDefault) {
-            console.warn('DataContext: Negação de exclusão de categoria de sistema.');
-            return;
-        }
-        await StorageService.deleteCategory(id);
-        refresh();
-    };
-
-    const addSupplier = async (supplier: Omit<Supplier, 'id'>) => {
-        if (!user?.id) return '';
-        const id = uuidv4();
-        const newSupplier: Supplier = { ...supplier, id };
-        await StorageService.saveSupplier(newSupplier, user.id);
-        refresh();
-        return id;
-    };
-
-    const updateSupplier = async (id: string, updates: Partial<Supplier>) => {
-        if (!user?.id) return;
-        const current = data.suppliers.find(s => s.id === id);
-        if (!current) return;
-        const updated = { ...current, ...updates };
-        await StorageService.saveSupplier(updated, user.id);
-        refresh();
-    };
-
-    const deleteSupplier = async (id: string) => {
-        if (!user?.id) return;
-        await StorageService.deleteSupplier(id);
-        refresh();
-    };
-
-    const addPaymentMethod = async (method: Omit<PaymentMethod, 'id'>) => {
-        if (!user?.id) return;
-        const newMethod: PaymentMethod = { ...method, id: uuidv4() };
-        await StorageService.savePaymentMethod(newMethod, user.id);
-        refresh();
-    };
-
-    const updatePaymentMethod = async (id: string, updates: Partial<PaymentMethod>) => {
-        if (!user?.id) return;
-        const current = data.paymentMethods.find(m => m.id === id);
-        if (!current) return;
-        const updated = { ...current, ...updates };
-        await StorageService.savePaymentMethod(updated, user.id);
-        refresh();
-    };
-
-    const deletePaymentMethod = async (id: string) => {
-        const method = data.paymentMethods.find(m => m.id === id);
-        if (!method) return;
-        // Default methods start with pm_ or should have an isDefault flag if we add it, 
-        if (id.startsWith('pm_')) {
-            console.warn('DataContext: Negação de exclusão de método de sistema.');
-            return;
-        }
-        await StorageService.deletePaymentMethod(id);
-        refresh();
-    };
-
-    const updateProfile = async (profile: UserProfile) => {
-        if (!user?.id) return;
-        try {
-            await updateUser(profile);
-            setData(prev => ({ ...prev, userProfile: profile }));
-            await refresh();
-        } catch (err) {
-            console.error('DataContext: Failed to update profile:', err);
-        }
-    };
-
-    const addCommitment = async (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {
-        if (!user?.id) return;
-        const { installments, ...baseComm } = commitment;
-        const count = installments || 1;
-        const installmentId = count > 1 ? uuidv4() : undefined;
-        const baseDate = parseISO(baseComm.dueDate);
-
-        try {
-            for (let i = 0; i < count; i++) {
-                const dueDate = addMonths(baseDate, i).toISOString();
-                const description = count > 1 ? `${baseComm.description} [${i + 1}/${count}]` : baseComm.description;
-                const installmentAmount = count > 1 ? Math.round((baseComm.amount / count) * 100) / 100 : baseComm.amount;
-
-                const newComm: Commitment = {
-                    ...baseComm,
-                    id: uuidv4(),
-                    amount: installmentAmount,
-                    dueDate,
-                    description,
-                    status: 'PENDING',
-                    installmentId,
-                    installmentNumber: i + 1,
-                    totalInstallments: count > 1 ? count : undefined,
-                    createdAt: Date.now(),
-                    updatedAt: Date.now()
-                };
-
-                await StorageService.saveCommitment(newComm, user.id);
-            }
-            await refresh();
-        } catch (err) {
-            console.error('DataContext: Error adding commitment:', err);
-            alert('Erro ao salvar compromisso. Verifique sua conexão ou permissões.');
-            throw err;
-        }
-    };
-
-    const updateCommitment = async (id: string, updates: Partial<Commitment>) => {
-        if (!user?.id) return;
-        const current = data.commitments?.find(c => c.id === id);
-        if (!current) return;
-
-        const updated = { ...current, ...updates, updatedAt: Date.now() };
-        await StorageService.saveCommitment(updated, user.id);
-
-        if (current.transactionId) {
-            const tx = data.transactions.find(t => t.id === current.transactionId);
-            if (tx) {
-                await StorageService.saveTransaction({
-                    ...tx,
-                    amount: updates.amount !== undefined ? updates.amount : tx.amount,
-                    description: updates.description !== undefined ? `PAGTO: ${updates.description}` : tx.description,
-                    categoryId: updates.categoryId !== undefined ? updates.categoryId : tx.categoryId,
-                    supplierId: updates.supplierId !== undefined ? updates.supplierId : tx.supplierId,
-                    updatedAt: Date.now()
-                }, user.id);
-            }
-        }
-        refresh();
-    };
-
-    const deleteCommitment = async (id: string) => {
-        if (!user?.id) return;
-        const commitment = data.commitments?.find(c => c.id === id);
-        if (commitment?.transactionId) {
-            await StorageService.deleteTransaction(commitment.transactionId);
-        }
-        await StorageService.deleteCommitment(id);
-        refresh();
-    };
-
-    const payCommitment = async (id: string, paymentMethodId: string, installments?: number) => {
-        if (!user?.id) return;
-        const commitment = data.commitments?.find(c => c.id === id);
-        if (!commitment || commitment.status === 'PAID') return;
-
-        const count = installments || 1;
-        const installmentId = count > 1 ? uuidv4() : undefined;
-        const paymentDateStr = new Date().toISOString().split('T')[0];
-        const baseDate = parseISO(paymentDateStr);
 
         for (let i = 0; i < count; i++) {
             const date = addMonths(baseDate, i).toISOString();
-            const description = count > 1
-                ? `PAGTO: ${commitment.description} [${i + 1}/${count}]`
-                : `PAGTO: ${commitment.description}`;
+            const description = count > 1 ? `${baseTx.description} [${i + 1}/${count}]` : baseTx.description;
 
-            const installmentAmount = count > 1 ? Math.round((commitment.amount / count) * 100) / 100 : commitment.amount;
+            // If it's installments (not recurring), divide the total amount
+            const installmentAmount = (!baseTx.isRecurring && count > 1)
+                ? Math.round((baseTx.amount / count) * 100) / 100
+                : baseTx.amount;
 
-            const newTx: Transaction = {
-                id: i === 0 ? (commitment.transactionId || uuidv4()) : uuidv4(),
-                type: 'EXPENSE',
+            newTransactions.push({
+                ...baseTx,
+                id: uuidv4(),
                 date,
                 amount: installmentAmount,
                 description,
-                categoryId: commitment.categoryId,
-                supplierId: commitment.supplierId,
-                paymentMethodId: paymentMethodId,
+                installmentId: groupId,
+                installmentNumber: i + 1,
+                totalInstallments: count > 1 ? count : undefined,
+                isRecurring: baseTx.isRecurring || false,
+                recurrenceCount: baseTx.isRecurring ? count : undefined,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            });
+        }
+
+        setData(prev => ({
+            ...prev,
+            transactions: [...prev.transactions, ...newTransactions]
+        }));
+    };
+
+    const updateTransaction = (id: string, updates: Partial<Transaction>) => {
+        setData(prev => ({
+            ...prev,
+            transactions: prev.transactions.map(t => t.id === id ? { ...t, ...updates, updatedAt: Date.now() } : t)
+        }));
+    };
+
+    const deleteTransaction = (id: string) => {
+        setData(prev => ({
+            ...prev,
+            transactions: prev.transactions.filter(t => t.id !== id)
+        }));
+    };
+
+    const addCategory = (cat: Omit<Category, 'id'>) => {
+        const id = uuidv4();
+        const newCat: Category = { ...cat, id };
+        setData(prev => {
+            const newData = { ...prev, categories: [...prev.categories, newCat] };
+            if (user?.isAdmin) {
+                StorageService.saveGlobalCategories(newData.categories);
+            }
+            return newData;
+        });
+        return id;
+    };
+
+    const updateCategory = (id: string, updates: Partial<Category>) => {
+        setData(prev => {
+            const newData = {
+                ...prev,
+                categories: prev.categories.map(c => c.id === id ? { ...c, ...updates } : c)
+            };
+            if (user?.isAdmin) {
+                StorageService.saveGlobalCategories(newData.categories);
+            }
+            return newData;
+        });
+    };
+
+    const deleteCategory = (id: string) => {
+        setData(prev => {
+            const newData = { ...prev, categories: prev.categories.filter(c => c.id !== id) };
+            if (user?.isAdmin) {
+                StorageService.saveGlobalCategories(newData.categories);
+            }
+            return newData;
+        });
+    };
+
+    const addSupplier = (supplier: Omit<Supplier, 'id'>) => {
+        const id = uuidv4();
+        const newSupplier: Supplier = { ...supplier, id };
+        setData(prev => ({ ...prev, suppliers: [...prev.suppliers, newSupplier] }));
+        return id;
+    };
+
+    const updateSupplier = (id: string, updates: Partial<Supplier>) => {
+        setData(prev => ({
+            ...prev,
+            suppliers: prev.suppliers.map(s => s.id === id ? { ...s, ...updates } : s)
+        }));
+    };
+
+    const deleteSupplier = (id: string) => {
+        setData(prev => ({ ...prev, suppliers: prev.suppliers.filter(s => s.id !== id) }));
+    };
+
+    const addPaymentMethod = (method: Omit<PaymentMethod, 'id'>) => {
+        const newMethod: PaymentMethod = { ...method, id: uuidv4() };
+        setData(prev => {
+            const newData = { ...prev, paymentMethods: [...prev.paymentMethods, newMethod] };
+            if (user?.isAdmin) {
+                StorageService.saveGlobalMethods(newData.paymentMethods);
+            }
+            return newData;
+        });
+    };
+
+    const updatePaymentMethod = (id: string, updates: Partial<PaymentMethod>) => {
+        setData(prev => {
+            const newData = {
+                ...prev,
+                paymentMethods: prev.paymentMethods.map(m => m.id === id ? { ...m, ...updates } : m)
+            };
+            if (user?.isAdmin) {
+                StorageService.saveGlobalMethods(newData.paymentMethods);
+            }
+            return newData;
+        });
+    };
+
+    const deletePaymentMethod = (id: string) => {
+        setData(prev => {
+            const newData = { ...prev, paymentMethods: prev.paymentMethods.filter(m => m.id !== id) };
+            if (user?.isAdmin) {
+                StorageService.saveGlobalMethods(newData.paymentMethods);
+            }
+            return newData;
+        });
+    };
+
+    const updateProfile = (profile: UserProfile) => {
+        setData(prev => ({ ...prev, userProfile: profile }));
+    };
+
+    const addCommitment = (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {
+        const { installments, ...baseComm } = commitment;
+        const count = installments || 1;
+        const installmentId = count > 1 ? uuidv4() : undefined;
+
+        const newCommitments: Commitment[] = [];
+        const baseDate = parseISO(baseComm.dueDate);
+
+        for (let i = 0; i < count; i++) {
+            const dueDate = addMonths(baseDate, i).toISOString();
+            const description = count > 1 ? `${baseComm.description} [${i + 1}/${count}]` : baseComm.description;
+            const installmentAmount = count > 1 ? Math.round((baseComm.amount / count) * 100) / 100 : baseComm.amount;
+
+            newCommitments.push({
+                ...baseComm,
+                id: uuidv4(),
+                amount: installmentAmount,
+                dueDate,
+                description,
+                status: 'PENDING',
                 installmentId,
                 installmentNumber: i + 1,
                 totalInstallments: count > 1 ? count : undefined,
                 createdAt: Date.now(),
                 updatedAt: Date.now()
-            };
-
-            await StorageService.saveTransaction(newTx, user.id);
-
-            if (i === 0) {
-                await StorageService.saveCommitment({
-                    ...commitment,
-                    status: 'PAID',
-                    paymentMethodId,
-                    transactionId: newTx.id,
-                    paymentDate: paymentDateStr,
-                    updatedAt: Date.now()
-                }, user.id);
-            }
+            });
         }
-        refresh();
+
+        setData(prev => ({
+            ...prev,
+            commitments: [...(prev.commitments || []), ...newCommitments]
+        }));
     };
 
-    const addSavingsGoal = async (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
-        if (!user?.id) return;
+    const updateCommitment = (id: string, updates: Partial<Commitment>) => {
+        setData(prev => {
+            const commitments = prev.commitments || [];
+            const commitment = commitments.find(c => c.id === id);
+
+            if (!commitment) return prev;
+
+            const updatedCommitments = commitments.map(c =>
+                c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c
+            );
+
+            let updatedTransactions = prev.transactions;
+            if (commitment.transactionId) {
+                updatedTransactions = prev.transactions.map(t => {
+                    if (t.id === commitment.transactionId) {
+                        return {
+                            ...t,
+                            amount: updates.amount !== undefined ? updates.amount : t.amount,
+                            description: updates.description !== undefined ? `PAGTO: ${updates.description}` : t.description,
+                            categoryId: updates.categoryId !== undefined ? updates.categoryId : t.categoryId,
+                            supplierId: updates.supplierId !== undefined ? updates.supplierId : t.supplierId,
+                            updatedAt: Date.now()
+                        };
+                    }
+                    return t;
+                });
+            }
+
+            return {
+                ...prev,
+                commitments: updatedCommitments,
+                transactions: updatedTransactions
+            };
+        });
+    };
+
+    const deleteCommitment = (id: string) => {
+        setData(prev => {
+            const commitments = prev.commitments || [];
+            const commitment = commitments.find(c => c.id === id);
+
+            const updatedCommitments = commitments.filter(c => c.id !== id);
+            let updatedTransactions = prev.transactions;
+
+            if (commitment?.transactionId) {
+                updatedTransactions = prev.transactions.filter(t => t.id !== commitment.transactionId);
+            }
+
+            return {
+                ...prev,
+                commitments: updatedCommitments,
+                transactions: updatedTransactions
+            };
+        });
+    };
+
+    const payCommitment = (id: string, paymentMethodId: string, installments?: number) => {
+        setData(prev => {
+            const commitments = prev.commitments || [];
+            const commitment = commitments.find(c => c.id === id);
+
+            if (!commitment || commitment.status === 'PAID') return prev;
+
+            const count = installments || 1;
+            const installmentId = count > 1 ? uuidv4() : undefined;
+            const paymentDateStr = new Date().toISOString().split('T')[0];
+            const baseDate = parseISO(paymentDateStr);
+
+            // 1. Create the transactions
+            const newTransactions: Transaction[] = [];
+            for (let i = 0; i < count; i++) {
+                const date = addMonths(baseDate, i).toISOString();
+                const description = count > 1
+                    ? `PAGTO: ${commitment.description} [${i + 1}/${count}]`
+                    : `PAGTO: ${commitment.description}`;
+
+                const installmentAmount = count > 1 ? Math.round((commitment.amount / count) * 100) / 100 : commitment.amount;
+
+                newTransactions.push({
+                    id: i === 0 ? (commitment.transactionId || uuidv4()) : uuidv4(),
+                    type: 'EXPENSE',
+                    date,
+                    amount: installmentAmount,
+                    description,
+                    categoryId: commitment.categoryId,
+                    supplierId: commitment.supplierId,
+                    paymentMethodId: paymentMethodId,
+                    installmentId,
+                    installmentNumber: i + 1,
+                    totalInstallments: count > 1 ? count : undefined,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                });
+            }
+
+            const mainTransactionId = newTransactions[0].id;
+
+            // 2. Update the commitment
+            const updatedCommitments = commitments.map(c =>
+                c.id === id ? {
+                    ...(c as Commitment),
+                    status: 'PAID' as 'PAID',
+                    paymentMethodId,
+                    transactionId: mainTransactionId,
+                    paymentDate: paymentDateStr,
+                    updatedAt: Date.now()
+                } : c
+            );
+
+            return {
+                ...prev,
+                transactions: [...prev.transactions, ...newTransactions],
+                commitments: updatedCommitments
+            };
+        });
+    };
+
+    const addSavingsGoal = (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
         const newGoal: SavingsGoal = {
             ...goal,
             id: uuidv4(),
             createdAt: Date.now(),
             updatedAt: Date.now()
         };
-        await StorageService.saveSavingsGoal(newGoal, user.id);
-        refresh();
+        setData(prev => ({
+            ...prev,
+            savingsGoals: [...(prev.savingsGoals || []), newGoal]
+        }));
     };
 
-    const updateSavingsGoal = async (id: string, updates: Partial<SavingsGoal>) => {
-        if (!user?.id) return;
-        const current = data.savingsGoals?.find(g => g.id === id);
-        if (!current) return;
-        const updated = { ...current, ...updates, updatedAt: Date.now() };
-        await StorageService.saveSavingsGoal(updated, user.id);
-        refresh();
+    const updateSavingsGoal = (id: string, updates: Partial<SavingsGoal>) => {
+        setData(prev => ({
+            ...prev,
+            savingsGoals: (prev.savingsGoals || []).map(g =>
+                g.id === id ? { ...g, ...updates, updatedAt: Date.now() } : g
+            )
+        }));
     };
 
-    const deleteSavingsGoal = async (id: string) => {
-        if (!user?.id) return;
-        await StorageService.deleteSavingsGoal(id);
-        refresh();
+    const deleteSavingsGoal = (id: string) => {
+        setData(prev => ({
+            ...prev,
+            savingsGoals: (prev.savingsGoals || []).filter(g => g.id !== id)
+        }));
     };
 
     /**
      * Resets categories to the new standardized Finance+ list.
      * Merges current categories with defaults, ensuring all defaults are present and marked.
      */
-    const resetCategories = async () => {
-        if (!user?.id) return;
-        const defaults = StorageService.DEFAULT_CATEGORIES_SOURCE;
-        await Promise.all(defaults.map(cat => StorageService.saveCategory(cat, user.id)));
-        refresh();
+    const resetCategories = () => {
+        setData(prev => {
+            const defaults = StorageService.loadGlobalCategories() || [];
+
+            // Start with a copy of existing non-default categories
+            const userCats = prev.categories.filter(c => !c.id.startsWith('cat_') && !c.isDefault);
+
+            // Merge defaults in
+            const merged = [...defaults, ...userCats];
+
+            // Remove potential duplicates by name (if user manually created one of the defaults)
+            const unique = merged.reduce((acc: Category[], current) => {
+                const x = acc.find(item => item.name === current.name);
+                if (!x) return acc.concat([current]);
+                return acc;
+            }, []);
+
+            return {
+                ...prev,
+                categories: unique
+            };
+        });
     };
 
     return (

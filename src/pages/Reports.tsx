@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { formatCurrency, formatDate } from '../utils/format';
 import { exportToCSV, printReport } from '../utils/export';
 import { Download, Printer, TrendingUp, TrendingDown, Target, Filter, CheckCircle, Clock, AlertTriangle, ListChecks, CalendarDays, Calendar, Lightbulb } from 'lucide-react';
-import { startOfMonth, endOfMonth, startOfDay, subDays, parseISO, isWithinInterval, format } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfDay, subDays, parseISO, isWithinInterval } from 'date-fns';
 import { ExpensesPieChart } from '../components/charts/ExpensesPieChart';
 import { getCategoryExpenses } from '../utils/statistics';
 import { Button } from '../components/ui/Button';
@@ -28,6 +28,26 @@ const COMMITMENT_FILTERS: { key: CommitmentFilter; label: string; icon: React.Re
     { key: 'UPCOMING', label: 'A vencer', icon: <Clock size={14} /> },
     { key: 'OVERDUE', label: 'Vencidos', icon: <AlertTriangle size={14} /> },
 ];
+
+// Animated Counter Component
+const CountUp: React.FC<{ end: number; duration?: number }> = ({ end, duration = 1000 }) => {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let startTimestamp: number | null = null;
+        const step = (timestamp: number) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            setCount(progress * end);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }, [end, duration]);
+
+    return <span>{formatCurrency(count)}</span>;
+};
 
 export const Reports: React.FC = () => {
     const navigate = useNavigate();
@@ -64,14 +84,7 @@ export const Reports: React.FC = () => {
         }
     }, [periodMode, currentMonth, customStart, customEnd]);
 
-    const periodLabel = useMemo(() => {
-        switch (periodMode) {
-            case 'TODAY': return format(new Date(), 'dd/MM/yyyy');
-            case '7DAYS': return `${format(dateRange.start, 'dd/MM')} — ${format(dateRange.end, 'dd/MM/yyyy')}`;
-            case 'CUSTOM': return `${customStart ? format(dateRange.start, 'dd/MM/yyyy') : '...'} — ${customEnd ? format(dateRange.end, 'dd/MM/yyyy') : '...'}`;
-            default: return currentMonth;
-        }
-    }, [periodMode, dateRange, currentMonth, customStart, customEnd]);
+
 
     const filteredData = useMemo(() => {
         return data.transactions.filter((t: Transaction) =>
@@ -99,21 +112,7 @@ export const Reports: React.FC = () => {
         }
     }, [data.commitments, dateRange, commitmentFilter]);
 
-    const commitmentTotals = useMemo(() => {
-        const today = new Date().toISOString().slice(0, 10);
-        const all = (data.commitments || []).filter(c =>
-            isWithinInterval(new Date(c.dueDate), { start: dateRange.start, end: dateRange.end })
-        );
-        return {
-            total: all.length,
-            paid: all.filter(c => c.status === 'PAID').reduce((a, c) => a + c.amount, 0),
-            paidCount: all.filter(c => c.status === 'PAID').length,
-            upcoming: all.filter(c => c.status === 'PENDING' && c.dueDate.slice(0, 10) >= today).reduce((a, c) => a + c.amount, 0),
-            upcomingCount: all.filter(c => c.status === 'PENDING' && c.dueDate.slice(0, 10) >= today).length,
-            overdue: all.filter(c => c.status === 'PENDING' && c.dueDate.slice(0, 10) < today).reduce((a, c) => a + c.amount, 0),
-            overdueCount: all.filter(c => c.status === 'PENDING' && c.dueDate.slice(0, 10) < today).length,
-        };
-    }, [data.commitments, dateRange]);
+
 
     const categoryExpenses = useMemo(() => {
         return getCategoryExpenses(data.transactions, data.categories, dateRange.start, dateRange.end);
@@ -153,65 +152,58 @@ export const Reports: React.FC = () => {
     };
 
     return (
-        <div className="rep-page print-container">
-            {/* ── Top Bar ── */}
+        <div className="rep-page">
+            {/* ── Top Bar Elite ── */}
             <header className="rep-header print-hide">
                 <div className="rep-header-left">
                     <h1>Relatórios</h1>
-                    <span className="rep-subtitle">Análise detalhada da sua saúde financeira</span>
+                    <span className="rep-subtitle">Análise profunda e insights da sua saúde financeira</span>
                 </div>
 
                 <div className="rep-actions-card">
-                    <div className="rep-btn-group">
-                        <Button variant="secondary" onClick={handleExportCSV} title="Exportar CSV">
-                            <Download size={18} />
-                            <span className="hidden md:inline">Exportar</span>
-                        </Button>
-                        <Button variant="secondary" onClick={printReport} title="Imprimir Relatório">
-                            <Printer size={18} />
-                            <span className="hidden md:inline">Imprimir</span>
-                        </Button>
-                    </div>
+                    <Button variant="secondary" onClick={handleExportCSV} title="Exportar CSV">
+                        <Download size={18} />
+                        <span className="hidden md:inline">Exportar</span>
+                    </Button>
+                    <Button variant="secondary" onClick={printReport} title="Imprimir Relatório">
+                        <Printer size={18} />
+                        <span className="hidden md:inline">Imprimir</span>
+                    </Button>
                 </div>
             </header>
 
-            {/* ── Period Filters ── */}
-            <div className="rep-period-bar print-hide">
-                <div className="rep-period-pills">
-                    {PERIOD_OPTIONS.map(opt => (
-                        <button
-                            key={opt.key}
-                            className={`rep-period-pill ${periodMode === opt.key ? 'active' : ''}`}
-                            onClick={() => setPeriodMode(opt.key)}
-                        >
-                            {opt.icon}
-                            <span>{opt.label}</span>
-                        </button>
-                    ))}
-                </div>
-
-                <div className="rep-period-inputs">
-                    {periodMode === 'MONTH' && (
-                        <input
-                            type="month"
-                            className="rep-input-month"
-                            value={currentMonth}
-                            onChange={e => setCurrentMonth(e.target.value)}
-                        />
-                    )}
-                    {periodMode === 'CUSTOM' && (
-                        <>
-                            <div className="rep-date-pair">
-                                <label className="rep-label-mini">De</label>
+            <div className="rep-period-bar-container print-hide">
+                <div className="rep-period-bar">
+                    <div className="rep-period-pills">
+                        {PERIOD_OPTIONS.map(opt => (
+                            <button
+                                key={opt.key}
+                                className={`rep-period-pill ${periodMode === opt.key ? 'active' : ''}`}
+                                onClick={() => setPeriodMode(opt.key)}
+                            >
+                                {opt.icon}
+                                <span>{opt.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div className="rep-period-inputs">
+                        {periodMode === 'MONTH' && (
+                            <input
+                                type="month"
+                                className="rep-input-month"
+                                value={currentMonth}
+                                onChange={e => setCurrentMonth(e.target.value)}
+                            />
+                        )}
+                        {periodMode === 'CUSTOM' && (
+                            <div className="rep-period-custom-group">
                                 <input
                                     type="date"
                                     className="rep-input-month"
                                     value={customStart}
                                     onChange={e => setCustomStart(e.target.value)}
                                 />
-                            </div>
-                            <div className="rep-date-pair">
-                                <label className="rep-label-mini">Até</label>
+                                <span className="rep-period-arrow">→</span>
                                 <input
                                     type="date"
                                     className="rep-input-month"
@@ -219,257 +211,225 @@ export const Reports: React.FC = () => {
                                     onChange={e => setCustomEnd(e.target.value)}
                                 />
                             </div>
-                        </>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* ── Print Header (visible only on print) ── */}
-            <div className="rep-print-header">
-                <h1>Finance+ — Relatório</h1>
-                <p>Período: {periodLabel}</p>
+            {/* ── Summary Row Elite ── */}
+            <div className="rep-summary-grid">
+                <div className="rep-summ-card income">
+                    <div className="rep-summ-icon"><TrendingUp size={24} /></div>
+                    <div className="rep-summ-info">
+                        <span className="rep-summ-label">Total Receitas</span>
+                        <div className="rep-summ-value"><CountUp end={totals.income} /></div>
+                    </div>
+                </div>
+
+                <div className="rep-summ-card expense">
+                    <div className="rep-summ-icon"><TrendingDown size={24} /></div>
+                    <div className="rep-summ-info">
+                        <span className="rep-summ-label">Total Despesas</span>
+                        <div className="rep-summ-value"><CountUp end={totals.expense} /></div>
+                    </div>
+                </div>
+
+                <div className={`rep-summ-card result ${totals.balance >= 0 ? 'positive' : 'negative'}`}>
+                    <div className="rep-summ-icon"><Target size={24} /></div>
+                    <div className="rep-summ-info">
+                        <span className="rep-summ-label">Resultado Final</span>
+                        <div className="rep-summ-value"><CountUp end={totals.balance} /></div>
+                    </div>
+                </div>
             </div>
 
             {/* ── Main Layout Grid ── */}
             <div className="rep-main-grid">
 
-                {/* ── Column A: Charts & Detailed ── */}
+                {/* ── Column A: Analysis & Data ── */}
                 <div className="rep-col-a">
 
-                    {/* Summary Row */}
-                    <div className="rep-summary-grid">
-                        <div className="rep-summ-card income">
-                            <div className="rep-summ-header-row">
-                                <span className="label">Entradas</span>
-                                <TrendingUp size={16} />
-                            </div>
-                            <span className="value">{formatCurrency(totals.income)}</span>
-                        </div>
-                        <div className="rep-summ-card expense">
-                            <div className="rep-summ-header-row">
-                                <span className="label">Saídas</span>
-                                <TrendingDown size={16} />
-                            </div>
-                            <span className="value">{formatCurrency(totals.expense)}</span>
-                            <div className="rep-summ-footer">
-                                <span>Fixas: {formatCurrency(totals.fixed)}</span>
-                                <span className="rep-summ-sep">|</span>
-                                <span>Var: {formatCurrency(totals.variable)}</span>
-                            </div>
-                        </div>
-                        <div className={`rep-summ-card result ${totals.balance >= 0 ? 'positive' : 'negative'}`}>
-                            <div className="rep-summ-header-row">
-                                <span className="label">Resultado</span>
-                                <Target size={16} />
-                            </div>
-                            <span className="value">{formatCurrency(totals.balance)}</span>
-                        </div>
-                    </div>
-
-                    {/* Chart Card */}
+                    {/* Chart Section */}
                     <div className="rep-card">
-                        <h3 className="rep-card-title">Distribuição por Categoria</h3>
+                        <h3 className="rep-card-title">Distribuição Geográfica de Gastos</h3>
                         <div className="rep-chart-container">
                             {categoryExpenses.length > 0 ? (
                                 <ExpensesPieChart data={categoryExpenses} onSliceClick={handleCategoryClick} />
                             ) : (
                                 <div className="rep-empty-state">
-                                    Sem despesas para exibir no gráfico.
+                                    <div className="rep-insight-icon-wrapper" style={{ marginBottom: '1rem', background: 'rgba(0,0,0,0.05)' }}>
+                                        <Filter size={32} opacity={0.3} />
+                                    </div>
+                                    <span style={{ fontWeight: 600 }}>Nenhum dado para o gráfico</span>
+                                    <span style={{ fontSize: '0.8125rem', opacity: 0.7 }}>Tente alterar o período ou os filtros</span>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Statement Card — Lançamentos */}
+                    {/* Detailed Statement */}
                     <div className="rep-card rep-table-card">
                         <div className="rep-table-header-bar">
-                            <h3 className="rep-card-title" style={{ margin: 0 }}>Extrato Detalhado</h3>
-                            <span className="rep-count-badge">
-                                {filteredData.length} REGISTROS
-                            </span>
+                            <h3 className="rep-card-title">Extrato de Fluxo</h3>
+                            <span className="rep-count-badge">{filteredData.length} transações</span>
                         </div>
 
-                        <div className="rep-table-scroll">
-                            <div className="rep-grid-header">
-                                <span className="rep-col-h">Data</span>
-                                <span className="rep-col-h">Descrição</span>
-                                <span className="rep-col-h">Categoria</span>
-                                <span className="rep-col-h rep-col-r">Valor</span>
-                            </div>
+                        <div className="rep-grid-header">
+                            <span className="rep-col-h">Data</span>
+                            <span className="rep-col-h">Lançamento</span>
+                            <span className="rep-col-h">Categoria</span>
+                            <span className="rep-col-h" style={{ textAlign: 'right' }}>Valor</span>
+                        </div>
 
-                            <div className="rep-items-list">
-                                {filteredData.map((tx) => {
-                                    const cat = data.categories.find(c => c.id === tx.categoryId);
-                                    const isExpense = tx.type === 'EXPENSE';
+                        <div className="rep-items-list">
+                            {filteredData.map((tx) => {
+                                const cat = data.categories.find(c => c.id === tx.categoryId);
+                                const isExpense = tx.type === 'EXPENSE';
+                                return (
+                                    <div key={tx.id} className="rep-grid-row">
+                                        <div className="rep-col-date">
+                                            <span className="day">{new Date(tx.date).getDate()}</span>
+                                            <span className="month">{formatDate(tx.date).split('/')[1]}</span>
+                                        </div>
+                                        <div className="rep-col-desc" title={tx.description}>
+                                            <div className="rep-desc-content">
+                                                <span className="rep-main-text">{tx.description}</span>
+                                                <span className="rep-sub-text">{tx.paymentMethodId || '—'}</span>
+                                            </div>
+                                            {tx.isFixed && <span className="rep-fixed-tag">Fixa</span>}
+                                        </div>
+                                        <div className="rep-col-cat">
+                                            <span
+                                                className="rep-badge-pill"
+                                                style={{
+                                                    backgroundColor: (cat?.color || '#94a3b8') + '12',
+                                                    color: cat?.color || '#64748b',
+                                                    border: `1px solid ${cat?.color}25`
+                                                }}
+                                            >
+                                                <div className="dot" style={{ backgroundColor: cat?.color }} />
+                                                {cat?.name || 'Geral'}
+                                            </span>
+                                        </div>
+                                        <div className={`rep-col-val ${isExpense ? 'expense' : 'income'}`}>
+                                            <span className="symbol">{isExpense ? '−' : '+'}</span>
+                                            {formatCurrency(tx.amount).replace('R$', '').trim()}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {filteredData.length === 0 && (
+                                <div className="rep-empty-state">
+                                    <Filter size={32} opacity={0.2} />
+                                    <span>Nenhum lançamento encontrado.</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Commitments */}
+                    <div className="rep-card rep-table-card">
+                        <div className="rep-table-header-bar">
+                            <h3 className="rep-card-title">Agenda de Compromissos</h3>
+                            <div className="rep-cm-filters" style={{ border: 'none', padding: 0 }}>
+                                {COMMITMENT_FILTERS.map(f => (
+                                    <button
+                                        key={f.key}
+                                        className={`rep-cm-filter-pill ${commitmentFilter === f.key ? 'active' : ''}`}
+                                        onClick={() => setCommitmentFilter(f.key)}
+                                    >
+                                        {f.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="rep-grid-header rep-cm-grid">
+                            <span className="rep-col-h">Data</span>
+                            <span className="rep-col-h">Compromisso</span>
+                            <span className="rep-col-h">Supl.</span>
+                            <span className="rep-col-h">Status</span>
+                            <span className="rep-col-h" style={{ textAlign: 'right' }}>Valor</span>
+                        </div>
+
+                        <div className="rep-items-list">
+                            {filteredCommitments
+                                .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                                .map(cm => {
+                                    const sup = data.suppliers.find(s => s.id === cm.supplierId);
                                     return (
-                                        <div key={tx.id} className="rep-grid-row">
-                                            <div className="rep-col-date">{formatDate(tx.date)}</div>
-                                            <div className="rep-col-desc" title={tx.description}>
-                                                {tx.description}
-                                                {tx.isFixed && <span className="rep-fixed-tag">Fixa</span>}
+                                        <div key={cm.id} className="rep-grid-row rep-cm-grid">
+                                            <div className="rep-col-date">
+                                                <span className="day">{new Date(cm.dueDate).getDate()}</span>
+                                                <span className="month">{formatDate(cm.dueDate).split('/')[1]}</span>
                                             </div>
-                                            <div className="rep-col-cat">
-                                                <span
-                                                    className="rep-badge-pill"
-                                                    style={{
-                                                        backgroundColor: (cat?.color || '#94a3b8') + '20',
-                                                        color: cat?.color || '#64748b',
-                                                        border: `1px solid ${cat?.color}40`
-                                                    }}
-                                                >
-                                                    {cat?.name || 'Geral'}
-                                                </span>
+                                            <div className="rep-col-desc">
+                                                <div className="rep-desc-content">
+                                                    <span className="rep-main-text">{cm.description}</span>
+                                                    <span className="rep-sub-text">{sup?.name || 'Sem Fornecedor'}</span>
+                                                </div>
                                             </div>
-                                            <div className={`rep-col-val ${isExpense ? 'expense' : 'income'}`}>
-                                                {isExpense ? '- ' : '+ '}{formatCurrency(tx.amount)}
+                                            <div className="rep-col-supl">
+                                                <div className="rep-supplier-avatar">
+                                                    {sup?.name?.charAt(0) || '?'}
+                                                </div>
+                                            </div>
+                                            <div className="rep-col-status">{getStatusBadge(cm)}</div>
+                                            <div className="rep-col-val expense">
+                                                {formatCurrency(cm.amount).replace('R$', '').trim()}
                                             </div>
                                         </div>
                                     );
                                 })}
-
-                                {filteredData.length === 0 && (
-                                    <div className="rep-empty-state">
-                                        <Filter size={32} opacity={0.3} />
-                                        <span>Nenhum lançamento neste período.</span>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
-
-                    {/* ── Commitments Section ── */}
-                    <div className="rep-card rep-table-card">
-                        <div className="rep-table-header-bar">
-                            <h3 className="rep-card-title" style={{ margin: 0 }}>Compromissos</h3>
-                            <span className="rep-count-badge">
-                                {filteredCommitments.length} REGISTROS
-                            </span>
-                        </div>
-
-                        {/* Filter Pills */}
-                        <div className="rep-cm-filters">
-                            {COMMITMENT_FILTERS.map(f => (
-                                <button
-                                    key={f.key}
-                                    className={`rep-cm-filter-pill ${commitmentFilter === f.key ? 'active' : ''}`}
-                                    onClick={() => setCommitmentFilter(f.key)}
-                                >
-                                    {f.icon}
-                                    <span>{f.label}</span>
-                                    {f.key === 'PAID' && commitmentTotals.paidCount > 0 && (
-                                        <span className="rep-cm-pill-count">{commitmentTotals.paidCount}</span>
-                                    )}
-                                    {f.key === 'UPCOMING' && commitmentTotals.upcomingCount > 0 && (
-                                        <span className="rep-cm-pill-count">{commitmentTotals.upcomingCount}</span>
-                                    )}
-                                    {f.key === 'OVERDUE' && commitmentTotals.overdueCount > 0 && (
-                                        <span className="rep-cm-pill-count overdue">{commitmentTotals.overdueCount}</span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Summary mini-cards for commitments */}
-                        <div className="rep-cm-summary">
-                            <div className="rep-cm-stat paid">
-                                <span className="rep-cm-stat-label">Pagos</span>
-                                <span className="rep-cm-stat-value">{formatCurrency(commitmentTotals.paid)}</span>
-                            </div>
-                            <div className="rep-cm-stat upcoming">
-                                <span className="rep-cm-stat-label">A vencer</span>
-                                <span className="rep-cm-stat-value">{formatCurrency(commitmentTotals.upcoming)}</span>
-                            </div>
-                            {commitmentTotals.overdueCount > 0 && (
-                                <div className="rep-cm-stat overdue">
-                                    <span className="rep-cm-stat-label">Vencidos</span>
-                                    <span className="rep-cm-stat-value">{formatCurrency(commitmentTotals.overdue)}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rep-table-scroll">
-                            <div className="rep-grid-header rep-cm-grid">
-                                <span className="rep-col-h">Vencimento</span>
-                                <span className="rep-col-h">Descrição</span>
-                                <span className="rep-col-h">Fornecedor</span>
-                                <span className="rep-col-h">Status</span>
-                                <span className="rep-col-h rep-col-r">Valor</span>
-                            </div>
-
-                            <div className="rep-items-list">
-                                {filteredCommitments
-                                    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                                    .map(cm => {
-                                        const sup = data.suppliers.find(s => s.id === cm.supplierId);
-                                        return (
-                                            <div key={cm.id} className="rep-grid-row rep-cm-grid">
-                                                <div className="rep-col-date">{formatDate(cm.dueDate)}</div>
-                                                <div className="rep-col-desc" title={cm.description}>
-                                                    {cm.description}
-                                                </div>
-                                                <div className="rep-col-desc" style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-                                                    {sup?.name || '—'}
-                                                </div>
-                                                <div>{getStatusBadge(cm)}</div>
-                                                <div className="rep-col-val expense">
-                                                    {formatCurrency(cm.amount)}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                {filteredCommitments.length === 0 && (
-                                    <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text-light)', fontStyle: 'italic', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Filter size={32} opacity={0.3} />
-                                        <span>Nenhum compromisso encontrado para o filtro selecionado.</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
 
-                {/* ── Column B: Stats & Ranking ── */}
+                {/* ── Column B: Stats ── */}
                 <aside className="rep-col-b">
 
-                    {/* High Expenses Card */}
+                    {/* Elite Insight Card */}
+                    <div className="rep-card rep-insight-card">
+                        <div className="rep-insight-icon-wrapper">
+                            <Lightbulb size={28} />
+                        </div>
+                        <p className="rep-insight-text">
+                            {totals.balance >= 0
+                                ? "Seu fluxo está positivo! Considere diversificar seus investimentos para acelerar sua liberdade financeira."
+                                : "Atenção necessária: Seus gastos superaram as receitas. Revise categorias variáveis e evite compras por impulso."}
+                        </p>
+                    </div>
+
+                    {/* Ranking Card */}
                     <div className="rep-card">
-                        <h3 className="rep-card-title">Maiores Despesas</h3>
+                        <h3 className="rep-card-title">Ranking de Gastos</h3>
                         <div className="rep-ranking-list">
                             {filteredData
                                 .filter(t => t.type === 'EXPENSE')
                                 .sort((a, b) => b.amount - a.amount)
                                 .slice(0, 5)
-                                .map((t, index) => (
-                                    <div key={t.id} className="rep-ranking-item">
-                                        <div className="rep-rank-left">
-                                            <div className="rep-rank-num">{index + 1}</div>
-                                            <span className="rep-rank-name" title={t.description}>{t.description}</span>
+                                .map((t, index) => {
+                                    const maxAmount = Math.max(...filteredData.filter(x => x.type === 'EXPENSE').map(x => x.amount), 1);
+                                    const percentage = (t.amount / maxAmount) * 100;
+                                    return (
+                                        <div key={t.id} className="rep-ranking-item">
+                                            <div className="rep-rank-content">
+                                                <div className="rep-rank-left">
+                                                    <div className="rep-rank-num">{index + 1}</div>
+                                                    <div className="rep-rank-details">
+                                                        <span className="rep-rank-name">{t.description}</span>
+                                                        <span className="rep-rank-date">{formatDate(t.date)}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="rep-rank-value">{formatCurrency(t.amount)}</span>
+                                            </div>
+                                            <div className="rep-rank-progress-bg">
+                                                <div className="rep-rank-progress-fill" style={{ width: `${percentage}%` }} />
+                                            </div>
                                         </div>
-                                        <span className="rep-rank-value">{formatCurrency(t.amount)}</span>
-                                    </div>
-                                ))}
-                            {filteredData.filter(t => t.type === 'EXPENSE').length === 0 && (
-                                <div className="rep-empty-state" style={{ padding: '2rem 0', fontSize: '0.75rem' }}>
-                                    Nenhuma despesa registrada.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Insight Card */}
-                    <div className="rep-card rep-insight-card">
-                        <div className="rep-insight-icon-wrapper">
-                            <Lightbulb size={24} strokeWidth={2.5} />
-                        </div>
-                        <div className="rep-insight-content">
-                            <h3 className="rep-insight-title">Insight Mensal</h3>
-                            <p className="rep-insight-text">
-                                {totals.balance >= 0
-                                    ? "Excelente! Suas receitas superaram as despesas este mês. Considere investir o excedente."
-                                    : "Atenção: Suas despesas superaram as receitas. Revise seus gastos em categorias não essenciais."}
-                            </p>
+                                    );
+                                })}
                         </div>
                     </div>
 

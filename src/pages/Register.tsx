@@ -14,34 +14,19 @@ export const Register: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
 
         if (password !== confirmPassword) {
             setError('As senhas não coincidem');
             return;
         }
 
-        setIsLoading(true);
-        try {
-            const result = await register(name, email, password);
-            if (result.success) {
-                if (result.error === 'AUTORIZACAO_PENDENTE') {
-                    alert("Conta criada com sucesso! Aguarde a autorização do administrador.");
-                    navigate('/login');
-                } else {
-                    navigate('/');
-                }
-            } else {
-                setError(result.error || 'Erro ao criar conta.');
-            }
-        } catch (err: any) {
-            setError(err.message || 'Erro inesperado.');
-        } finally {
-            setIsLoading(false);
+        if (register(name, email, password)) {
+            navigate('/');
+        } else {
+            setError('E-mail já cadastrado');
         }
     };
 
@@ -118,17 +103,13 @@ export const Register: React.FC = () => {
                         error={error}
                         required
                     />
-                    <Button type="submit" fullWidth disabled={loading}>
-                        {loading ? 'Criando conta...' : 'Cadastrar'}
-                    </Button>
+                    <Button type="submit" fullWidth>Cadastrar</Button>
                 </form>
 
                 <div className="text-center mt-4">
                     <p className="text-sm text-muted">
                         Já tem uma conta? <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
                     </p>
-
-                    {/* Removed debug info for cleaner UI */}
                 </div>
             </div>
         </div>

@@ -22,6 +22,7 @@ export const Manage: React.FC = () => {
 
     const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
     const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(undefined);
+    const [editingMethod, setEditingMethod] = useState<PaymentMethod | undefined>(undefined);
 
     const handleEditCategory = (category: Category) => {
         setEditingCategory(category);
@@ -46,8 +47,8 @@ export const Manage: React.FC = () => {
     };
 
     const handleEditMethod = (method: PaymentMethod) => {
-        console.log('Editing method:', method);
-        alert('Edição de método de pagamento será implementada em breve.');
+        setEditingMethod(method);
+        setIsMethodModalOpen(true);
     };
 
     const handleDeleteMethod = (id: string) => {
@@ -113,91 +114,103 @@ export const Manage: React.FC = () => {
                             {/* --- SEÇÃO DE RECEITAS --- */}
                             <div className="mng-section-header income">
                                 <div className="dot" />
-                                <h2>Receitas</h2>
+                                <h2>Fluxo de Receitas</h2>
+                                <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: 600 }}>(Ganhos e Entradas)</span>
                             </div>
                             <div className="mng-grid-cards">
-                                {data.categories.filter(c => c.type === 'INCOME').map((cat) => {
-                                    const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
-                                    return (
-                                        <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
-                                            <div
-                                                className="mng-card-visual"
-                                                style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
-                                            >
-                                                <IconComponent size={24} strokeWidth={2.5} />
-                                            </div>
-
-                                            <div className="mng-card-body">
-                                                <div className="mng-card-main">
-                                                    <h3>{cat.name}</h3>
-                                                    <span className="mng-type-pill income">Receita</span>
+                                {data.categories
+                                    .filter(c => c.type === 'INCOME')
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((cat) => {
+                                        const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
+                                        return (
+                                            <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
+                                                <div
+                                                    className="mng-card-visual"
+                                                    style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                                                >
+                                                    <IconComponent size={24} strokeWidth={2.5} />
                                                 </div>
 
-                                                {cat.isDefault && (
-                                                    <div className="mng-system-badge">
-                                                        <Icons.Lock size={10} /> <span>FIXO</span>
+                                                <div className="mng-card-body">
+                                                    <div className="mng-card-main">
+                                                        <h3>{cat.name}</h3>
+                                                        <span className="mng-type-pill income">Receita</span>
                                                     </div>
-                                                )}
-                                            </div>
 
-                                            <div className="mng-card-footer">
-                                                <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                {!cat.isDefault && (
-                                                    <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
+                                                    {cat.isDefault && (
+                                                        <div className="mng-system-badge">
+                                                            <Icons.Lock size={10} /> <span>FIXO</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="mng-card-footer">
+                                                    {!cat.isDefault && (
+                                                        <>
+                                                            <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
                             </div>
 
                             {/* --- SEÇÃO DE DESPESAS --- */}
                             <div className="mng-section-header expense">
                                 <div className="dot" />
-                                <h2>Despesas</h2>
+                                <h2>Fluxo de Despesas</h2>
+                                <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: 600 }}>(Gastos e Saídas)</span>
                             </div>
                             <div className="mng-grid-cards">
-                                {data.categories.filter(c => c.type === 'EXPENSE').map((cat) => {
-                                    const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
-                                    return (
-                                        <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
-                                            <div
-                                                className="mng-card-visual"
-                                                style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
-                                            >
-                                                <IconComponent size={24} strokeWidth={2.5} />
-                                            </div>
-
-                                            <div className="mng-card-body">
-                                                <div className="mng-card-main">
-                                                    <h3>{cat.name}</h3>
-                                                    <span className="mng-type-pill expense">Despesa</span>
+                                {data.categories
+                                    .filter(c => c.type === 'EXPENSE')
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((cat) => {
+                                        const IconComponent = (Icons as any)[cat.icon || 'Layers'] || Icons.Layers;
+                                        return (
+                                            <div key={cat.id} className={`mng-elite-card ${cat.isDefault ? 'is-system' : ''}`}>
+                                                <div
+                                                    className="mng-card-visual"
+                                                    style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                                                >
+                                                    <IconComponent size={24} strokeWidth={2.5} />
                                                 </div>
 
-                                                {cat.isDefault && (
-                                                    <div className="mng-system-badge">
-                                                        <Icons.Lock size={10} /> <span>FIXO</span>
+                                                <div className="mng-card-body">
+                                                    <div className="mng-card-main">
+                                                        <h3>{cat.name}</h3>
+                                                        <span className="mng-type-pill expense">Despesa</span>
                                                     </div>
-                                                )}
-                                            </div>
 
-                                            <div className="mng-card-footer">
-                                                <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                {!cat.isDefault && (
-                                                    <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
+                                                    {cat.isDefault && (
+                                                        <div className="mng-system-badge">
+                                                            <Icons.Lock size={10} /> <span>FIXO</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="mng-card-footer">
+                                                    {!cat.isDefault && (
+                                                        <>
+                                                            <button onClick={() => handleEditCategory(cat)} className="mng-action-btn edit" title="Editar">
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteCategory(cat.id)} className="mng-action-btn delete" title="Excluir">
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
                             </div>
                         </div>
                     </div>
@@ -215,39 +228,38 @@ export const Manage: React.FC = () => {
                             </Button>
                         </div>
 
-                        <div className="mng-table-wrapper">
-                            <div className="mng-grid-header mng-grid-3">
-                                <span className="mng-col-h">Nome</span>
-                                <span className="mng-col-h">Contato</span>
-                                <span className="mng-col-h text-right">Ações</span>
-                            </div>
+                        <div className="mng-grid-cards mt-6">
+                            {data.suppliers
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map((sup) => (
+                                    <div key={sup.id} className="mng-elite-card">
+                                        <div
+                                            className="mng-card-visual"
+                                            style={{ backgroundColor: `var(--color-primary-light)15`, color: 'var(--color-primary)' }}
+                                        >
+                                            <Truck size={24} strokeWidth={2.5} />
+                                        </div>
 
-                            <div className="mng-items-list">
-                                {data.suppliers.map((sup) => (
-                                    <div key={sup.id} className="mng-grid-row mng-grid-3">
-                                        <div className="mng-col-name">
-                                            <div className="mng-icon-box">
-                                                <Truck size={18} />
+                                        <div className="mng-card-body">
+                                            <div className="mng-card-main">
+                                                <h3>{sup.name}</h3>
+                                                <span className="mng-col-contact">{sup.contact || 'Sem contato'}</span>
                                             </div>
-                                            <span className="mng-name-text">{sup.name}</span>
                                         </div>
-                                        <div className="mng-col-contact">
-                                            {sup.contact || '—'}
-                                        </div>
-                                        <div className="mng-col-actions">
-                                            <button onClick={() => handleEditSupplier(sup)} className="mng-btn-icon" title="Editar">
-                                                <Edit2 size={16} /> <span className="md:hidden">Editar</span>
+
+                                        <div className="mng-card-footer">
+                                            <button onClick={() => handleEditSupplier(sup)} className="mng-action-btn edit" title="Editar">
+                                                <Edit2 size={16} />
                                             </button>
-                                            <button onClick={() => handleDeleteSupplier(sup.id)} className="mng-btn-icon danger" title="Excluir">
-                                                <Trash2 size={16} /> <span className="md:hidden">Excluir</span>
+                                            <button onClick={() => handleDeleteSupplier(sup.id)} className="mng-action-btn delete" title="Excluir">
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
-                                {data.suppliers.length === 0 && (
-                                    <div className="text-center py-12 text-text-light italic">Nenhum fornecedor cadastrado.</div>
-                                )}
-                            </div>
+                            {data.suppliers.length === 0 && (
+                                <div className="text-center py-12 text-text-light italic col-span-full">Nenhum fornecedor cadastrado.</div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -264,35 +276,46 @@ export const Manage: React.FC = () => {
                             </Button>
                         </div>
 
-                        <div className="mng-table-wrapper">
-                            <div className="mng-grid-header mng-grid-2">
-                                <span className="mng-col-h">Nome</span>
-                                <span className="mng-col-h text-right">Ações</span>
-                            </div>
-
-                            <div className="mng-items-list">
-                                {data.paymentMethods.map((pm) => (
-                                    <div key={pm.id} className="mng-grid-row mng-grid-2">
-                                        <div className="mng-col-name">
-                                            <div className="mng-icon-box">
-                                                <CreditCard size={18} />
-                                            </div>
-                                            <span className="mng-name-text">{pm.name}</span>
+                        <div className="mng-grid-cards mt-6">
+                            {data.paymentMethods
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map((pm) => (
+                                    <div key={pm.id} className={`mng-elite-card ${pm.isDefault ? 'is-system' : ''}`}>
+                                        <div
+                                            className="mng-card-visual"
+                                            style={{ backgroundColor: `${pm.color || '#6366f1'}15`, color: pm.color || '#6366f1' }}
+                                        >
+                                            <CreditCard size={24} strokeWidth={2.5} />
                                         </div>
-                                        <div className="mng-col-actions">
-                                            <button onClick={() => handleEditMethod(pm)} className="mng-btn-icon" title="Editar">
-                                                <Edit2 size={16} /> <span className="md:hidden">Editar</span>
-                                            </button>
-                                            <button onClick={() => handleDeleteMethod(pm.id)} className="mng-btn-icon danger" title="Excluir">
-                                                <Trash2 size={16} /> <span className="md:hidden">Excluir</span>
-                                            </button>
+
+                                        <div className="mng-card-body">
+                                            <div className="mng-card-main">
+                                                <h3>{pm.name}</h3>
+                                            </div>
+                                            {pm.isDefault && (
+                                                <div className="mng-system-badge">
+                                                    <Icons.Lock size={10} /> <span>FIXO</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="mng-card-footer">
+                                            {!pm.isDefault && (
+                                                <>
+                                                    <button onClick={() => handleEditMethod(pm)} className="mng-action-btn edit" title="Editar">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteMethod(pm.id)} className="mng-action-btn delete" title="Excluir">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
-                                {data.paymentMethods.length === 0 && (
-                                    <div className="text-center py-12 text-text-light italic">Nenhum método cadastrado.</div>
-                                )}
-                            </div>
+                            {data.paymentMethods.length === 0 && (
+                                <div className="text-center py-12 text-text-light italic col-span-full">Nenhum método cadastrado.</div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -324,10 +347,11 @@ export const Manage: React.FC = () => {
             <Modal
                 isOpen={isMethodModalOpen}
                 onClose={() => setIsMethodModalOpen(false)}
-                title="Novo Método de Pagamento"
+                title={editingMethod ? "Editar Método de Pagamento" : "Novo Método de Pagamento"}
             >
                 <PaymentMethodForm
                     onClose={() => setIsMethodModalOpen(false)}
+                    initialData={editingMethod}
                 />
             </Modal>
         </div>

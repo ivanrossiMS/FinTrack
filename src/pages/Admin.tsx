@@ -1,8 +1,6 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { User, Shield, Mail, ExternalLink, Trash2, Edit2, X, Check, Lock, Camera, Search, Filter, Crown } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { User, Shield, Mail, ExternalLink, Trash2, Edit2, X, Check, Lock, Camera, Search, Crown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabaseClient';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import './Admin.css';
@@ -10,7 +8,6 @@ import './Admin.css';
 export const Admin: React.FC = () => {
     const { user: currentUser, adminUpdateUserInfo, impersonateUser } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<any>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -28,116 +25,129 @@ export const Admin: React.FC = () => {
         loadUsers();
     }, []);
 
-    const loadUsers = async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setUsers(data || []);
-        } catch (err) {
-            console.error('Error loading users:', err);
-        } finally {
-            setLoading(false);
-        }
+    const loadUsers = () => {
+        const registeredUsers = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+        setUsers(registeredUsers);
     };
 
     const handleOpenEdit = (user: any) => {
         setEditingUser(user);
         setEditName(user.name);
         setEditEmail(user.email);
-        setEditPassword('');
+        setEditPassword(user.password || '');
         setEditAvatar(user.avatar || '');
-        setEditIsAuthorized(user.is_authorized !== false);
+        setEditIsAuthorized(user.isAuthorized !== false);
         setEditPlan(user.plan || 'FREE');
-        setEditIsAdmin(user.is_admin || false);
+        setEditIsAdmin(user.isAdmin || false);
         setIsEditModalOpen(true);
     };
 
-    const handleSaveEdit = async () => {
+    const handleSaveEdit = () => {
         if (!editName || !editEmail) {
             alert("Nome e e-mail são obrigatórios.");
             return;
         }
 
-        try {
-            await adminUpdateUserInfo(editingUser.id, {
-                name: editName,
-                email: editEmail,
-                avatar: editAvatar,
-                isAuthorized: editIsAuthorized,
-                plan: editPlan,
-                isAdmin: editIsAdmin
-            });
-            setIsEditModalOpen(false);
-            loadUsers();
-        } catch (err) {
-            alert("Erro ao salvar alterações.");
-        }
+        adminUpdateUserInfo(editingUser.email, {
+            name: editName,
+            email: editEmail,
+            password: editPassword,
+            avatar: editAvatar,
+            isAuthorized: editIsAuthorized,
+            plan: editPlan,
+            isAdmin: editIsAdmin
+        });
+
+        setIsEditModalOpen(false);
+        // Using a short timeout to ensure the state updates after storage changes
+        setTimeout(loadUsers, 100);
     };
 
-    const handleDeleteUser = async (user: any) => {
-        if (user.id === currentUser.id) {
+    const handleDeleteUser = (email: string) => {
+        if (email === currentUser.email) {
             alert("Você não pode excluir sua própria conta de administrador aqui.");
             return;
         }
 
-        if (window.confirm(`ATENÇÃO: Você está prestes a excluir permanentemente o usuário ${user.email}. Isto removerá todos os dados financeiros vinculados a esta conta. Deseja prosseguir?`)) {
-            try {
-                // Delete user profile and data (RLS will handle cascade if set up, or we do it manually)
-                // Note: We cannot delete auth users easily from client side. 
-                // We'll just disable access or mark as deleted if necessary, or use a RPC if available.
-                // For now, let's just delete the profile.
-                const { error } = await supabase.from('user_profiles').delete().eq('id', user.id);
-                if (error) throw error;
-                loadUsers();
-            } catch (err) {
-                alert("Erro ao excluir usuário.");
-            }
+        if (window.confirm(`ATENÇÃO: Você está prestes a excluir permanentemente o usuário ${email}. Isto removerá todos os dados financeiros vinculados a esta conta. Deseja prosseguir?`)) {
+            const registeredUsers = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+            const updatedUsers = registeredUsers.filter((u: any) => u.email !== email);
+            localStorage.setItem('fintrack_users', JSON.stringify(updatedUsers));
+
+            // Wipe user specific financial data
+            localStorage.removeItem(`fintrack_data_v1_${email}`);
+
+            setUsers(updatedUsers);
         }
     };
 
-    const handleToggleAuth = async (user: any) => {
-        await adminUpdateUserInfo(user.id, { isAuthorized: !user.isAuthorized });
-        loadUsers();
+    const handleToggleAuth = (user: any) => {
+        adminUpdateUserInfo(user.email, { isAuthorized: !user.isAuthorized });
+        setTimeout(loadUsers, 100);
     };
 
-    const handleImpersonate = (user: any) => {
-        if (window.confirm(`Você entrará no modo de visualização para a conta de ${user.email}. Deseja prosseguir?`)) {
-            impersonateUser(user.id);
+    const handleImpersonate = (email: string) => {
+        if (window.confirm(`Você entrará no modo de visualização para a conta de ${email}. Deseja prosseguir?`)) {
+            impersonateUser(email);
             window.location.href = '/';
         }
     };
 
-    const filteredUsers = users.filter(u =>
+    const stats = useMemo(() => ({
+        total: users.length,
+        premium: users.filter(u => u.plan === 'PREMIUM').length,
+        active: users.filter(u => u.isAuthorized !== false).length
+    }), [users]);
+
+    const filteredUsers = useMemo(() => users.filter(u =>
         u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ), [users, searchTerm]);
 
     return (
         <div className="admin-container">
             <header className="admin-header">
-                <div className="admin-title-section">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                            <Shield size={24} strokeWidth={2.5} />
-                        </div>
-                        <h2 className="text-3xl font-black text-text tracking-tighter">Painel Administrativo</h2>
-                    </div>
-                    <p className="text-text-muted font-semibold text-lg opacity-80 pl-11">
-                        Gestão centralizada de usuários e controle de acesso.
-                    </p>
-                </div>
+                <h1>Painel Administrativo</h1>
+                <span className="admin-subtitle">Gestão centralizada de usuários e controle de acesso.</span>
             </header>
 
-            <div className="admin-card shadow-premium">
+            <div className="admin-stats-grid">
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon" style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#4f46e5' }}>
+                        <User size={28} />
+                    </div>
+                    <div className="admin-stat-info">
+                        <span className="admin-stat-value">{stats.total}</span>
+                        <span className="admin-stat-label">Total de Usuários</span>
+                    </div>
+                </div>
+
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon" style={{ background: 'rgba(251, 191, 36, 0.1)', color: '#b45309' }}>
+                        <Crown size={28} />
+                    </div>
+                    <div className="admin-stat-info">
+                        <span className="admin-stat-value">{stats.premium}</span>
+                        <span className="admin-stat-label">Usuários Premium</span>
+                    </div>
+                </div>
+
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#16a34a' }}>
+                        <Shield size={28} />
+                    </div>
+                    <div className="admin-stat-info">
+                        <span className="admin-stat-value">{stats.active}</span>
+                        <span className="admin-stat-label">Acessos Ativos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="admin-card">
                 <div className="admin-card-header">
                     <div className="flex items-center gap-3">
-                        <h3 className="admin-card-title">Usuários Registrados</h3>
-                        <span className="user-count-badge">{filteredUsers.length} usuários</span>
+                        <h3 className="admin-card-title">Diretório de Usuários</h3>
+                        <span className="user-count-badge">{filteredUsers.length}</span>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -146,42 +156,27 @@ export const Admin: React.FC = () => {
                             <input
                                 type="text"
                                 placeholder="Buscar usuário..."
-                                className="pl-10 pr-4 py-2 bg-gray-50 border border-border/40 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-64"
+                                className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-border/40 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-64"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button className="p-2 px-3 text-text-muted hover:text-text bg-gray-50 border border-border/40 rounded-xl flex items-center gap-2 text-xs font-black tracking-widest uppercase transition-all">
-                            <Filter size={14} /> Filtro
-                        </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="admin-table-scroll">
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th className="col-user">Usuário</th>
-                                <th className="col-email">E-mail de Acesso</th>
-                                <th className="col-status">Status/Nível</th>
-                                <th className="col-actions">Ações de Gestão</th>
+                                <th style={{ width: '35%' }}>Usuário</th>
+                                <th style={{ width: '25%' }}>E-mail</th>
+                                <th style={{ width: '25%' }}>Status & Nível</th>
+                                <th style={{ width: '15%', textAlign: 'right' }}>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={4} className="py-20 text-center text-text-muted font-bold">
-                                        Carregando usuários...
-                                    </td>
-                                </tr>
-                            ) : filteredUsers.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} className="py-20 text-center text-text-muted font-bold">
-                                        Nenhum usuário encontrado.
-                                    </td>
-                                </tr>
-                            ) : filteredUsers.map((u) => (
-                                <tr key={u.id}>
+                            {filteredUsers.map((u) => (
+                                <tr key={u.email}>
                                     <td>
                                         <div className="user-info-cell">
                                             <div className="user-avatar-wrapper">
@@ -195,34 +190,33 @@ export const Admin: React.FC = () => {
                                             </div>
                                             <div className="user-details">
                                                 <span className="user-name">{u.name}</span>
-                                                <span className="user-profession">{u.profession || 'Membro Externo'}</span>
+                                                <span className="user-profession">{u.profession || 'Membro'}</span>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="email-cell">
-                                            <Mail size={16} className="email-icon" />
+                                        <div className="flex items-center gap-2 text-sm text-text-muted font-medium">
+                                            <Mail size={14} className="opacity-50" />
                                             <span>{u.email}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div className="flex flex-col gap-2">
-                                            {u.id === currentUser.id || u.is_admin ? (
+                                            {u.email === 'ivanrossi@outlook.com' || u.isAdmin ? (
                                                 <span className="badge-admin">
                                                     <Shield size={10} strokeWidth={3} /> ADMINISTRADOR
                                                 </span>
                                             ) : (
                                                 <div className="flex flex-wrap gap-2">
-                                                    <span className={`badge-plan ${u.plan === 'PREMIUM' ? 'premium' : 'free'}`}>
+                                                    <span className={`badge-pill badge-plan ${u.plan === 'PREMIUM' ? 'premium' : 'free'}`}>
                                                         {u.plan === 'PREMIUM' && <Crown size={10} className="mr-1" />}
                                                         {u.plan === 'PREMIUM' ? 'PREMIUM' : 'FREE'}
                                                     </span>
                                                     <button
                                                         onClick={() => handleToggleAuth(u)}
-                                                        className={`badge-auth ${u.is_authorized !== false ? 'active' : 'inactive'}`}
+                                                        className={`badge-pill badge-auth ${u.isAuthorized !== false ? 'active' : 'inactive'}`}
                                                     >
-                                                        {u.is_authorized !== false ? <Check size={10} /> : <X size={10} />}
-                                                        {u.is_authorized !== false ? 'AUTORIZADO' : 'PENDENTE'}
+                                                        {u.isAuthorized !== false ? 'ATIVO' : 'BLOQUEADO'}
                                                     </button>
                                                 </div>
                                             )}
@@ -231,26 +225,26 @@ export const Admin: React.FC = () => {
                                     <td>
                                         <div className="action-bar">
                                             <button
-                                                onClick={() => handleImpersonate(u)}
-                                                className="action-btn action-btn-primary"
-                                                title="Visualizar Painel"
+                                                onClick={() => handleImpersonate(u.email)}
+                                                className="action-btn impersonate"
+                                                title="Visualizar como Usuário"
                                             >
-                                                <ExternalLink size={18} />
+                                                <ExternalLink size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleOpenEdit(u)}
-                                                className="action-btn"
-                                                title="Editar Detalhes"
+                                                className="action-btn edit"
+                                                title="Editar"
                                             >
-                                                <Edit2 size={18} />
+                                                <Edit2 size={16} />
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteUser(u)}
-                                                className={`action-btn action-btn-danger ${u.id === currentUser.id ? 'opacity-20 pointer-events-none' : ''}`}
-                                                title="Excluir Permanentemente"
-                                                disabled={u.id === currentUser.id}
+                                                onClick={() => handleDeleteUser(u.email)}
+                                                className="action-btn delete"
+                                                title="Excluir"
+                                                disabled={u.email === currentUser.email}
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>
