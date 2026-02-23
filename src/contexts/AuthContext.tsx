@@ -96,7 +96,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                         };
 
                                         const { error: iError } = await supabase.from('user_profiles').upsert([newProfile]);
-                                        if (!iError) setUser(newProfile);
+                                        if (!iError) {
+                                            setUser({
+                                                id: newProfile.id,
+                                                name: newProfile.name,
+                                                email: newProfile.email,
+                                                isAdmin: newProfile.is_admin,
+                                                isAuthorized: newProfile.is_authorized,
+                                                plan: newProfile.plan
+                                            });
+                                        }
                                     }
                                 }
                             });
