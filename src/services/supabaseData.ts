@@ -335,8 +335,8 @@ export const SupabaseDataService = {
     // ─── STORAGE ───
     async uploadAvatar(userId: string, file: File): Promise<string> {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${userId}-${Math.random()}.${fileExt}`;
-        const filePath = `profiles/${fileName}`;
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from('avatars')

@@ -8,14 +8,15 @@
 -- ########################################################
 
 -- 1. Create User Profiles table
-CREATE TABLE IF NOT EXISTS public.user_profiles (
+DROP TABLE IF EXISTS public.user_profiles; -- Limpeza de versão anterior caso exista
+CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     phone TEXT,
     profession TEXT,
-    avatar TEXT,
-    is_admin BOOLEAN DEFAULT FALSE,
+    avatar_url TEXT,
+    role TEXT DEFAULT 'USER',
     is_authorized BOOLEAN DEFAULT TRUE,
     plan TEXT DEFAULT 'FREE',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -105,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.savings_goals (
 );
 
 -- Enable Row Level Security (RLS)
-ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_methods ENABLE ROW LEVEL SECURITY;
@@ -120,8 +121,8 @@ CREATE OR REPLACE FUNCTION is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM public.user_profiles 
-    WHERE id = auth.uid() AND (is_admin = TRUE OR email = 'ivanrossi@outlook.com')
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND (role = 'ADMIN' OR email = 'ivanrossi@outlook.com')
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -138,10 +139,10 @@ BEGIN
 END $$;
 
 -- User Profiles Policies
-CREATE POLICY "Admin can view all profiles" ON public.user_profiles FOR SELECT USING (is_admin());
-CREATE POLICY "Users can view their own profile" ON public.user_profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update their own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admin can update all profiles" ON public.user_profiles FOR UPDATE USING (is_admin());
+CREATE POLICY "Admin can view all profiles" ON public.profiles FOR SELECT USING (is_admin());
+CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Admin can update all profiles" ON public.profiles FOR UPDATE USING (is_admin());
 
 -- Generic Multi-tenant Policies (Applied to all data tables)
 DO $$ 
@@ -161,12 +162,12 @@ END $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, name, email, is_admin, is_authorized)
+  INSERT INTO public.profiles (id, name, email, role, is_authorized)
   VALUES (
     NEW.id, 
     COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1), 'Usuário'), 
     NEW.email,
-    NEW.email = 'ivanrossi@outlook.com',
+    CASE WHEN NEW.email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END,
     TRUE -- Always authorize initial admin, others follow default
   )
   ON CONFLICT (id) DO NOTHING;
@@ -181,13 +182,12 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ── REPAIR ORPHAN PROFILES ──
--- Create profiles for any users that already exist in auth.users but not in user_profiles
-INSERT INTO public.user_profiles (id, name, email, is_admin, is_authorized)
+INSERT INTO public.profiles (id, name, email, role, is_authorized)
 SELECT 
   id, 
   COALESCE(raw_user_meta_data->>'name', split_part(email, '@', 1), 'Usuário'), 
   email,
-  email = 'ivanrossi@outlook.com',
+  CASE WHEN email = 'ivanrossi@outlook.com' THEN 'ADMIN' ELSE 'USER' END,
   TRUE
 FROM auth.users
 ON CONFLICT (id) DO NOTHING;
