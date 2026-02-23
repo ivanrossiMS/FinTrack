@@ -218,6 +218,14 @@ export const Reports: React.FC = () => {
 
             {/* ── Summary Row Elite ── */}
             <div className="rep-summary-grid">
+                <div className={`rep-summ-card result ${totals.balance >= 0 ? 'positive' : 'negative'}`}>
+                    <div className="rep-summ-icon"><Target size={24} /></div>
+                    <div className="rep-summ-info">
+                        <span className="rep-summ-label">Resultado Final</span>
+                        <div className="rep-summ-value"><CountUp end={totals.balance} /></div>
+                    </div>
+                </div>
+
                 <div className="rep-summ-card income">
                     <div className="rep-summ-icon"><TrendingUp size={24} /></div>
                     <div className="rep-summ-info">
@@ -231,14 +239,6 @@ export const Reports: React.FC = () => {
                     <div className="rep-summ-info">
                         <span className="rep-summ-label">Total Despesas</span>
                         <div className="rep-summ-value"><CountUp end={totals.expense} /></div>
-                    </div>
-                </div>
-
-                <div className={`rep-summ-card result ${totals.balance >= 0 ? 'positive' : 'negative'}`}>
-                    <div className="rep-summ-icon"><Target size={24} /></div>
-                    <div className="rep-summ-info">
-                        <span className="rep-summ-label">Resultado Final</span>
-                        <div className="rep-summ-value"><CountUp end={totals.balance} /></div>
                     </div>
                 </div>
             </div>
