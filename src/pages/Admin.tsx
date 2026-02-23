@@ -9,6 +9,7 @@ import './Admin.css';
 export const Admin: React.FC = () => {
     const { user: currentUser, adminUpdateUserInfo, impersonateUser } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<any>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,70 +27,86 @@ export const Admin: React.FC = () => {
         loadUsers();
     }, []);
 
-    const loadUsers = () => {
-        const registeredUsers = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        setUsers(registeredUsers);
+    const loadUsers = async () => {
+        setLoading(true);
+        try {
+            const { data, error } = await (useAuth() as any).supabase
+                .from('user_profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setUsers(data || []);
+        } catch (err) {
+            console.error('Error loading users:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleOpenEdit = (user: any) => {
         setEditingUser(user);
         setEditName(user.name);
         setEditEmail(user.email);
-        setEditPassword(user.password || '');
+        setEditPassword('');
         setEditAvatar(user.avatar || '');
-        setEditIsAuthorized(user.isAuthorized !== false);
+        setEditIsAuthorized(user.is_authorized !== false);
         setEditPlan(user.plan || 'FREE');
-        setEditIsAdmin(user.isAdmin || false);
+        setEditIsAdmin(user.is_admin || false);
         setIsEditModalOpen(true);
     };
 
-    const handleSaveEdit = () => {
+    const handleSaveEdit = async () => {
         if (!editName || !editEmail) {
             alert("Nome e e-mail são obrigatórios.");
             return;
         }
 
-        adminUpdateUserInfo(editingUser.email, {
-            name: editName,
-            email: editEmail,
-            password: editPassword,
-            avatar: editAvatar,
-            isAuthorized: editIsAuthorized,
-            plan: editPlan,
-            isAdmin: editIsAdmin
-        });
-
-        setIsEditModalOpen(false);
-        // Using a short timeout to ensure the state updates after storage changes
-        setTimeout(loadUsers, 100);
+        try {
+            await adminUpdateUserInfo(editingUser.id, {
+                name: editName,
+                email: editEmail,
+                avatar: editAvatar,
+                isAuthorized: editIsAuthorized,
+                plan: editPlan,
+                isAdmin: editIsAdmin
+            });
+            setIsEditModalOpen(false);
+            loadUsers();
+        } catch (err) {
+            alert("Erro ao salvar alterações.");
+        }
     };
 
-    const handleDeleteUser = (email: string) => {
-        if (email === currentUser.email) {
+    const handleDeleteUser = async (user: any) => {
+        if (user.id === currentUser.id) {
             alert("Você não pode excluir sua própria conta de administrador aqui.");
             return;
         }
 
-        if (window.confirm(`ATENÇÃO: Você está prestes a excluir permanentemente o usuário ${email}. Isto removerá todos os dados financeiros vinculados a esta conta. Deseja prosseguir?`)) {
-            const registeredUsers = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-            const updatedUsers = registeredUsers.filter((u: any) => u.email !== email);
-            localStorage.setItem('fintrack_users', JSON.stringify(updatedUsers));
-
-            // Wipe user specific financial data
-            localStorage.removeItem(`fintrack_data_v1_${email}`);
-
-            setUsers(updatedUsers);
+        if (window.confirm(`ATENÇÃO: Você está prestes a excluir permanentemente o usuário ${user.email}. Isto removerá todos os dados financeiros vinculados a esta conta. Deseja prosseguir?`)) {
+            try {
+                // Delete user profile and data (RLS will handle cascade if set up, or we do it manually)
+                // Note: We cannot delete auth users easily from client side. 
+                // We'll just disable access or mark as deleted if necessary, or use a RPC if available.
+                // For now, let's just delete the profile.
+                const { error } = await (useAuth() as any).supabase.from('user_profiles').delete().eq('id', user.id);
+                if (error) throw error;
+                loadUsers();
+            } catch (err) {
+                alert("Erro ao excluir usuário.");
+            }
         }
     };
 
-    const handleToggleAuth = (user: any) => {
-        adminUpdateUserInfo(user.email, { isAuthorized: !user.isAuthorized });
-        setTimeout(loadUsers, 100);
+    const handleToggleAuth = async (user: any) => {
+        await adminUpdateUserInfo(user.id, { isAuthorized: !user.isAuthorized });
+        loadUsers();
     };
 
-    const handleImpersonate = (email: string) => {
-        if (window.confirm(`Você entrará no modo de visualização para a conta de ${email}. Deseja prosseguir?`)) {
-            impersonateUser(email);
+    const handleImpersonate = (user: any) => {
+        if (window.confirm(`Você entrará no modo de visualização para a conta de ${user.email}. Deseja prosseguir?`)) {
+            impersonateUser(user.id);
             window.location.href = '/';
         }
     };
@@ -150,8 +167,20 @@ export const Admin: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map((u) => (
-                                <tr key={u.email}>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={4} className="py-20 text-center text-text-muted font-bold">
+                                        Carregando usuários...
+                                    </td>
+                                </tr>
+                            ) : filteredUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="py-20 text-center text-text-muted font-bold">
+                                        Nenhum usuário encontrado.
+                                    </td>
+                                </tr>
+                            ) : filteredUsers.map((u) => (
+                                <tr key={u.id}>
                                     <td>
                                         <div className="user-info-cell">
                                             <div className="user-avatar-wrapper">
@@ -177,7 +206,7 @@ export const Admin: React.FC = () => {
                                     </td>
                                     <td>
                                         <div className="flex flex-col gap-2">
-                                            {u.email === 'ivanrossi@outlook.com' || u.isAdmin ? (
+                                            {u.id === currentUser.id || u.is_admin ? (
                                                 <span className="badge-admin">
                                                     <Shield size={10} strokeWidth={3} /> ADMINISTRADOR
                                                 </span>
@@ -189,10 +218,10 @@ export const Admin: React.FC = () => {
                                                     </span>
                                                     <button
                                                         onClick={() => handleToggleAuth(u)}
-                                                        className={`badge-auth ${u.isAuthorized !== false ? 'active' : 'inactive'}`}
+                                                        className={`badge-auth ${u.is_authorized !== false ? 'active' : 'inactive'}`}
                                                     >
-                                                        {u.isAuthorized !== false ? <Check size={10} /> : <X size={10} />}
-                                                        {u.isAuthorized !== false ? 'AUTORIZADO' : 'PENDENTE'}
+                                                        {u.is_authorized !== false ? <Check size={10} /> : <X size={10} />}
+                                                        {u.is_authorized !== false ? 'AUTORIZADO' : 'PENDENTE'}
                                                     </button>
                                                 </div>
                                             )}
@@ -201,7 +230,7 @@ export const Admin: React.FC = () => {
                                     <td>
                                         <div className="action-bar">
                                             <button
-                                                onClick={() => handleImpersonate(u.email)}
+                                                onClick={() => handleImpersonate(u)}
                                                 className="action-btn action-btn-primary"
                                                 title="Visualizar Painel"
                                             >
@@ -215,10 +244,10 @@ export const Admin: React.FC = () => {
                                                 <Edit2 size={18} />
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteUser(u.email)}
-                                                className={`action-btn action-btn-danger ${u.email === currentUser.email ? 'opacity-20 pointer-events-none' : ''}`}
+                                                onClick={() => handleDeleteUser(u)}
+                                                className={`action-btn action-btn-danger ${u.id === currentUser.id ? 'opacity-20 pointer-events-none' : ''}`}
                                                 title="Excluir Permanentemente"
-                                                disabled={u.email === currentUser.email}
+                                                disabled={u.id === currentUser.id}
                                             >
                                                 <Trash2 size={18} />
                                             </button>

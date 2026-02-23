@@ -7,7 +7,7 @@ import { clsx } from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { ViewModeBanner } from '../admin/ViewModeBanner';
 import { GlobalVoiceModal } from '../voice/GlobalVoiceModal';
-import logoIcon from '/icon.svg';
+import { Logo } from './Logo';
 
 export const Layout: React.FC = () => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
@@ -63,12 +63,7 @@ export const Layout: React.FC = () => {
                     <button className="mob-prem-hamburger-btn" onClick={toggleMenu} aria-label="Abrir Menu">
                         <Menu size={24} strokeWidth={2.5} />
                     </button>
-                    <div className="mob-prem-brand">
-                        <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
-                        <span className="mob-prem-brand-name">
-                            Finance<span className="sidebar-brand-plus">+</span>
-                        </span>
-                    </div>
+                    <Logo size={32} />
                 </div>
 
                 <div className="mob-prem-header-right">
@@ -104,10 +99,7 @@ export const Layout: React.FC = () => {
             <div className={clsx("mob-prem-drawer-overlay", isMenuOpen && "active")} onClick={closeMenu}>
                 <aside className={clsx("mob-prem-drawer", isMenuOpen && "active")} onClick={e => e.stopPropagation()}>
                     <div className="mob-prem-drawer-header">
-                        <div className="mob-prem-brand">
-                            <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
-                            <span className="mob-prem-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
-                        </div>
+                        <Logo size={28} />
                         <button className="mob-prem-drawer-close" onClick={closeMenu}>
                             <X size={26} />
                         </button>
@@ -159,11 +151,7 @@ export const Layout: React.FC = () => {
             {/* Sidebar (DESKTOP) - DO NOT CHANGE STRUCTURE */}
             <aside className="sidebar bottom-nav">
                 <div className="sidebar-brand">
-                    <img src={logoIcon} alt="Finance+" className="sidebar-brand-icon" />
-                    <div className="sidebar-brand-text">
-                        <span className="sidebar-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
-                        <span className="sidebar-brand-slogan">O jeito moderno de controlar gastos.</span>
-                    </div>
+                    <Logo size={48} />
                 </div>
 
                 <div className="sidebar-header">

@@ -42,120 +42,99 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         let isMounted = true;
-        let authEventHandled = false;
+        console.log('Auth: [INIT] Início da verificação de segurança...');
 
-        console.log('Auth: Inicializando sistemas de segurança...');
+        const initAuth = async () => {
+            try {
+                // Listener reativo (Fonte Única de Verdade)
+                const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+                    if (!isMounted) return;
+                    console.log(`Auth: Evento [${event}] recebido.`);
 
-        // Listener reativo (Fonte Única de Verdade)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`onAuthStateChange [${event}]:`, !!session);
-            authEventHandled = true;
-
-            if (session?.user) {
-                try {
-                    // Busca perfil com um mecanismo de retry simples
-                    const { data: profile, error: pError } = await supabase
-                        .from('user_profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (!pError && profile && isMounted) {
-                        setUser({
-                            id: session.user.id,
-                            name: profile.name,
-                            email: profile.email,
-                            avatar: profile.avatar,
-                            isAdmin: profile.is_admin,
-                            isAuthorized: profile.is_authorized,
-                            plan: profile.plan || 'FREE'
-                        });
+                    if (session?.user) {
                         setIsAuthenticated(true);
+                        setUser((prev: any) => prev || {
+                            id: session.user.id,
+                            email: session.user.email,
+                            name: session.user.user_metadata?.name || 'Usuário'
+                        });
+
+                        // Sync Profile em background
+                        supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
+                            .then(({ data: profile, error: pError }) => {
+                                if (!pError && profile && isMounted) {
+                                    console.log('Auth: Profile sincronizado.');
+                                    setUser({
+                                        id: session.user.id,
+                                        name: profile.name,
+                                        email: profile.email,
+                                        avatar: profile.avatar,
+                                        isAdmin: profile.is_admin,
+                                        isAuthorized: profile.is_authorized,
+                                        plan: profile.plan || 'FREE'
+                                    });
+                                }
+                            });
+                    } else {
+                        setIsAuthenticated(false);
+                        setUser(null);
                     }
-                } catch (err) {
-                    console.error('Falha ao sincronizar perfil:', err);
-                }
-            } else if (isMounted) {
-                // Se o evento for de saída ou se for a verificação inicial e não houver ninguém
-                setUser(null);
-                setIsAuthenticated(false);
-            }
 
-            // Para o loading apenas nos estados de conclusão da verificação
-            if (isMounted && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT')) {
+                    // SEMPRE libera o loading em eventos de estado
+                    setLoading(false);
+                });
+
+                return subscription;
+            } catch (err) {
+                console.error('Auth: Erro fatal no listener:', err);
+                setLoading(false);
+                return null;
+            }
+        };
+
+        const subPromise = initAuth();
+
+        // FAILSAFE NUCLEAR: Liberação garantida em 2 segundos
+        const timer = setTimeout(() => {
+            if (isMounted) {
+                console.warn('Auth: [FAILSAFE] Forçando liberação da UI após 2s.');
                 setLoading(false);
             }
-        });
-
-        // Failsafe: Se o Supabase não disparar nenhum evento em 10 segundos (raro mas possível em migrações)
-        const failsafe = setTimeout(() => {
-            if (isMounted && !authEventHandled) {
-                console.warn('Auth: Failsafe disparado (Supabase demorou muito). Liberando tela.');
-                setLoading(false);
-            }
-        }, 10000);
+        }, 2000);
 
         return () => {
             isMounted = false;
-            subscription.unsubscribe();
-            clearTimeout(failsafe);
+            clearTimeout(timer);
+            subPromise.then(s => s?.unsubscribe());
         };
     }, []);
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        console.log('Login: [1/3] Preparando ambiente limpo...');
         try {
-            // Remove vestígios de sessões problemáticas ANTES de tentar logar
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('sb-')) localStorage.removeItem(key);
-            });
-
-            console.log('Login: [2/3] Autenticando...', email);
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                console.error('Login: Erro Auth:', error.message);
-                return { success: false, error: error.message };
-            }
-
-            if (data?.user) {
-                console.log('Login: [3/3] Sucesso! Sincronizando profile...');
-                // O onAuthStateChange cuidará de setar o User Profile.
-                // Apenas retornamos sucesso.
-                return { success: true };
-            }
-            return { success: false, error: "Resposta incompleta do servidor." };
+            if (error) return { success: false, error: error.message };
+            if (data?.user) return { success: true };
+            return { success: false, error: "Falha na resposta." };
         } catch (err: any) {
-            console.error('Login: Erro inesperado:', err);
-            return { success: false, error: "Erro de conexão profunda." };
+            return { success: false, error: "Erro de conexão." };
         }
     };
 
     const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         try {
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: { data: { name } }
-            });
-
+            const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
             if (error) return { success: false, error: error.message };
-
             if (data?.user) {
-                const userEmail = email.toLowerCase();
-                const masterEmail = 'ivanrossi@outlook.com';
-                const isMasterAdmin = userEmail === masterEmail;
-
+                const isMaster = email.toLowerCase() === 'ivanrossi@outlook.com';
                 await supabase.from('user_profiles').upsert([{
                     id: data.user.id,
                     name,
-                    email: email,
-                    is_admin: isMasterAdmin,
-                    is_authorized: isMasterAdmin,
+                    email: email.toLowerCase(),
+                    is_admin: isMaster,
+                    is_authorized: isMaster,
                     plan: 'FREE'
                 }]);
-
-                return { success: true, error: isMasterAdmin ? undefined : "AUTORIZACAO_PENDENTE" };
+                return { success: true };
             }
             return { success: false, error: "Erro na criação." };
         } catch (err: any) {
@@ -164,12 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        console.log('Logout: Resetando aplicação...');
-        try {
-            await supabase.auth.signOut();
-        } catch (e) { }
-
-        // Limpeza total garantida
+        try { await supabase.auth.signOut(); } catch (e) { }
         setIsAuthenticated(false);
         setUser(null);
         localStorage.clear();
@@ -179,28 +153,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateUser = async (updatedUser: any) => {
         if (!user?.id) return;
-        const { error } = await supabase.from('user_profiles').update({
-            name: updatedUser.name,
-            avatar: updatedUser.avatar,
-            phone: updatedUser.phone,
-            profession: updatedUser.profession
-        }).eq('id', user.id);
+        const { error } = await supabase.from('user_profiles').update({ ...updatedUser }).eq('id', user.id);
         if (!error) setUser({ ...user, ...updatedUser });
     };
 
     const adminUpdateUserInfo = async (targetId: string, updates: any) => {
-        await supabase.from('user_profiles').update({
-            is_admin: updates.isAdmin,
-            is_authorized: updates.isAuthorized,
-            plan: updates.plan
-        }).eq('id', targetId);
+        await supabase.from('user_profiles').update({ ...updates }).eq('id', targetId);
     };
 
-    const impersonateUser = (_email: string) => {
+    const impersonateUser = (_id: string) => {
         if (!user || (!user.isAdmin && !isImpersonating)) return;
         localStorage.setItem('fintrack_original_admin', JSON.stringify(user));
         setIsImpersonating(true);
-        // Lógica de impersonate simplificada para esta fase
         window.location.reload();
     };
 
@@ -210,12 +174,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.location.reload();
     };
 
-    const changePassword = async (_currentPass: string, _newPass: string) => {
-        return { success: true, message: 'Senha alterada com sucesso!' };
-    };
+    const changePassword = async (_cp: string, _np: string) => ({ success: true, message: 'OK' });
 
     if (loading) {
-        return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>Carregando Finance+...</div>;
+        return (
+            <div style={{
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#ffffff',
+                color: '#334155',
+                fontFamily: 'sans-serif',
+                textAlign: 'center',
+                padding: '20px'
+            }}>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: '#6366f1', marginBottom: '10px' }}>Finance+</div>
+                <div style={{ fontSize: '14px', marginBottom: '30px' }}>Carregando seu ambiente seguro...</div>
+
+                <div style={{ width: '30px', height: '30px', border: '3px solid #f1f5f9', borderTop: '3px solid #6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+
+                <div style={{ marginTop: '50px', maxWidth: '300px' }}>
+                    <button
+                        onClick={() => setLoading(false)}
+                        style={{
+                            width: '100%',
+                            padding: '14px',
+                            backgroundColor: '#6366f1',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)'
+                        }}
+                    >
+                        ENTRAR AGORA (FORÇAR)
+                    </button>
+
+                    <button
+                        onClick={resetAppCache}
+                        style={{
+                            width: '100%',
+                            marginTop: '12px',
+                            padding: '10px',
+                            backgroundColor: 'transparent',
+                            color: '#94a2b8',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Limpar Dados e Reiniciar
+                    </button>
+                </div>
+
+                <div style={{ marginTop: '40px', fontSize: '10px', color: '#cbd5e1' }}>
+                    Infra: {supUrl.includes('placeholder') ? 'CONFIGURAÇÃO PENDENTE' : 'CONECTADO'}
+                </div>
+
+                <style>{`
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                `}</style>
+            </div>
+        );
     }
 
     return (

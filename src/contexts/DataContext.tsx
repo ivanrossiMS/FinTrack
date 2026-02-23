@@ -206,11 +206,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const addCommitment = async (commitment: Omit<Commitment, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { installments?: number }) => {
+        if (!user?.id) return;
         const { installments, ...baseComm } = commitment;
         const count = installments || 1;
         const installmentId = count > 1 ? uuidv4() : undefined;
-
-        const newCommitments: Commitment[] = [];
         const baseDate = parseISO(baseComm.dueDate);
 
         for (let i = 0; i < count; i++) {
@@ -218,7 +217,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const description = count > 1 ? `${baseComm.description} [${i + 1}/${count}]` : baseComm.description;
             const installmentAmount = count > 1 ? Math.round((baseComm.amount / count) * 100) / 100 : baseComm.amount;
 
-            newCommitments.push({
+            const newComm: Commitment = {
                 ...baseComm,
                 id: uuidv4(),
                 amount: installmentAmount,
@@ -230,159 +229,122 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 totalInstallments: count > 1 ? count : undefined,
                 createdAt: Date.now(),
                 updatedAt: Date.now()
-            });
-        }
+            };
 
-        setData(prev => ({
-            ...prev,
-            commitments: [...(prev.commitments || []), ...newCommitments]
-        }));
+            await StorageService.saveCommitment(newComm, user.id);
+        }
+        refresh();
     };
 
     const updateCommitment = async (id: string, updates: Partial<Commitment>) => {
-        setData(prev => {
-            const commitments = prev.commitments || [];
-            const commitment = commitments.find(c => c.id === id);
+        if (!user?.id) return;
+        const current = data.commitments?.find(c => c.id === id);
+        if (!current) return;
 
-            if (!commitment) return prev;
+        const updated = { ...current, ...updates, updatedAt: Date.now() };
+        await StorageService.saveCommitment(updated, user.id);
 
-            const updatedCommitments = commitments.map(c =>
-                c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c
-            );
-
-            let updatedTransactions = prev.transactions;
-            if (commitment.transactionId) {
-                updatedTransactions = prev.transactions.map(t => {
-                    if (t.id === commitment.transactionId) {
-                        return {
-                            ...t,
-                            amount: updates.amount !== undefined ? updates.amount : t.amount,
-                            description: updates.description !== undefined ? `PAGTO: ${updates.description}` : t.description,
-                            categoryId: updates.categoryId !== undefined ? updates.categoryId : t.categoryId,
-                            supplierId: updates.supplierId !== undefined ? updates.supplierId : t.supplierId,
-                            updatedAt: Date.now()
-                        };
-                    }
-                    return t;
-                });
+        if (current.transactionId) {
+            const tx = data.transactions.find(t => t.id === current.transactionId);
+            if (tx) {
+                await StorageService.saveTransaction({
+                    ...tx,
+                    amount: updates.amount !== undefined ? updates.amount : tx.amount,
+                    description: updates.description !== undefined ? `PAGTO: ${updates.description}` : tx.description,
+                    categoryId: updates.categoryId !== undefined ? updates.categoryId : tx.categoryId,
+                    supplierId: updates.supplierId !== undefined ? updates.supplierId : tx.supplierId,
+                    updatedAt: Date.now()
+                }, user.id);
             }
-
-            return {
-                ...prev,
-                commitments: updatedCommitments,
-                transactions: updatedTransactions
-            };
-        });
+        }
+        refresh();
     };
 
     const deleteCommitment = async (id: string) => {
-        setData(prev => {
-            const commitments = prev.commitments || [];
-            const commitment = commitments.find(c => c.id === id);
-
-            const updatedCommitments = commitments.filter(c => c.id !== id);
-            let updatedTransactions = prev.transactions;
-
-            if (commitment?.transactionId) {
-                updatedTransactions = prev.transactions.filter(t => t.id !== commitment.transactionId);
-            }
-
-            return {
-                ...prev,
-                commitments: updatedCommitments,
-                transactions: updatedTransactions
-            };
-        });
+        if (!user?.id) return;
+        const commitment = data.commitments?.find(c => c.id === id);
+        if (commitment?.transactionId) {
+            await StorageService.deleteTransaction(commitment.transactionId);
+        }
+        await StorageService.deleteCommitment(id);
+        refresh();
     };
 
     const payCommitment = async (id: string, paymentMethodId: string, installments?: number) => {
-        setData(prev => {
-            const commitments = prev.commitments || [];
-            const commitment = commitments.find(c => c.id === id);
+        if (!user?.id) return;
+        const commitment = data.commitments?.find(c => c.id === id);
+        if (!commitment || commitment.status === 'PAID') return;
 
-            if (!commitment || commitment.status === 'PAID') return prev;
+        const count = installments || 1;
+        const installmentId = count > 1 ? uuidv4() : undefined;
+        const paymentDateStr = new Date().toISOString().split('T')[0];
+        const baseDate = parseISO(paymentDateStr);
 
-            const count = installments || 1;
-            const installmentId = count > 1 ? uuidv4() : undefined;
-            const paymentDateStr = new Date().toISOString().split('T')[0];
-            const baseDate = parseISO(paymentDateStr);
+        for (let i = 0; i < count; i++) {
+            const date = addMonths(baseDate, i).toISOString();
+            const description = count > 1
+                ? `PAGTO: ${commitment.description} [${i + 1}/${count}]`
+                : `PAGTO: ${commitment.description}`;
 
-            // 1. Create the transactions
-            const newTransactions: Transaction[] = [];
-            for (let i = 0; i < count; i++) {
-                const date = addMonths(baseDate, i).toISOString();
-                const description = count > 1
-                    ? `PAGTO: ${commitment.description} [${i + 1}/${count}]`
-                    : `PAGTO: ${commitment.description}`;
+            const installmentAmount = count > 1 ? Math.round((commitment.amount / count) * 100) / 100 : commitment.amount;
 
-                const installmentAmount = count > 1 ? Math.round((commitment.amount / count) * 100) / 100 : commitment.amount;
+            const newTx: Transaction = {
+                id: i === 0 ? (commitment.transactionId || uuidv4()) : uuidv4(),
+                type: 'EXPENSE',
+                date,
+                amount: installmentAmount,
+                description,
+                categoryId: commitment.categoryId,
+                supplierId: commitment.supplierId,
+                paymentMethodId: paymentMethodId,
+                installmentId,
+                installmentNumber: i + 1,
+                totalInstallments: count > 1 ? count : undefined,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
 
-                newTransactions.push({
-                    id: i === 0 ? (commitment.transactionId || uuidv4()) : uuidv4(),
-                    type: 'EXPENSE',
-                    date,
-                    amount: installmentAmount,
-                    description,
-                    categoryId: commitment.categoryId,
-                    supplierId: commitment.supplierId,
-                    paymentMethodId: paymentMethodId,
-                    installmentId,
-                    installmentNumber: i + 1,
-                    totalInstallments: count > 1 ? count : undefined,
-                    createdAt: Date.now(),
-                    updatedAt: Date.now()
-                });
-            }
+            await StorageService.saveTransaction(newTx, user.id);
 
-            const mainTransactionId = newTransactions[0].id;
-
-            // 2. Update the commitment
-            const updatedCommitments = commitments.map(c =>
-                c.id === id ? {
-                    ...(c as Commitment),
-                    status: 'PAID' as 'PAID',
+            if (i === 0) {
+                await StorageService.saveCommitment({
+                    ...commitment,
+                    status: 'PAID',
                     paymentMethodId,
-                    transactionId: mainTransactionId,
+                    transactionId: newTx.id,
                     paymentDate: paymentDateStr,
                     updatedAt: Date.now()
-                } : c
-            );
-
-            return {
-                ...prev,
-                transactions: [...prev.transactions, ...newTransactions],
-                commitments: updatedCommitments
-            };
-        });
+                }, user.id);
+            }
+        }
+        refresh();
     };
 
     const addSavingsGoal = async (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
+        if (!user?.id) return;
         const newGoal: SavingsGoal = {
             ...goal,
             id: uuidv4(),
             createdAt: Date.now(),
             updatedAt: Date.now()
         };
-        setData(prev => ({
-            ...prev,
-            savingsGoals: [...(prev.savingsGoals || []), newGoal]
-        }));
+        await StorageService.saveSavingsGoal(newGoal, user.id);
+        refresh();
     };
 
     const updateSavingsGoal = async (id: string, updates: Partial<SavingsGoal>) => {
-        setData(prev => ({
-            ...prev,
-            savingsGoals: (prev.savingsGoals || []).map(g =>
-                g.id === id ? { ...g, ...updates, updatedAt: Date.now() } : g
-            )
-        }));
+        if (!user?.id) return;
+        const current = data.savingsGoals?.find(g => g.id === id);
+        if (!current) return;
+        const updated = { ...current, ...updates, updatedAt: Date.now() };
+        await StorageService.saveSavingsGoal(updated, user.id);
+        refresh();
     };
 
     const deleteSavingsGoal = async (id: string) => {
-        setData(prev => ({
-            ...prev,
-            savingsGoals: (prev.savingsGoals || []).filter(g => g.id !== id)
-        }));
+        if (!user?.id) return;
+        await StorageService.deleteSavingsGoal(id);
+        refresh();
     };
 
     /**

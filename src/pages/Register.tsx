@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 import { UserPlus } from 'lucide-react';
 
 export const Register: React.FC = () => {
-    const { register, resetAppCache } = useAuth();
+    const { register } = useAuth();
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -128,36 +128,7 @@ export const Register: React.FC = () => {
                         Já tem uma conta? <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
                     </p>
 
-                    <div style={{
-                        marginTop: '2rem',
-                        padding: '1rem',
-                        backgroundColor: 'rgba(0,0,0,0.03)',
-                        borderRadius: '8px',
-                        fontSize: '10px',
-                        color: '#94a3b8',
-                        textAlign: 'left',
-                        wordBreak: 'break-all'
-                    }}>
-                        <strong>DEBUG INFO:</strong><br />
-                        URL: {(useAuth() as any).supabaseUrl}<br />
-                        Key: {(useAuth() as any).supabaseKeyMasked}<br />
-                        Status: {error ? '🔴 Erro' : '🟢 Online'}<br />
-                        <button
-                            onClick={() => resetAppCache()}
-                            style={{
-                                marginTop: '10px',
-                                padding: '4px 8px',
-                                backgroundColor: '#fee2e2',
-                                color: '#ef4444',
-                                borderRadius: '4px',
-                                border: '1px solid #fca5a5',
-                                cursor: 'pointer',
-                                fontWeight: 'bold'
-                            }}
-                        >
-                            Limpar Tudo & Recarregar Site
-                        </button>
-                    </div>
+                    {/* Removed debug info for cleaner UI */}
                 </div>
             </div>
         </div>

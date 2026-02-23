@@ -1,4 +1,4 @@
-import type { AppData, Category, Transaction, PaymentMethod } from '../models/types';
+import type { AppData, Category, Transaction, PaymentMethod, Commitment, SavingsGoal } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabaseClient';
 
@@ -155,6 +155,51 @@ export const StorageService = {
 
     async deletePaymentMethod(id: string) {
         const { error } = await supabase.from('payment_methods').delete().eq('id', id);
+        if (error) throw error;
+    },
+
+    async saveCommitment(commitment: Commitment, userId: string) {
+        const { error } = await supabase.from('commitments').upsert({
+            id: commitment.id,
+            user_id: userId,
+            description: commitment.description,
+            due_date: commitment.dueDate,
+            amount: commitment.amount,
+            status: commitment.status,
+            category_id: commitment.categoryId,
+            payment_method_id: commitment.paymentMethodId,
+            transaction_id: commitment.transactionId,
+            payment_date: commitment.paymentDate,
+            installment_id: commitment.installmentId,
+            installment_number: commitment.installmentNumber,
+            total_installments: commitment.totalInstallments,
+            updated_at: new Date().toISOString()
+        });
+        if (error) throw error;
+    },
+
+    async deleteCommitment(id: string) {
+        const { error } = await supabase.from('commitments').delete().eq('id', id);
+        if (error) throw error;
+    },
+
+    async saveSavingsGoal(goal: SavingsGoal, userId: string) {
+        const { error } = await supabase.from('savings_goals').upsert({
+            id: goal.id,
+            user_id: userId,
+            description: goal.description,
+            target_amount: goal.targetAmount,
+            current_amount: goal.currentAmount,
+            target_date: goal.targetDate,
+            color: goal.color,
+            icon: goal.icon,
+            updated_at: new Date().toISOString()
+        });
+        if (error) throw error;
+    },
+
+    async deleteSavingsGoal(id: string) {
+        const { error } = await supabase.from('savings_goals').delete().eq('id', id);
         if (error) throw error;
     },
 
