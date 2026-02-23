@@ -31,19 +31,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (authInitialized.current) return;
 
             try {
-                // 1. Get initial session strictly from Hybrid Storage
+                // 1. Core Logic: localStorage persistence is handled by Supabase Client.
+                // We just need to sync the React state.
                 const { data: { session } } = await supabase.auth.getSession();
-                console.log('Hybrid Auth Init:', !!session ? `Session [${session.user.id}]` : 'Guest');
+                console.log('Vanta Auth Boot:', session ? `User [${session.user.id}]` : 'Visitor');
 
                 if (session) {
-                    currentFetchingUserId.current = session.user.id;
                     await fetchProfile(session.user.id);
                 } else {
                     setLoading(false);
                 }
                 authInitialized.current = true;
             } catch (err) {
-                console.error('Critical Auth Error:', err);
+                console.error('Vanta Boot Error:', err);
                 setLoading(false);
                 authInitialized.current = true;
             }
@@ -51,13 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         initializeAuth();
 
-        // 2. Optimized Listener (Prevents race conditions)
+        // 2. Atomic Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`📡 Auth Stream: ${event}`);
+            console.log(`📡 Vanta Stream: ${event}`);
 
             if (session) {
-                // Avoid redundant fetches if init is busy or user is same
-                if (currentFetchingUserId.current === session.user.id && user) return;
+                // TERMINATE LOOP: Only fetch if session is new or different
+                if (user && user.id === session.user.id) return;
 
                 await fetchProfile(session.user.id);
             } else {
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => subscription.unsubscribe();
-    }, [user?.id]);
+    }, [user?.id]); // Pin to user.id
 
     const fetchProfile = async (userId: string) => {
         // Double check lock

@@ -170,50 +170,55 @@ ALTER TABLE public.savings_goals ENABLE ROW LEVEL SECURITY;
 
 -- ── FUNCTIONS & POLICIES ──
 
--- Admin check function (SUPREME OPTIMIZATION: Zero-Query via JWT)
+-- Admin check function (VANTA-BLACK OPTIMIZATION: JWT-Only, Zero-Query)
 CREATE OR REPLACE FUNCTION public.is_admin() 
 RETURNS BOOLEAN AS $$
 BEGIN
-  -- 1. FAST-PATH: Master admin check via JWT email (Immediate)
+  -- 1. Hardcoded Fast-Path (Master Admin)
   IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
     RETURN TRUE;
   END IF;
 
-  -- 2. JWT-PATH: Check app_metadata (No DB query needed)
+  -- 2. JWT app_metadata Path (Absolute Performance - No DB query)
   IF (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' THEN
     RETURN TRUE;
   END IF;
 
-  -- 3. DB-PATH: Query profiles only if JWT is empty (SECURITY DEFINER bypasses RLS)
-  -- This is technically redundant if JWT is set, but good for local/dev fallback.
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role = 'ADMIN'
-  );
+  RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Authorization check function (Zero-Query via JWT)
+-- Authorization check function (VANTA-BLACK OPTIMIZATION: JWT-Only, Zero-Query)
 CREATE OR REPLACE FUNCTION public.check_is_authorized() 
 RETURNS BOOLEAN AS $$
 BEGIN
-  -- Master admin is always authorized
+  -- 1. Master Admin is always authorized
   IF (auth.jwt() ->> 'email') = 'ivanrossi@outlook.com' THEN
     RETURN TRUE;
   END IF;
 
-  -- Check JWT app_metadata
-  IF (auth.jwt() -> 'app_metadata' ->> 'is_authorized') = 'true' THEN
+  -- 2. JWT app_metadata Path (Absolute Performance - No DB query)
+  IF (auth.jwt() -> 'app_metadata' ->> 'is_authorized')::BOOLEAN = TRUE THEN
     RETURN TRUE;
   END IF;
 
-  -- Fallback to DB
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND is_authorized = TRUE
-  );
+  RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- ── METADATA REPAIR SCRIPT (Stability Guardian) ──
+-- Ensures all existing users have permissions in their JWT to enable Zero-Query RLS.
+DO $$ 
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN SELECT id, role, is_authorized FROM public.profiles LOOP
+    UPDATE auth.users 
+    SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || 
+      jsonb_build_object('role', r.role, 'is_authorized', r.is_authorized)
+    WHERE id = r.id;
+  END LOOP;
+END $$;
 
 -- Cleanup existing policies
 DO $$ 
