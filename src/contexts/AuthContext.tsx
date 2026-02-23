@@ -57,14 +57,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .single();
 
             if (error || !profile) {
-                console.warn(`Profile fetch attempt failed for ${userId}. Retries left: ${retries}`);
                 if (retries > 0) {
+                    console.warn(`Profile fetch failed for ${userId}, retrying... (${retries})`);
                     setTimeout(() => fetchProfile(userId, retries - 1), 1500);
-                    return;
+                    return; // Return early, the recursive call will handle setLoading
                 }
-                console.error('Final error fetching profile:', error);
 
-                // Fallback: use auth user metadata if profile table entry is missing
+                // Fallback if profile record literally doesn't exist yet
                 const { data: { user: authUser } } = await supabase.auth.getUser();
                 if (authUser) {
                     setUser({
@@ -74,18 +73,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         role: authUser.email === 'ivanrossi@outlook.com' ? 'ADMIN' : 'USER',
                         plan: 'FREE'
                     });
-                } else {
-                    setUser(null);
                 }
             } else {
                 setUser(profile);
             }
         } catch (err) {
             console.error('Fatal error in fetchProfile:', err);
-            setUser(null);
         } finally {
-            // Important: only set loading false if we're not retrying
-            if (retries <= 0 || user) {
+            // Only stop loading if we are NOT in the middle of a retry loop
+            if (retries === 0 || !loading) {
                 setLoading(false);
             }
         }
@@ -184,7 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             changePassword,
             isImpersonating
         }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };
