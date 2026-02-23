@@ -67,20 +67,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             name: session.user.user_metadata?.name || 'Usuário'
                         });
 
-                        // Sync Profile em background
+                        // Sync Profile em background com Auto-Heal
                         supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
-                            .then(({ data: profile, error: pError }) => {
-                                if (!pError && profile && isMounted) {
-                                    console.log('Auth: Profile sincronizado.');
-                                    setUser({
-                                        id: session.user.id,
-                                        name: profile.name,
-                                        email: profile.email,
-                                        avatar: profile.avatar,
-                                        isAdmin: profile.is_admin,
-                                        isAuthorized: profile.is_authorized,
-                                        plan: profile.plan || 'FREE'
-                                    });
+                            .then(async ({ data: profile, error: pError }) => {
+                                if (isMounted) {
+                                    if (!pError && profile) {
+                                        console.log('Auth: Profile sincronizado.');
+                                        setUser({
+                                            id: session.user.id,
+                                            name: profile.name,
+                                            email: profile.email,
+                                            avatar: profile.avatar,
+                                            isAdmin: profile.is_admin,
+                                            isAuthorized: profile.is_authorized,
+                                            plan: profile.plan || 'FREE'
+                                        });
+                                    } else if (pError && pError.code === 'PGRST116') {
+                                        // Auto-Heal: Perfil não existe no DB, vamos criar agora
+                                        console.warn('Auth: [AUTO-HEAL] Criando perfil inexistente...');
+                                        const isMaster = session.user.email?.toLowerCase() === 'ivanrossi@outlook.com';
+                                        const newProfile = {
+                                            id: session.user.id,
+                                            name: session.user.user_metadata?.name || 'Usuário',
+                                            email: session.user.email?.toLowerCase() || '',
+                                            is_admin: isMaster,
+                                            is_authorized: isMaster,
+                                            plan: 'FREE'
+                                        };
+
+                                        const { error: iError } = await supabase.from('user_profiles').upsert([newProfile]);
+                                        if (!iError) setUser(newProfile);
+                                    }
                                 }
                             });
                     } else {
@@ -166,7 +183,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const adminUpdateUserInfo = async (targetId: string, updates: any) => {
-        await supabase.from('user_profiles').update({ ...updates }).eq('id', targetId);
+        // Map camelCase to snake_case for DB
+        const dbUpdates: any = { ...updates };
+        if (updates.isAuthorized !== undefined) {
+            dbUpdates.is_authorized = updates.isAuthorized;
+            delete dbUpdates.isAuthorized;
+        }
+        if (updates.isAdmin !== undefined) {
+            dbUpdates.is_admin = updates.isAdmin;
+            delete dbUpdates.isAdmin;
+        }
+
+        await supabase.from('user_profiles').update(dbUpdates).eq('id', targetId);
     };
 
     const impersonateUser = (_id: string) => {

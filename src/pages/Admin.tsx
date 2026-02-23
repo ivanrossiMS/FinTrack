@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { User, Shield, Mail, ExternalLink, Trash2, Edit2, X, Check, Lock, Camera, Search, Filter, Crown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import './Admin.css';
@@ -30,7 +31,7 @@ export const Admin: React.FC = () => {
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const { data, error } = await (useAuth() as any).supabase
+            const { data, error } = await supabase
                 .from('user_profiles')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -90,7 +91,7 @@ export const Admin: React.FC = () => {
                 // Note: We cannot delete auth users easily from client side. 
                 // We'll just disable access or mark as deleted if necessary, or use a RPC if available.
                 // For now, let's just delete the profile.
-                const { error } = await (useAuth() as any).supabase.from('user_profiles').delete().eq('id', user.id);
+                const { error } = await supabase.from('user_profiles').delete().eq('id', user.id);
                 if (error) throw error;
                 loadUsers();
             } catch (err) {
