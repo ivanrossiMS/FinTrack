@@ -48,8 +48,37 @@ CREATE TABLE IF NOT EXISTS public.payment_methods (
     id TEXT PRIMARY KEY,
     user_id UUID REFERENCES auth.users NOT NULL,
     name TEXT NOT NULL,
-    color TEXT
+    color TEXT,
+    is_default BOOLEAN DEFAULT FALSE
 );
+
+-- ── TYPE STANDARDIZATION (Ensure TEXT IDs for categories and payment methods) ──
+-- This handles migrations from older UUID versions of the schema.
+DO $$ 
+BEGIN
+  -- Fix categories.id and its references
+  IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'id') = 'uuid' THEN
+    ALTER TABLE public.transactions ALTER COLUMN category_id TYPE TEXT USING category_id::text;
+    ALTER TABLE public.commitments ALTER COLUMN category_id TYPE TEXT USING category_id::text;
+    ALTER TABLE public.categories ALTER COLUMN id TYPE TEXT USING id::text;
+  END IF;
+
+  -- Fix payment_methods.id and its references
+  IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'payment_methods' AND column_name = 'id') = 'uuid' THEN
+    ALTER TABLE public.transactions ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
+    ALTER TABLE public.commitments ALTER COLUMN payment_method_id TYPE TEXT USING payment_method_id::text;
+    ALTER TABLE public.payment_methods ALTER COLUMN id TYPE TEXT USING id::text;
+  END IF;
+  
+  -- Ensure is_default columns exist if they were missing
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'is_default') THEN
+    ALTER TABLE public.categories ADD COLUMN is_default BOOLEAN DEFAULT FALSE;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'payment_methods' AND column_name = 'is_default') THEN
+    ALTER TABLE public.payment_methods ADD COLUMN is_default BOOLEAN DEFAULT FALSE;
+  END IF;
+END $$;
 
 -- 5. Create Transactions table
 CREATE TABLE IF NOT EXISTS public.transactions (
