@@ -64,9 +64,9 @@ export const Layout: React.FC = () => {
                         <Menu size={24} strokeWidth={2.5} />
                     </button>
                     <div className="mob-prem-brand">
-                        <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
+                        <img src={logoIcon} alt="FinTrack" className="mob-prem-logo" />
                         <span className="mob-prem-brand-name">
-                            Finance<span className="sidebar-brand-plus">+</span>
+                            FinTrack
                         </span>
                     </div>
                 </div>
@@ -105,8 +105,8 @@ export const Layout: React.FC = () => {
                 <aside className={clsx("mob-prem-drawer", isMenuOpen && "active")} onClick={e => e.stopPropagation()}>
                     <div className="mob-prem-drawer-header">
                         <div className="mob-prem-brand">
-                            <img src={logoIcon} alt="Finance+" className="mob-prem-logo" />
-                            <span className="mob-prem-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
+                            <img src={logoIcon} alt="FinTrack" className="mob-prem-logo" />
+                            <span className="mob-prem-brand-name">FinTrack</span>
                         </div>
                         <button className="mob-prem-drawer-close" onClick={closeMenu}>
                             <X size={26} />
@@ -159,9 +159,9 @@ export const Layout: React.FC = () => {
             {/* Sidebar (DESKTOP) - DO NOT CHANGE STRUCTURE */}
             <aside className="sidebar bottom-nav">
                 <div className="sidebar-brand">
-                    <img src={logoIcon} alt="Finance+" className="sidebar-brand-icon" />
+                    <img src={logoIcon} alt="FinTrack" className="sidebar-brand-icon" />
                     <div className="sidebar-brand-text">
-                        <span className="sidebar-brand-name">Finance<span className="sidebar-brand-plus">+</span></span>
+                        <span className="sidebar-brand-name">FinTrack</span>
                         <span className="sidebar-brand-slogan">O jeito moderno de controlar gastos.</span>
                     </div>
                 </div>

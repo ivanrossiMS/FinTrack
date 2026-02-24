@@ -1,4 +1,4 @@
--- FINANCE+ PRODUCTION SCHEMA
+-- FINTRACK PRODUCTION SCHEMA
 -- Author: Antigravity (Elite Full-Stack Engineer)
 -- Source of Truth: Supabase
 

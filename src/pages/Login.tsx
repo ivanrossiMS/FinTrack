@@ -30,7 +30,7 @@ export const Login: React.FC = () => {
             <div className="login-card animate-up">
                 <div className="login-header">
                     <div className="logo-container">
-                        <img src={logoFull} alt="Finance+" className="logo-img" />
+                        <img src={logoFull} alt="FinTrack" className="logo-img" />
                     </div>
                     <p className="slogan">O jeito moderno de controlar gastos.</p>
                 </div>

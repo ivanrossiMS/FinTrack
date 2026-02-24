@@ -287,7 +287,7 @@ function fallbackAnswer(question: string): string {
     const q = question.toLowerCase();
 
     if (/\boi\b|ol[aá]|bom dia|boa tarde|boa noite/.test(q)) {
-        return 'Olá! Sou o Especialista IA do Finance+. Posso te ajudar a navegar pelo app ou analisar seus gastos. O que deseja fazer?';
+        return 'Olá! Sou o Especialista IA do FinTrack. Posso te ajudar a navegar pelo app ou analisar seus gastos. O que deseja fazer?';
     }
 
     if (/como.*usar|ajuda|funciona/.test(q)) {
@@ -305,5 +305,5 @@ function fallbackAnswer(question: string): string {
         } catch { /* ignore */ }
     }
 
-    return 'Como assistente do Finance+, sou focado em suas finanças e no uso deste aplicativo. Posso te ajudar com alguma tela ou dado financeiro?';
+    return 'Como assistente do FinTrack, sou focado em suas finanças e no uso deste aplicativo. Posso te ajudar com alguma tela ou dado financeiro?';
 }

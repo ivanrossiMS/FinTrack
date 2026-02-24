@@ -98,7 +98,7 @@ export const Manage: React.FC = () => {
                             </div>
                             <div className="flex gap-2">
                                 <Button onClick={() => {
-                                    if (confirm('Deseja restaurar as categorias padrão do Finance+? Isso sincronizará as 30 categorias oficiais e não apagará suas categorias personalizadas.')) {
+                                    if (confirm('Deseja restaurar as categorias padrão do FinTrack? Isso sincronizará as 30 categorias oficiais e não apagará suas categorias personalizadas.')) {
                                         resetCategories();
                                     }
                                 }} size="sm" variant="secondary" className="rounded-full">

@@ -29,7 +29,7 @@ export const Help: React.FC = () => {
                         <div className="hero-mesh-blob"></div>
                     </div>
                     <h1>Central de Ajuda</h1>
-                    <p className="hero-subtitle">Aprenda a dominar o <span>Finance+</span> e transforme sua vida financeira com inteligência.</p>
+                    <p className="hero-subtitle">Aprenda a dominar o <span>FinTrack</span> e transforme sua vida financeira com inteligência.</p>
                 </div>
             </div>
 
@@ -77,7 +77,7 @@ export const Help: React.FC = () => {
                         <h2>Assistente IA Ninja</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>O assistente de voz do Finance+ é seu melhor amigo. Você pode ser direto:</p>
+                        <p>O assistente de voz do FinTrack é seu melhor amigo. Você pode ser direto:</p>
                         <div className="ai-commands-list">
                             {aiCommands.map((item, i) => (
                                 <div key={i} className="ai-command-item">
@@ -133,7 +133,7 @@ export const Help: React.FC = () => {
                         <h2>Privacidade</h2>
                     </div>
                     <div className="help-card-content">
-                        <p>Seus dados no Finance+ são criptografados e sua voz é processada de forma segura. Nós nunca vendemos seus dados para terceiros.</p>
+                        <p>Seus dados no FinTrack são criptografados e sua voz é processada de forma segura. Nós nunca vendemos seus dados para terceiros.</p>
                     </div>
                 </section>
             </div>
