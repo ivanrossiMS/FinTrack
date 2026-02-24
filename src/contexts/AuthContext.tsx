@@ -41,11 +41,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         let success = false;
         try {
-            // Attempt Supabase query with 8s timeout
+            // Attempt Supabase query with 15s timeout
             // @ts-ignore - PostgrestBuilder is Thenable
             const { data: profile, error } = await withTimeout(
                 supabase.from('profiles').select('*').eq('id', userId).single() as any,
-                8000,
+                15000,
                 'DB_PROFILE'
             );
 
@@ -97,12 +97,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 ]);
 
             try {
-                // 1. Check current session with timeout
-                const { data: { session } } = await withMsgTimeout(supabase.auth.getSession(), 8000, 'GET_SESSION_BOOT');
+                // 1. Check current session with extended timeout (20s) for cold starts
+                console.log('🏗️ [AUTH] Starting boot sync...');
+                const { data: { session } } = await withMsgTimeout(supabase.auth.getSession(), 20000, 'GET_SESSION_BOOT');
 
                 if (session) {
+                    console.log('✅ [AUTH] Session found, fetching profile...');
                     await fetchProfile(session.user.id);
                 } else {
+                    console.log('ℹ️ [AUTH] No session found during boot.');
                     setLoading(false);
                 }
             } catch (err: any) {
