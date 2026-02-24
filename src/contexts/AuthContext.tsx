@@ -37,9 +37,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(val);
     };
 
-    // Profile fetching without fallback synthesis or timeouts
+    // Profile fetching - Background task, doesn't block UI loading
     const fetchProfile = async (userId: string) => {
-        if (fetchingLocks.current.has(userId)) return;
+        if (fetchingLocks.current.has(userId)) {
+            console.log('⏩ [AUTH] fetchProfile: Lock active, skipping redundant fetch.');
+            return;
+        }
         fetchingLocks.current.add(userId);
 
         try {
@@ -56,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error(`❌ [AUTH] fetchProfile: Unexpected error: ${err.message}`);
         } finally {
             fetchingLocks.current.delete(userId);
-            setLoading(false);
+            // DO NOT set loading(false) here. It should be handled by the session Logic.
         }
     };
 
@@ -74,19 +77,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
 
                 setSession(initialSession);
-                console.log('📡 [AUTH] syncAuth: Session state updated:', initialSession ? `YES (${initialSession.user.id})` : 'NULL');
+                console.log('📡 [AUTH] syncAuth: Session determination complete.');
 
                 if (initialSession) {
-                    await fetchProfile(initialSession.user.id);
-                } else {
-                    setLoading(false);
+                    // Profile fetch is backgrounded - DO NOT await for instant boot
+                    fetchProfile(initialSession.user.id);
                 }
             } catch (err: any) {
                 console.error(`❌ [AUTH] syncAuth: Critical fail: ${err.message}`);
-                setLoading(false);
             } finally {
                 authInitialized.current = true;
-                console.log('🏁 [AUTH] syncAuth: Boot sequence completed.');
+                setLoading(false); // ALWAYS unlock UI here
+                console.log('🏁 [AUTH] syncAuth: Boot sequence completed (UI Unlocked).');
             }
         };
 
@@ -109,14 +111,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (currentSession) {
-                // Use ref to check for redundancy without dependency re-triggers
+                // Use ref to check for redundancy
                 if (userRef.current && userRef.current.id === currentSession.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
-                    console.log('⏩ [AUTH] User match in session change, skip profile fetch.');
+                    console.log('⏩ [AUTH] User match, skip profile background refresh.');
                     setLoading(false);
                     return;
                 }
-                console.log('🔄 [AUTH] Refreshing profile via session change...');
-                await fetchProfile(currentSession.user.id);
+                console.log('🔄 [AUTH] Refreshing profile in background...');
+                fetchProfile(currentSession.user.id);
+                setLoading(false); // Unlock UI immediately on auth state change
             } else if (authInitialized.current) {
                 // IMPORTANT: Only stop loading if we are NOT in the initial boot sync
                 console.log('⚠️ [AUTH] No session detected. Clearing user.');
