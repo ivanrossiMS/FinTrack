@@ -109,17 +109,24 @@ create table if not exists public.savings_goals (
 
 -- Profiles
 alter table public.profiles enable row level security;
+
+-- Helper function to avoid RLS recursion
+create or replace function public.is_admin(user_id uuid)
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.profiles
+    where id = user_id and role = 'ADMIN'
+  );
+end;
+$$ language plpgsql security definer;
+
 create policy "Users can view own profile" on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
-create policy "Admins can view all profiles" on public.profiles for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and role = 'ADMIN')
-);
-create policy "Admins can update all profiles" on public.profiles for update using (
-    exists (select 1 from public.profiles where id = auth.uid() and role = 'ADMIN')
-);
-create policy "Admins can delete all profiles" on public.profiles for delete using (
-    exists (select 1 from public.profiles where id = auth.uid() and role = 'ADMIN')
-);
+
+create policy "Admins can view all profiles" on public.profiles for select using (public.is_admin(auth.uid()));
+create policy "Admins can update all profiles" on public.profiles for update using (public.is_admin(auth.uid()));
+create policy "Admins can delete all profiles" on public.profiles for delete using (public.is_admin(auth.uid()));
 
 -- Generic RLS for User Data
 do $$
@@ -132,8 +139,8 @@ begin
              and table_name in ('categories', 'suppliers', 'payment_methods', 'transactions', 'commitments', 'savings_goals')
     loop
         execute format('alter table public.%I enable row level security', t);
-        execute format('create policy "Users can access own %I" on public.%I for all using (auth.uid() = user_id)', t, t);
-        execute format('create policy "Admins can access all %I" on public.%I for all using (exists (select 1 from public.profiles where id = auth.uid() and role = "ADMIN"))', t, t);
+        execute format('create policy "Users can access own %I" on public.%I for all using (auth.uid() = user_id)', t, t, t);
+        execute format('create policy "Admins can access all %I" on public.%I for all using (public.is_admin(auth.uid()))', t, t);
     end loop;
 end;
 $$;
@@ -179,7 +186,27 @@ create index if not exists idx_commitments_user_due on public.commitments(user_i
 create index if not exists idx_categories_user on public.categories(user_id);
 create index if not exists idx_profiles_role on public.profiles(role);
 
--- 6. SPECIAL STORAGE BUCKET (Run this in Supabase Dashboard or via API)
+-- 6. RPC: Permantently delete user (Auth + Profile + Data)
+create or replace function public.delete_user_permanently(target_id uuid)
+returns void as $$
+begin
+  -- Check if the executor is an admin
+  if not public.is_admin(auth.uid()) then
+    raise exception 'Unauthorized: Only admins can delete users permanently.';
+  end if;
+
+  -- Protect the main admin account from accidental deletion
+  if exists (select 1 from public.profiles where id = target_id and email = 'ivanrossi@outlook.com') then
+    raise exception 'Cannot delete the primary administrator account.';
+  end if;
+
+  -- Deleting from auth.users triggers cascading deletes in public.profiles (due to references auth.users on delete cascade)
+  -- and cascading deletes in other tables referenced by public.profiles.
+  delete from auth.users where id = target_id;
+end;
+$$ language plpgsql security definer;
+
+-- 7. SPECIAL STORAGE BUCKET (Run this in Supabase Dashboard or via API)
 -- insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true);
 -- create policy "Avatar images are publicly accessible" on storage.objects for select using (bucket_id = 'avatars');
 -- create policy "Users can upload their own avatar" on storage.objects for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);

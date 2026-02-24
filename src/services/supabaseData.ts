@@ -59,13 +59,13 @@ export const SupabaseDataService = {
     },
 
     async deleteProfile(userId: string) {
-        console.log(`🚮 [SERVICE] deleteProfile: ${userId}`);
-        const { error } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', userId);
+        console.log(`🚮 [SERVICE] deleteProfile (DEEP DELETE): ${userId}`);
+        const { error } = await supabase.rpc('delete_user_permanently', { target_id: userId });
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ [deleteProfile] RPC failed:', error.message);
+            throw error;
+        }
     },
 
     // ─── CATEGORIES ───
