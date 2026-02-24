@@ -1,0 +1,18 @@
+{
+    "name": "FinTrack - Finanças de Elite",
+    "short_name": "FinTrack",
+    "description": "Análise profunda e insights da sua saúde financeira.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#5850ec",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}
