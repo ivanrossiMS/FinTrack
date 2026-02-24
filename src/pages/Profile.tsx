@@ -48,8 +48,8 @@ export const Profile: React.FC = () => {
             alert('Apenas arquivos JPG, PNG ou WebP são permitidos.');
             return;
         }
-        if (file.size > 2 * 1024 * 1024) {
-            alert('O arquivo deve ter no máximo 2MB.');
+        if (file.size > 4 * 1024 * 1024) {
+            alert('O arquivo deve ter no máximo 4MB.');
             return;
         }
 
