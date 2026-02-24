@@ -808,19 +808,53 @@
         text-overflow: ellipsis;
     }
 
-    /* ── Content Sections ── */
+    /* ── Content Sections (Mobile Reordering Phase IX) ── */
+    .rep-page {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .rep-header {
+        order: 1;
+    }
+
+    .rep-period-bar-container {
+        order: 2;
+    }
+
+    .rep-summary-grid {
+        order: 3;
+    }
+
     .rep-main-grid {
+        display: contents;
+        /* Leveling container for reordering */
+    }
+
+    .rep-col-a {
+        order: 5;
+        /* Main analysis follows Insight */
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        width: 100%;
+        padding: 0 0.5rem;
     }
 
-    .rep-col-a,
     .rep-col-b {
-        padding: 0 0.5rem;
-        gap: 1rem;
-        width: 100%;
+        display: contents;
+        /* Leveling sub-container */
+    }
+
+    .rep-insight-card {
+        order: 4 !important;
+        /* Insight immediately after summaries */
+        margin: 0 0.5rem 0.5rem 0.5rem !important;
+        width: calc(100% - 1rem) !important;
+    }
+
+    .rep-col-b>.rep-card:not(.rep-insight-card) {
+        order: 6;
+        /* Ranking follows everything else */
     }
 
     .rep-card {
