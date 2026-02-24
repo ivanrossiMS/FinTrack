@@ -334,7 +334,7 @@ export const Profile: React.FC = () => {
                                 letterSpacing: '-0.03em',
                                 margin: 0,
                                 textAlign: 'center',
-                            }}>{name || 'Usuário'}</h2>
+                            }}>{(user?.name || name) || 'Usuário'}</h2>
 
                             {profession && (
                                 <span style={{
