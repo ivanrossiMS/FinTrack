@@ -22,6 +22,17 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Ensure columns exist if table was created by an older version of the schema
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'phone') THEN
+    ALTER TABLE public.profiles ADD COLUMN phone TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'profession') THEN
+    ALTER TABLE public.profiles ADD COLUMN profession TEXT;
+  END IF;
+END $$;
+
 -- 2. Create Categories table
 CREATE TABLE IF NOT EXISTS public.categories (
     id TEXT NOT NULL,
