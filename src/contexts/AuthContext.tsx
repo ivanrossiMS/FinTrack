@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<any>(null);
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [isImpersonating, setIsImpersonating] = useState(false);
+    const [isImpersonating, setIsImpersonating] = useState(!!sessionStorage.getItem('fintrack_impersonated_id'));
 
     // Safety locks
     const fetchingLocks = React.useRef(new Set<string>());
@@ -80,8 +80,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log('📡 [AUTH] syncAuth: Session determination complete.');
 
                 if (initialSession) {
-                    // Profile fetch is backgrounded - DO NOT await for instant boot
-                    fetchProfile(initialSession.user.id);
+                    const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
+                    const targetId = impersonatedId || initialSession.user.id;
+
+                    console.log(`📡 [AUTH] syncAuth: Fetching profile for ${targetId} ${impersonatedId ? '(IMPERSONATED)' : ''}`);
+                    fetchProfile(targetId);
                 }
             } catch (err: any) {
                 console.error(`❌ [AUTH] syncAuth: Critical fail: ${err.message}`);
@@ -111,14 +114,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (currentSession) {
+                const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
+                const targetId = impersonatedId || currentSession.user.id;
+
                 // Use ref to check for redundancy
-                if (userRef.current && userRef.current.id === currentSession.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
+                if (userRef.current && userRef.current.id === targetId && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
                     console.log('⏩ [AUTH] User match, skip profile background refresh.');
                     setLoading(false);
                     return;
                 }
-                console.log('🔄 [AUTH] Refreshing profile in background...');
-                fetchProfile(currentSession.user.id);
+
+                console.log(`🔄 [AUTH] Refreshing profile for ${targetId} in background...`);
+                fetchProfile(targetId);
                 setLoading(false); // Unlock UI immediately on auth state change
             } else if (authInitialized.current) {
                 // IMPORTANT: Only stop loading if we are NOT in the initial boot sync

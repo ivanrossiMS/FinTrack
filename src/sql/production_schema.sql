@@ -117,6 +117,9 @@ create policy "Admins can view all profiles" on public.profiles for select using
 create policy "Admins can update all profiles" on public.profiles for update using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'ADMIN')
 );
+create policy "Admins can delete all profiles" on public.profiles for delete using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'ADMIN')
+);
 
 -- Generic RLS for User Data
 do $$
