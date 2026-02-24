@@ -167,13 +167,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateUser = async (updates: any) => {
         if (!user) return;
-        // VANTA-REINFORCEMENT: Use upsert instead of update to handle missing records automatically
-        const { error } = await supabase.from('profiles').upsert({
-            id: user.id,
-            email: user.email, // Preserve critical email
-            ...updates,
-            updated_at: new Date().toISOString()
-        });
+
+        const { error } = await supabase.from('profiles')
+            .update({
+                ...updates,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
+
         if (error) {
             console.error('❌ [AUTH] updateUser failed:', error.message);
             throw error;
