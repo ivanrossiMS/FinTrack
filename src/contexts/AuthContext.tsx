@@ -29,6 +29,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Safety locks
     const fetchingLocks = React.useRef(new Set<string>());
     const authInitialized = React.useRef(false);
+    const userRef = React.useRef<any>(null);
+
+    // Synchronized state setter
+    const syncUser = (val: any) => {
+        userRef.current = val;
+        setUser(val);
+    };
 
     // Profile fetching without fallback synthesis or timeouts
     const fetchProfile = async (userId: string) => {
@@ -41,10 +48,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (profile && !error) {
                 console.log('✅ [AUTH] fetchProfile: DB profile loaded.');
-                setUser(profile);
+                syncUser(profile);
             } else if (error) {
                 console.warn('⚠️ [AUTH] fetchProfile: DB profile not found or error:', error.message);
-                // We DON'T set user to null here if we already have partial data or want to keep session alive
             }
         } catch (err: any) {
             console.error(`❌ [AUTH] fetchProfile: Unexpected error: ${err.message}`);
@@ -88,13 +94,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Listen for changes (Login, Logout, Refresh, Multi-tab)
         const { data: authData } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            console.log(`Bell [AUTH] onAuthStateChange EVENT: ${event} | Session: ${currentSession ? 'PRESENT' : 'NULL'}`);
+            console.log(`🔔 [AUTH] onAuthStateChange EVENT: ${event} | Session: ${currentSession ? 'PRESENT' : 'NULL'}`);
 
             setSession(currentSession);
 
             if (event === 'SIGNED_OUT') {
                 console.log('📤 [AUTH] SIGNED_OUT: Clearing user state.');
-                setUser(null);
+                syncUser(null);
                 setSession(null);
                 setIsImpersonating(false);
                 setLoading(false);
@@ -103,24 +109,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (currentSession) {
-                // If we already have the same user and it's just a routine refresh, skip re-fetch
-                if (user && user.id === currentSession.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
-                    console.log('⏩ [AUTH] User match, skipping profile fetch.');
+                // Use ref to check for redundancy without dependency re-triggers
+                if (userRef.current && userRef.current.id === currentSession.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
+                    console.log('⏩ [AUTH] User match in session change, skip profile fetch.');
                     setLoading(false);
                     return;
                 }
-                console.log('🔄 [AUTH] Refreshing profile...');
+                console.log('🔄 [AUTH] Refreshing profile via session change...');
                 await fetchProfile(currentSession.user.id);
-            } else {
-                console.log('⚠️ [AUTH] No session. Clearing user.');
-                setUser(null);
+            } else if (authInitialized.current) {
+                // IMPORTANT: Only stop loading if we are NOT in the initial boot sync
+                console.log('⚠️ [AUTH] No session detected. Clearing user.');
+                syncUser(null);
                 setIsImpersonating(false);
                 setLoading(false);
             }
         });
 
         return () => authData.subscription.unsubscribe();
-    }, [user?.id]);
+    }, []);
 
     const login = async (email: string, password: string) => {
         try {
