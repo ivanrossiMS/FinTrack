@@ -21,10 +21,29 @@ import { Savings } from './pages/Savings';
 import { Investments } from './pages/Investments';
 import { Help } from './pages/Help';
 
+import { OrientationLock } from './components/ui/OrientationLock';
+import { useEffect } from 'react';
+
 function App() {
+    useEffect(() => {
+        // Attempt to lock orientation to portrait on mobile devices
+        const lockOrientation = async () => {
+            if (window.innerWidth <= 768 && 'orientation' in screen && 'lock' in (screen.orientation as any)) {
+                try {
+                    await (screen.orientation as any).lock('portrait');
+                } catch (e) {
+                    console.warn('Orientation lock failed:', e);
+                }
+            }
+        };
+
+        lockOrientation();
+    }, []);
+
     return (
         <AuthProvider>
             <DataProvider>
+                <OrientationLock />
                 <BrowserRouter>
                     <Routes>
                         <Route path="/login" element={<Login />} />

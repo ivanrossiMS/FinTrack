@@ -586,7 +586,8 @@
 @media (max-width: 768px) {
     .rep-page {
         gap: 0;
-        padding: 0 0 5rem 0;
+        padding: 0 0 100px 0;
+        /* Extra padding for Bottom Nav + AI Safe Area */
         background: var(--color-background);
         width: 100%;
         max-width: 100%;
@@ -594,6 +595,7 @@
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
+        min-height: 100vh;
     }
 
     .rep-page * {
@@ -608,8 +610,8 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 0.75rem 0.75rem;
-        background: rgba(var(--color-background-rgb), 0.85);
+        padding: 0.875rem 0.75rem;
+        background: rgba(var(--color-background-rgb), 0.8);
         backdrop-filter: blur(28px) saturate(200%);
         -webkit-backdrop-filter: blur(28px) saturate(200%);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -623,347 +625,248 @@
     }
 
     .rep-header-left h1 {
-        font-size: 1.375rem;
+        font-size: 1.25rem;
         letter-spacing: -0.03em;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-weight: 800;
     }
 
     .rep-subtitle {
         display: none;
-        /* Hide subtitle on mobile for extreme density */
     }
 
     .rep-actions-card {
         padding: 0;
         background: transparent;
         box-shadow: none;
-        gap: 0.5rem;
+        gap: 0.375rem;
     }
 
     .rep-actions-card button {
-        width: 38px;
-        height: 38px;
+        width: 34px;
+        height: 34px;
         padding: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 12px;
+        border-radius: 10px;
     }
 
-    /* ── Period Bar: Floating Glass ── */
+    /* ── Period Bar ── */
     .rep-period-bar-container {
         padding: 0.5rem;
-        margin-top: 0;
         width: 100%;
     }
 
     .rep-period-bar {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
         padding: 0.25rem;
         gap: 0.375rem;
         width: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .rep-period-pills {
         gap: 0.125rem;
         padding: 0.125rem;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 11px;
+        width: 100%;
+        justify-content: space-between;
     }
 
     .rep-period-pill {
-        padding: 0.375rem 0.625rem;
+        padding: 0.4375rem 0.5rem;
         font-size: 0.625rem;
-        border-radius: 10px;
-    }
-
-    .rep-period-pill.active {
-        background: var(--color-primary);
-        color: white;
-        box-shadow: 0 4px 12px rgba(88, 80, 236, 0.3);
-    }
-
-    .rep-input-month {
-        height: 38px;
-        font-size: 0.8125rem;
-        border-radius: 12px;
+        border-radius: 9px;
+        flex: 1;
         text-align: center;
     }
 
-    /* ── Bento Summary Grid ── */
+    .rep-period-pill svg {
+        display: none;
+        /* Hide icons in pills for more space on tiny screens */
+    }
+
+    .rep-period-inputs {
+        width: 100%;
+        margin: 0;
+        padding: 0.25rem 0 0;
+        border: none;
+    }
+
+    .rep-input-month {
+        height: 32px;
+        font-size: 0.75rem;
+        border-radius: 10px;
+    }
+
+    /* ── Summary Grid (Dashboard Style) ── */
     .rep-summary-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        flex-direction: column;
         padding: 0 0.5rem 0.75rem;
-        gap: 0.375rem;
+        gap: 0.5rem;
         width: 100%;
     }
 
     .rep-summ-card.result {
-        grid-column: 1 / span 2;
-        background: linear-gradient(135deg, rgba(88, 80, 236, 0.15), rgba(168, 85, 247, 0.15));
-        border: 1px solid rgba(88, 80, 236, 0.2);
+        order: -1;
+        width: 100%;
+    }
+
+    .rep-summ-card-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    /* We need to wrap Income/Expense cards in a row if they were siblings, 
+       but JSX doesn't have it. We'll simulate it with grid if possible or stack them all. 
+       Let's stack all 3 for maximum safety if the row breaks. 
+       Actually, grid 1fr 1fr is safer for the two small ones. */
+
+    .rep-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "res res"
+            "inc exp";
+        gap: 0.5rem;
+    }
+
+    .rep-summ-card.result {
+        grid-area: res;
+    }
+
+    .rep-summ-card.income {
+        grid-area: inc;
+    }
+
+    .rep-summ-card.expense {
+        grid-area: exp;
     }
 
     .rep-summ-card {
-        padding: 1rem;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-    }
-
-    .rep-summ-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .rep-summ-icon svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    .rep-summ-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.125rem;
-    }
-
-    .rep-summ-label {
-        font-size: 0.6875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        opacity: 0.6;
+        padding: 0.875rem;
+        border-radius: 16px;
+        gap: 0.5rem;
+        min-width: 0;
+        /* Force shrinkage */
     }
 
     .rep-summ-value {
-        font-size: 1.125rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
+        font-size: 1rem;
+        font-weight: 900;
+        word-break: break-all;
     }
 
     /* ── Content Sections ── */
     .rep-main-grid {
-        gap: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
         width: 100%;
     }
 
     .rep-col-a,
     .rep-col-b {
         padding: 0 0.5rem;
-        gap: 0.5rem;
+        gap: 0.75rem;
         width: 100%;
     }
 
     .rep-card {
-        padding: 0.75rem 0.5rem;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1rem 0.625rem;
+        border-radius: 18px;
         width: 100%;
+        overflow: hidden;
     }
 
-    .rep-card-title {
-        font-size: 0.9375rem;
-        margin-bottom: 1.25rem;
-        letter-spacing: -0.01em;
-    }
-
-    /* Chart Section */
     .rep-chart-container {
-        min-height: 240px;
-        margin: 0;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
     }
 
-    /* Transaction Card Transformation (Absolute Density) */
-    .rep-table-card {
-        padding: 1.25rem 0.5rem;
+    /* Legend Refinement */
+    .rep-chart-container .recharts-legend-wrapper {
+        position: static !important;
+        width: 100% !important;
+        margin-top: 1rem;
     }
 
-    .rep-table-header-bar {
-        padding: 0 0.75rem 1rem;
-    }
-
-    .rep-grid-header {
-        display: none;
-    }
-
-    .rep-items-list {
-        padding: 0 0.75rem;
-        gap: 0.75rem;
-    }
-
+    /* Transaction Cards */
     .rep-grid-row {
         grid-template-columns: 1fr auto !important;
-        grid-template-areas: "info val" "cat val";
-        padding: 0.625rem 0.75rem;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        gap: 0.25rem;
-        align-items: center;
-        position: relative;
+        grid-template-areas: "info val";
+        padding: 0.75rem;
+        border-radius: 14px;
         width: 100%;
+        position: relative;
     }
 
     .rep-col-date {
         position: absolute;
-        top: -8px;
-        left: 12px;
-        width: auto;
-        height: auto;
-        background: var(--color-primary);
-        padding: 2px 8px;
-        border-radius: 6px;
-        display: flex;
-        flex-direction: row;
-        gap: 4px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        z-index: 10;
-    }
-
-    .rep-col-date .day {
-        font-size: 0.625rem;
-        font-weight: 800;
-        color: white;
-    }
-
-    .rep-col-date .month {
-        font-size: 0.5625rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.8);
-        text-transform: uppercase;
-    }
-
-    .rep-col-info {
-        grid-area: info;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        min-width: 0;
+        top: -6px;
+        left: 8px;
+        padding: 1px 6px;
+        border-radius: 4px;
     }
 
     .rep-main-text {
         font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--color-text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 140px;
+        max-width: 120px;
     }
 
     .rep-sub-text {
-        font-size: 0.625rem;
-        color: var(--color-text-muted);
-        opacity: 0.6;
-    }
-
-    .rep-col-cat,
-    .rep-col-status {
-        grid-area: cat;
-        margin-top: 0.125rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .rep-badge-pill {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.625rem;
-        border-radius: 8px;
-        white-space: nowrap;
+        font-size: 0.6rem;
     }
 
     .rep-col-val {
-        grid-area: val;
-        font-size: 1rem;
-        font-weight: 800;
-        text-align: right;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        min-width: 80px;
+        font-size: 0.875rem;
+        min-width: 70px;
     }
 
-    /* Commitment specific mobile tweaks */
-    .rep-cm-filters {
-        width: 100%;
-        overflow-x: auto;
-        scrollbar-width: none;
-        padding-bottom: 0.5rem;
-    }
-
-    .rep-cm-filters::-webkit-scrollbar {
-        display: none;
-    }
-
-    .rep-cm-filter-pill {
-        white-space: nowrap;
-        padding: 0.5rem 0.875rem;
-        font-size: 0.6875rem;
-    }
-
-    .rep-col-status {
-        margin-top: 0.5rem;
-    }
-
-    .rep-cm-badge {
-        padding: 0.25rem 0.625rem;
-        font-size: 0.625rem;
-        border-radius: 8px;
-    }
-
-    /* Insights & Ranking (Elite Scale) */
-    .rep-insight-card {
-        padding: 1.25rem;
-        border-radius: 24px;
-    }
-
-    .rep-insight-icon-wrapper {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-    }
-
-    .rep-insight-text {
-        font-size: 0.8125rem;
-        line-height: 1.5;
-    }
-
-    .rep-ranking-item {
-        padding: 0.75rem 0;
-    }
-
-    .rep-rank-num {
-        width: 28px;
-        height: 28px;
-        font-size: 0.75rem;
+    /* Ranking Correction */
+    .rep-rank-content {
+        gap: 0.5rem;
     }
 
     .rep-rank-name {
-        font-size: 0.8125rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        max-width: 100px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .rep-rank-value {
-        font-size: 0.8125rem;
-        font-weight: 700;
+        font-size: 0.75rem;
     }
 
     .rep-rank-progress-bg {
-        height: 4px;
-        margin-top: 0.5rem;
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+
+    /* Floating AI Button Safe Area */
+    button.voice-assistant-trigger,
+    .voice-assistant-trigger {
+        bottom: 85px !important;
+        /* Above Bottom Nav */
+        right: 15px !important;
+        transform: scale(0.9);
+        z-index: 999;
     }
 }
 
