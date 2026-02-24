@@ -21,3 +21,5 @@ export const supabase = createClient(
         }
     }
 );
+
+console.log('✅ [SUPABASE] Client initialized successfully');

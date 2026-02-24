@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 interface AuthContextType {
     isAuthenticated: boolean;
     user: any;
+    session: any;
     loading: boolean;
     login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
     register: (name: string, email: string, pass: string) => Promise<{ success: boolean; needsEmailAuth: boolean; error?: string }>;
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<any>(null);
+    const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isImpersonating, setIsImpersonating] = useState(false);
 
@@ -28,61 +30,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fetchingLocks = React.useRef(new Set<string>());
     const authInitialized = React.useRef(false);
 
-    // Profile fetching with retry and timeout
+    // Profile fetching without fallback synthesis or timeouts
     const fetchProfile = async (userId: string) => {
         if (fetchingLocks.current.has(userId)) return;
         fetchingLocks.current.add(userId);
 
-        const withTimeout = (promise: Promise<any>, ms: number, label: string) =>
-            Promise.race([
-                promise,
-                new Promise((_, reject) => setTimeout(() => reject(new Error(`TIMEOUT_${label}`)), ms))
-            ]);
-
-        let success = false;
         try {
-            // Attempt Supabase query with 15s timeout
-            // @ts-ignore - PostgrestBuilder is Thenable
-            const { data: profile, error } = await withTimeout(
-                supabase.from('profiles').select('*').eq('id', userId).single() as any,
-                15000,
-                'DB_PROFILE'
-            );
+            console.log(`📡 [AUTH] fetchProfile: Fetching DB profile for ${userId}...`);
+            const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
             if (profile && !error) {
+                console.log('✅ [AUTH] fetchProfile: DB profile loaded.');
                 setUser(profile);
-                success = true;
             } else if (error) {
-                console.warn('Profile fetch rejected:', error.message);
+                console.warn('⚠️ [AUTH] fetchProfile: DB profile not found or error:', error.message);
+                // We DON'T set user to null here if we already have partial data or want to keep session alive
             }
         } catch (err: any) {
-            console.error(`[AUTH] Profile fetch failed or timed out (${err.message}). Activating fallback.`);
+            console.error(`❌ [AUTH] fetchProfile: Unexpected error: ${err.message}`);
+        } finally {
+            fetchingLocks.current.delete(userId);
+            setLoading(false);
         }
-
-        // Fallback: If DB fetch fails but Auth session exists, synthesize user to prevent lock-out
-        if (!success) {
-            try {
-                // Wrap getUser in timeout too
-                const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser(), 5000, 'GET_USER_FALLBACK');
-                if (authUser && authUser.id === userId) {
-                    setUser({
-                        id: authUser.id,
-                        email: authUser.email,
-                        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário',
-                        role: authUser.email === 'ivanrossi@outlook.com' ? 'ADMIN' : (authUser.app_metadata?.role || 'USER'),
-                        plan: 'FREE',
-                        is_authorized: true
-                    });
-                    success = true;
-                }
-            } catch (e) {
-                console.error('[AUTH] Fallback synthesis also failed/timed out. Extreme fallback activation.');
-            }
-        }
-
-        // Final UI unlock
-        fetchingLocks.current.delete(userId);
-        setLoading(false);
     };
 
     // Unified Auth Lifecycle
@@ -90,52 +59,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const syncAuth = async () => {
             if (authInitialized.current) return;
 
-            const withMsgTimeout = (promise: Promise<any>, ms: number, label: string) =>
-                Promise.race([
-                    promise,
-                    new Promise((_, reject) => setTimeout(() => reject(new Error(`TIMEOUT_${label}`)), ms))
-                ]);
-
             try {
-                // 1. Check current session with extended timeout (20s) for cold starts
-                console.log('🏗️ [AUTH] Starting boot sync...');
-                const { data: { session } } = await withMsgTimeout(supabase.auth.getSession(), 20000, 'GET_SESSION_BOOT');
+                console.log('🏗️ [AUTH] syncAuth: Starting boot session check...');
+                const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
 
-                if (session) {
-                    console.log('✅ [AUTH] Session found, fetching profile...');
-                    await fetchProfile(session.user.id);
+                if (sessionError) {
+                    console.error('❌ [AUTH] syncAuth: getSession error:', sessionError.message);
+                }
+
+                setSession(initialSession);
+                console.log('📡 [AUTH] syncAuth: Session state updated:', initialSession ? `YES (${initialSession.user.id})` : 'NULL');
+
+                if (initialSession) {
+                    await fetchProfile(initialSession.user.id);
                 } else {
-                    console.log('ℹ️ [AUTH] No session found during boot.');
                     setLoading(false);
                 }
             } catch (err: any) {
-                console.error(`[AUTH] Boot sync failed or timed out (${err.message})`);
+                console.error(`❌ [AUTH] syncAuth: Critical fail: ${err.message}`);
                 setLoading(false);
             } finally {
                 authInitialized.current = true;
+                console.log('🏁 [AUTH] syncAuth: Boot sequence completed.');
             }
         };
 
         syncAuth();
 
-        // 2. Listen for changes (Login, Logout, Refresh, Multi-tab)
-        const { data: authData } = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Listen for changes (Login, Logout, Refresh, Multi-tab)
+        const { data: authData } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            console.log(`Bell [AUTH] onAuthStateChange EVENT: ${event} | Session: ${currentSession ? 'PRESENT' : 'NULL'}`);
+
+            setSession(currentSession);
+
             if (event === 'SIGNED_OUT') {
+                console.log('📤 [AUTH] SIGNED_OUT: Clearing user state.');
                 setUser(null);
+                setSession(null);
                 setIsImpersonating(false);
                 setLoading(false);
                 fetchingLocks.current.clear();
                 return;
             }
 
-            if (session) {
+            if (currentSession) {
                 // If we already have the same user and it's just a routine refresh, skip re-fetch
-                if (user && user.id === session.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
+                if (user && user.id === currentSession.user.id && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
+                    console.log('⏩ [AUTH] User match, skipping profile fetch.');
                     setLoading(false);
                     return;
                 }
-                await fetchProfile(session.user.id);
+                console.log('🔄 [AUTH] Refreshing profile...');
+                await fetchProfile(currentSession.user.id);
             } else {
+                console.log('⚠️ [AUTH] No session. Clearing user.');
                 setUser(null);
                 setIsImpersonating(false);
                 setLoading(false);
@@ -169,7 +146,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
+        console.log('🚪 [AUTH] logout: Manual sign-out initiated.');
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('❌ [AUTH] logout error:', error.message);
+        } else {
+            console.log('✅ [AUTH] logout: signOut completed successfully.');
+        }
     };
 
     const updateUser = async (updates: any) => {
@@ -239,8 +222,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return (
         <AuthContext.Provider value={{
-            isAuthenticated: !!user,
+            isAuthenticated: !!session,
             user,
+            session,
             loading,
             login,
             register,
