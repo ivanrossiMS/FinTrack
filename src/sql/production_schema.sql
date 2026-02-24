@@ -121,6 +121,10 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- Grant execution permissions
+grant execute on function public.is_admin(uuid) to authenticated;
+grant execute on function public.is_admin(uuid) to service_role;
+
 create policy "Users can view own profile" on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
 
@@ -190,21 +194,33 @@ create index if not exists idx_profiles_role on public.profiles(role);
 create or replace function public.delete_user_permanently(target_id uuid)
 returns void as $$
 begin
-  -- Check if the executor is an admin
+  -- 1. Check if the executor is an admin
   if not public.is_admin(auth.uid()) then
     raise exception 'Unauthorized: Only admins can delete users permanently.';
   end if;
 
-  -- Protect the main admin account from accidental deletion
-  if exists (select 1 from public.profiles where id = target_id and email = 'ivanrossi@outlook.com') then
-    raise exception 'Cannot delete the primary administrator account.';
+  -- 2. Protect the main admin account from accidental deletion
+  -- Add a check for the current user deleting themselves
+  if target_id = auth.uid() then
+    raise exception 'Cannot delete your own account while logged in.';
   end if;
 
-  -- Deleting from auth.users triggers cascading deletes in public.profiles (due to references auth.users on delete cascade)
-  -- and cascading deletes in other tables referenced by public.profiles.
+  if exists (select 1 from public.profiles where id = target_id and (email = 'ivanrossi@outlook.com' or role = 'ADMIN')) then
+    -- Optional: Allow deleting other admins, but for now let's be strict
+    if exists (select 1 from public.profiles where id = target_id and email = 'ivanrossi@outlook.com') then
+        raise exception 'Cannot delete the primary administrator account.';
+    end if;
+  end if;
+
+  -- 3. Deletion logic
+  -- We delete from auth.users which cascades to public.profiles and beyond
   delete from auth.users where id = target_id;
 end;
 $$ language plpgsql security definer;
+
+-- Grant execution permissions
+grant execute on function public.delete_user_permanently(uuid) to authenticated;
+grant execute on function public.delete_user_permanently(uuid) to service_role;
 
 -- 7. SPECIAL STORAGE BUCKET (Run this in Supabase Dashboard or via API)
 -- insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true);

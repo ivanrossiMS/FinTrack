@@ -105,8 +105,9 @@ export const Admin: React.FC = () => {
         try {
             await SupabaseDataService.deleteProfile(userId);
             loadUsers();
-        } catch (error) {
-            alert('Erro ao excluir usuário');
+        } catch (error: any) {
+            console.error('Delete failed:', error);
+            alert(`Erro ao excluir usuário: ${error.message || 'Erro desconhecido'}`);
         }
     };
 
