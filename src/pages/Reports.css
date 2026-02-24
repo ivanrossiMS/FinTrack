@@ -588,6 +588,13 @@
         gap: 0;
         padding: 0 0 5rem 0;
         background: var(--color-background);
+        max-width: 100vw;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
+    .rep-page * {
+        box-sizing: border-box;
     }
 
     /* ── Sticky Glass Header ── */
@@ -598,17 +605,26 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 1rem 1.25rem;
-        background: rgba(var(--color-background-rgb), 0.7);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        gap: 1rem;
+        padding: 1rem 0.875rem;
+        background: rgba(var(--color-background-rgb), 0.75);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        gap: 0.5rem;
+        max-width: 100%;
+    }
+
+    .rep-header-left {
+        overflow: hidden;
+        flex: 1;
     }
 
     .rep-header-left h1 {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
         letter-spacing: -0.03em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .rep-subtitle {
@@ -635,8 +651,10 @@
 
     /* ── Period Bar: Floating Glass ── */
     .rep-period-bar-container {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 0.75rem;
         margin-top: 0;
+        width: 100%;
+        max-width: 100%;
     }
 
     .rep-period-bar {
@@ -644,21 +662,30 @@
         backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 18px;
-        padding: 0.5rem;
-        gap: 0.75rem;
+        padding: 0.375rem;
+        gap: 0.5rem;
+        max-width: 100%;
     }
 
     .rep-period-pills {
-        gap: 0.375rem;
+        gap: 0.25rem;
         padding: 0.125rem;
         background: rgba(0, 0, 0, 0.15);
         border-radius: 14px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .rep-period-pills::-webkit-scrollbar {
+        display: none;
     }
 
     .rep-period-pill {
-        padding: 0.5rem 0.875rem;
-        font-size: 0.7rem;
+        padding: 0.4375rem 0.75rem;
+        font-size: 0.6875rem;
         border-radius: 11px;
+        white-space: nowrap;
     }
 
     .rep-period-pill.active {
@@ -678,8 +705,10 @@
     .rep-summary-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        padding: 0.5rem 1rem 1rem;
-        gap: 0.625rem;
+        padding: 0 0.75rem 1rem;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
     }
 
     .rep-summ-card.result {
@@ -725,27 +754,33 @@
     }
 
     .rep-summ-value {
-        font-size: 1.375rem;
+        font-size: 1.25rem;
         font-weight: 800;
         letter-spacing: -0.02em;
     }
 
     /* ── Content Sections ── */
     .rep-main-grid {
-        gap: 1.25rem;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 100%;
     }
 
     .rep-col-a,
     .rep-col-b {
-        padding: 0 1rem;
-        gap: 1.25rem;
+        padding: 0 0.75rem;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 100%;
     }
 
     .rep-card {
-        padding: 1.25rem;
-        border-radius: 24px;
+        padding: 1rem 0.75rem;
+        border-radius: 20px;
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.05);
+        width: 100%;
+        max-width: 100%;
     }
 
     .rep-card-title {
@@ -781,14 +816,16 @@
     .rep-grid-row {
         grid-template-columns: 1fr auto !important;
         grid-template-areas: "info val" "cat val";
-        padding: 1rem;
-        border-radius: 20px;
+        padding: 0.875rem;
+        border-radius: 16px;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.06);
-        gap: 0.5rem;
+        gap: 0.375rem;
         align-items: center;
         position: relative;
         /* CRITICAL for absolute date badge */
+        width: 100%;
+        max-width: 100%;
     }
 
     .rep-col-date {
