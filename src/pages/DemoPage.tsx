@@ -9,13 +9,26 @@ import {
     TrendingUp,
     AlertCircle,
     CheckCircle2,
-    Sparkles
+    Sparkles,
+    Mic,
+    Volume2
 } from 'lucide-react';
 import './Dashboard.css';
 import './Reports.css';
 
 export const DemoPage: React.FC = () => {
     const navigate = useNavigate();
+    const [isListening, setIsListening] = React.useState(false);
+    const [voiceText, setVoiceText] = React.useState('Clique no mic para falar...');
+
+    const handleVoiceClick = () => {
+        setIsListening(true);
+        setVoiceText('Ouvindo...');
+        setTimeout(() => {
+            setIsListening(false);
+            setVoiceText('Entendido! Lançamento de "Almoço R$ 45,00" adicionado com sucesso.');
+        }, 2500);
+    };
 
     return (
         <div className="demo-wrapper" style={{ backgroundColor: 'var(--lp-bg)', minHeight: '100vh', color: 'white' }}>
@@ -116,6 +129,29 @@ export const DemoPage: React.FC = () => {
                                 <div className="chart-line-bg" />
                                 <div className="chart-line-active" />
                                 <div className="chart-point" style={{ left: '80%', top: '30%' }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* VOICE ASSISTANT INTERACTION */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon voice"><Mic size={20} /></div>
+                            <h3>Assistente de Voz IA</h3>
+                        </div>
+                        <div className="demo-voice-content">
+                            <div className={`mic-button-wrap ${isListening ? 'listening' : ''}`} onClick={handleVoiceClick}>
+                                <div className="mic-rings">
+                                    <div className="ring" />
+                                    <div className="ring" />
+                                </div>
+                                <button className="mic-main-btn">
+                                    {isListening ? <Volume2 size={32} /> : <Mic size={32} />}
+                                </button>
+                            </div>
+                            <div className="voice-status-wrapper">
+                                <p className="voice-status-text">{voiceText}</p>
+                                {isListening && <div className="voice-wave"><span></span><span></span><span></span><span></span></div>}
                             </div>
                         </div>
                     </div>

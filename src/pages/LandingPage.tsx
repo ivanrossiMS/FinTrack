@@ -10,9 +10,11 @@ import {
     ArrowRight,
     Gem,
     BarChart3,
-    BrainCircuit
+    BrainCircuit,
+    Mic
 } from 'lucide-react';
 import './LandingPage.css';
+import heroImage from '../assets/hero-mockup.png';
 
 export const LandingPage: React.FC = () => {
     return (
@@ -67,27 +69,11 @@ export const LandingPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="hero-visual">
-                        <div className="mockup-frame animate-float">
-                            <div className="mockup-header-dots">
-                                <span className="dot red" />
-                                <span className="dot yellow" />
-                                <span className="dot green" />
-                            </div>
-                            <div className="mockup-inner">
-                                {/* Placeholder for Dashboard Screenshot / Abstract UI */}
-                                <div className="abstract-ui">
-                                    <div className="ui-chart-bar" style={{ height: '60%' }} />
-                                    <div className="ui-chart-bar" style={{ height: '80%' }} />
-                                    <div className="ui-chart-bar" style={{ height: '40%' }} />
-                                    <div className="ui-card-mini">
-                                        <div className="line sub" />
-                                        <div className="line val" />
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="mockup-full-wrapper animate-float">
+                            <img src={heroImage} alt="FinTrack Elite Dashboard Mockup" className="hero-mockup-img" />
+                            <div className="hero-glow-1" />
+                            <div className="hero-glow-2" />
                         </div>
-                        <div className="hero-glow-1" />
-                        <div className="hero-glow-2" />
                     </div>
                 </div>
             </header>
@@ -130,6 +116,11 @@ export const LandingPage: React.FC = () => {
                             icon={<Calendar size={32} />}
                             title="Compromissos"
                             desc="Gestão completa de contas a pagar e receber com status visual e controle de parcelas."
+                        />
+                        <FeatureCard
+                            icon={<Mic size={32} />}
+                            title="Comando de Voz IA"
+                            desc="Adicione lançamentos e consulte saldos apenas falando. Agilidade total com voz."
                         />
                         <FeatureCard
                             icon={<Smartphone size={32} />}
