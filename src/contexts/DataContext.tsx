@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { AppData, UserProfile } from '../models/types';
 import { SupabaseDataService } from '../services/supabaseData';
 import { useAuth } from './AuthContext';
+import { DEFAULT_CATEGORIES, DEFAULT_METHODS } from '../constants/defaults';
 
 interface DataContextType {
     data: AppData;
@@ -89,9 +90,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 userProfile: userProfile || undefined
             });
 
-            // Safety net: Seed defaults if missing
-            if ((!categories || categories.length === 0) || (!paymentMethods || paymentMethods.length === 0)) {
-                console.info('No categories or payment methods found. Triggering seeding...');
+            // Safety net: Ensure all defaults are present
+            const missingCategories = DEFAULT_CATEGORIES.some(def => !categories.find(c => c.id === def.id));
+            const missingMethods = DEFAULT_METHODS.some(def => !paymentMethods.find(m => m.id === def.id));
+
+            if (missingCategories || missingMethods) {
+                console.info('🚩 Missing default categories or payment methods. Triggering sync...');
                 await SupabaseDataService.syncUserToProfile(user);
                 // Refresh to get seeded data
                 await refresh();
@@ -223,7 +227,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const resetCategories = async () => {
         if (!user) return;
-        await refresh(); // Profile trigger already handles default categories
+        setLoading(true);
+        try {
+            await SupabaseDataService.syncUserToProfile(user);
+            await refresh();
+        } finally {
+            setLoading(false);
+        }
     };
 
     const addSavingsGoal = async (goal: any) => {

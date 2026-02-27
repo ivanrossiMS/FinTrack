@@ -463,6 +463,8 @@ export const SupabaseDataService = {
     async syncUserToProfile(user: any) {
         if (!user) return;
 
+        console.log(`📡 [SERVICE] syncUserToProfile: Synchronizing defaults for ${user.id}`);
+
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
@@ -486,42 +488,40 @@ export const SupabaseDataService = {
             }
         }
 
-        const { count: catCount } = await supabase
+        // ── Ensure Default Categories (Always Upsert) ──
+        const { error: catError } = await supabase
             .from('categories')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
-
-        if (catCount === 0 || catCount === null) {
-            const { error: catError } = await supabase
-                .from('categories')
-                .insert(DEFAULT_CATEGORIES.map(c => ({
-                    id: c.id,
-                    user_id: user.id,
-                    name: c.name,
-                    type: c.type,
-                    color: c.color,
-                    icon: c.icon,
-                    is_default: true
-                })));
-            if (catError) console.error('Error seeding categories:', catError);
+            .upsert(DEFAULT_CATEGORIES.map(c => ({
+                id: c.id,
+                user_id: user.id,
+                name: c.name,
+                type: c.type,
+                color: c.color,
+                icon: c.icon,
+                is_default: true
+            })));
+        
+        if (catError) {
+            console.error('Error syncing default categories:', catError);
+        } else {
+            console.log('✅ Default categories synchronized.');
         }
 
-        const { count: pmCount } = await supabase
+        // ── Ensure Default Payment Methods (Always Upsert) ──
+        const { error: pmError } = await supabase
             .from('payment_methods')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
-
-        if (pmCount === 0 || pmCount === null) {
-            const { error: pmError } = await supabase
-                .from('payment_methods')
-                .insert(DEFAULT_METHODS.map(m => ({
-                    id: m.id,
-                    user_id: user.id,
-                    name: m.name,
-                    color: m.color,
-                    is_default: true
-                })));
-            if (pmError) console.error('Error seeding payment methods:', pmError);
+            .upsert(DEFAULT_METHODS.map(m => ({
+                id: m.id,
+                user_id: user.id,
+                name: m.name,
+                color: m.color,
+                is_default: true
+            })));
+            
+        if (pmError) {
+            console.error('Error syncing default payment methods:', pmError);
+        } else {
+            console.log('✅ Default payment methods synchronized.');
         }
     }
 };
