@@ -1,16 +1,14 @@
+```javascript
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    Layout,
-    Shield,
-    PieChart,
-    Target,
-    Smartphone,
-    Lock,
-    Globe,
+    Layout, 
+    PieChart, 
+    Smartphone, 
+    Lock, 
+    Globe, 
     Calendar,
     ArrowRight,
-    Sparkles,
     Gem,
     BarChart3,
     BrainCircuit

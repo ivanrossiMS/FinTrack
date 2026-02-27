@@ -7,12 +7,9 @@ import {
     Target,
     BarChart3,
     TrendingUp,
-    ShieldCheck,
     AlertCircle,
     CheckCircle2,
-    Sparkles,
-    ArrowUpRight,
-    ArrowDownRight
+    Sparkles
 } from 'lucide-react';
 import './Dashboard.css';
 import './Reports.css';
@@ -124,12 +121,6 @@ export const DemoPage: React.FC = () => {
 
             </div>
 
-            <div style={{ textAlign: 'center', paddingBottom: '6rem' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Sua liberdade financeira começa aqui.</h3>
-                <button onClick={() => navigate('/register')} style={{ background: 'var(--lp-primary)', color: 'white', padding: '1.25rem 3rem', borderRadius: '16px', fontWeight: 800, fontSize: '1.25rem', cursor: 'pointer', transition: 'all 0.3s' }}>
-                    Ativar meu acesso Premium
-                </button>
-            </div>
         </div>
         </div >
     );
