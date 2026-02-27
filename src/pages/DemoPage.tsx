@@ -1,7 +1,19 @@
+```
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    ArrowLeft
+import { 
+    ArrowLeft,
+    BrainCircuit,
+    Calendar,
+    Target,
+    BarChart3,
+    TrendingUp,
+    ShieldCheck,
+    AlertCircle,
+    CheckCircle2,
+    Sparkles,
+    ArrowUpRight,
+    ArrowDownRight
 } from 'lucide-react';
 import './Dashboard.css';
 import './Reports.css';
@@ -23,37 +35,100 @@ export const DemoPage: React.FC = () => {
                 </div>
             </nav>
 
-            <div className="landing-container" style={{ paddingTop: '3rem' }}>
+                {/* Summary View */}
                 <header style={{ marginBottom: '3rem' }}>
                     <h1 style={{ fontSize: '2.5rem', fontWeight: 800 }}>Bem-vindo ao FinTrack</h1>
-                    <p style={{ color: 'var(--lp-text-muted)', fontSize: '1.125rem' }}>Explore a interface e as funcionalidades sem precisar de cadastro.</p>
+                    <p style={{ color: 'var(--lp-text-muted)', fontSize: '1.125rem' }}>Explore a ferramenta de gestão financeira mais completa do mercado.</p>
                 </header>
 
-                {/* Mock Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-                    <DemoStatCard label="Saldo Total" value="R$ 12.450,00" color="#6366f1" />
-                    <DemoStatCard label="Receitas (Mês)" value="R$ 8.500,00" color="#10b981" />
-                    <DemoStatCard label="Despesas (Mês)" value="R$ 3.240,00" color="#f43f5e" />
-                    <DemoStatCard label="Investido" value="R$ 45.000,00" color="#0ea5e9" />
+                    <DemoStatCard label="Patrimônio Total" value="R$ 158.420,00" color="#6366f1" />
+                    <DemoStatCard label="Disponível" value="R$ 12.450,00" color="#10b981" />
+                    <DemoStatCard label="Investido" value="R$ 145.970,00" color="#0ea5e9" />
+                    <DemoStatCard label="Contas do Mês" value="R$ 3.240,00" color="#f43f5e" />
                 </div>
 
-                {/* Mock Featured Area */}
-                <div style={{ background: 'var(--lp-surface)', border: '1px solid var(--lp-border)', borderRadius: '24px', padding: '2.5rem', marginBottom: '4rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Exemplo de Extrato</h2>
+                <div className="demo-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
+                    
+                    {/* AI ASSISTANT SECTION */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon ai"><BrainCircuit size={20} /></div>
+                            <h3>FinTrack AI Assistant</h3>
+                        </div>
+                        <div className="demo-ai-chat">
+                            <div className="ai-bubble incoming">
+                                <Sparkles size={14} className="spark-ai" />
+                                <p>Olá! Analisei seus gastos de Fevereiro. Você economizou 15% a mais em lazer do que o planejado. Que tal destinar R$ 400,00 extras para sua meta <b>"Viagem Europa"</b>?</p>
+                            </div>
+                            <div className="ai-bubble outgoing">
+                                <p>Sim, por favor! Faça a transferência agora.</p>
+                            </div>
+                            <div className="ai-bubble incoming">
+                                <CheckCircle2 size={14} className="check-ai" />
+                                <p>Feito! Seu progresso para <b>"Viagem Europa"</b> subiu para 68%. Mantendo este ritmo, você atingirá a meta 2 meses antes do previsto.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="rep-items-list" style={{ background: 'transparent' }}>
-                        <DemoRow date="22/02" desc="Supermercado Extra" cat="Alimentação" val="- R$ 254,00" />
-                        <DemoRow date="21/02" desc="Salário Mensal" cat="Renda" val="+ R$ 8.500,00" positive />
-                        <DemoRow date="20/02" desc="Assinatura Netflix" cat="Lazer" val="- R$ 55,90" />
-                        <DemoRow date="19/02" desc="Aluguel Apartamento" cat="Moradia" val="- R$ 2.200,00" />
+
+                    {/* COMMITMENTS / ACCOUNTS PAYABLE */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon alarm"><Calendar size={20} /></div>
+                            <h3>Contas a Pagar (Próximos 7 dias)</h3>
+                        </div>
+                        <div className="demo-list">
+                            <DemoListItem icon={<AlertCircle className="text-red" />} label="Aluguel" date="Amanhã" val="R$ 2.500,00" />
+                            <DemoListItem icon={<AlertCircle className="text-yellow" />} label="Energia Elétrica" date="02/03" val="R$ 320,00" />
+                            <DemoListItem icon={<CheckCircle2 className="text-gray" />} label="Internet Fibra" date="Pago" val="R$ 159,90" dimmed />
+                            <DemoListItem icon={<AlertCircle className="text-yellow" />} label="Condomínio" date="05/03" val="R$ 680,00" />
+                        </div>
                     </div>
+
+                    {/* DREAMS / ECONOMY */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon dreams"><Target size={20} /></div>
+                            <h3>Modo Realizar Sonhos</h3>
+                        </div>
+                        <div className="demo-dreams-grid">
+                            <DemoDreamItem label="Viagem Japão" current={12000} total={25000} color="#6366f1" />
+                            <DemoDreamItem label="Reserva de Emergência" current={15000} total={15000} color="#10b981" completed />
+                            <DemoDreamItem label="Novo MacBook Pro" current={4500} total={18000} color="#f59e0b" />
+                        </div>
+                    </div>
+
+                    {/* INVESTMENTS PERFORMANCE */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon invest"><BarChart3 size={20} /></div>
+                            <h3>Investimentos vs Selic</h3>
+                        </div>
+                        <div className="demo-invest-view">
+                            <div className="invest-metrics">
+                                <div className="metric">
+                                    <span>Rentabilidade (Ano)</span>
+                                    <div className="val pos">+ 14.8% <TrendingUp size={16} /></div>
+                                </div>
+                                <div className="metric">
+                                    <span>Melhor Ativo</span>
+                                    <div className="val">PETR4 (+22%)</div>
+                                </div>
+                            </div>
+                            <div className="mock-chart-container">
+                                <div className="chart-line-bg" />
+                                <div className="chart-line-active" />
+                                <div className="chart-point" style={{ left: '80%', top: '30%' }} />
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div style={{ textAlign: 'center', paddingBottom: '6rem' }}>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Gostou da experiência?</h3>
-                    <button onClick={() => navigate('/register')} style={{ background: 'var(--lp-primary)', color: 'white', padding: '1rem 2.5rem', borderRadius: '12px', fontWeight: 800, fontSize: '1.125rem' }}>
-                        Criar minha conta agora
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Sua liberdade financeira começa aqui.</h3>
+                    <button onClick={() => navigate('/register')} style={{ background: 'var(--lp-primary)', color: 'white', padding: '1.25rem 3rem', borderRadius: '16px', fontWeight: 800, fontSize: '1.25rem', cursor: 'pointer', transition: 'all 0.3s' }}>
+                        Ativar meu acesso Premium
                     </button>
                 </div>
             </div>
@@ -62,17 +137,40 @@ export const DemoPage: React.FC = () => {
 };
 
 const DemoStatCard = ({ label, value, color }: { label: string, value: string, color: string }) => (
-    <div style={{ background: 'var(--lp-surface)', border: '1px solid var(--lp-border)', borderRadius: '20px', padding: '1.5rem' }}>
-        <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-        <div style={{ fontSize: '1.75rem', fontWeight: 900, marginTop: '0.5rem', color: color }}>{value}</div>
+    <div className="demo-stat-mini">
+        <span className="stat-label">{label}</span>
+        <div className="stat-value" style={{ color: color }}>{value}</div>
     </div>
 );
 
-const DemoRow = ({ date, desc, cat, val, positive }: { date: string, desc: string, cat: string, val: string, positive?: boolean }) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 150px 120px', gap: '1rem', padding: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
-        <span style={{ fontWeight: 700, opacity: 0.8 }}>{date}</span>
-        <span style={{ fontWeight: 600 }}>{desc}</span>
-        <span style={{ fontSize: '0.875rem', color: 'var(--lp-primary)', background: 'rgba(99, 102, 241, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '100px', width: 'fit-content' }}>{cat}</span>
-        <span style={{ fontWeight: 800, textAlign: 'right', color: positive ? '#10b981' : '#f43f5e' }}>{val}</span>
+const DemoListItem = ({ icon, label, date, val, dimmed }: any) => (
+    <div className={`demo - list - item ${ dimmed ? 'dimmed' : '' } `}>
+        <div className="item-main">
+            {icon}
+            <div className="item-info">
+                <span className="name">{label}</span>
+                <span className="date">{date}</span>
+            </div>
+        </div>
+        <span className="val">{val}</span>
     </div>
 );
+
+const DemoDreamItem = ({ label, current, total, color, completed }: any) => {
+    const pct = Math.min(100, (current / total) * 100);
+    return (
+        <div className="demo-dream-item">
+            <div className="dream-header">
+                <span className="name">{label}</span>
+                <span className="pct">{pct.toFixed(0)}%</span>
+            </div>
+            <div className="progress-bg">
+                <div className="progress-fill" style={{ width: `${ pct }% `, backgroundColor: color }} />
+            </div>
+            <div className="dream-footer">
+                <span>R$ {current.toLocaleString()}</span>
+                <span>R$ {total.toLocaleString()}</span>
+            </div>
+        </div>
+    );
+};

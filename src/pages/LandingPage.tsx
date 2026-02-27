@@ -1,3 +1,4 @@
+```
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -9,7 +10,11 @@ import {
     Lock,
     Globe,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    Sparkles,
+    Gem,
+    BarChart3,
+    BrainCircuit
 } from 'lucide-react';
 import './LandingPage.css';
 
@@ -106,14 +111,24 @@ export const LandingPage: React.FC = () => {
                 <div className="landing-container">
                     <div className="features-grid">
                         <FeatureCard
-                            icon={<Layout size={32} />}
-                            title="Dashboard Inteligente"
-                            desc="Visão 360º da sua saúde financeira. Gráficos em tempo real e filtros dinâmicos por período."
+                            icon={<BrainCircuit size={32} />}
+                            title="Assistente IA"
+                            desc="Análise preditiva de saúde financeira e sugestões inteligentes de economia via IA."
                         />
                         <FeatureCard
-                            icon={<PieChart size={32} />}
-                            title="Extrato Premium"
-                            desc="Filtragem avançada por categorias e saldo dinâmico para análise profunda de fluxo."
+                            icon={<Gem size={32} />}
+                            title="Modo Realizar Sonhos"
+                            desc="Gestão de economia focada em objetivos. Visualize seus sonhos se tornando reais."
+                        />
+                        <FeatureCard
+                            icon={<BarChart3 size={32} />}
+                            title="Investimentos"
+                            desc="Acompanhe sua carteira global e o rendimento do seu patrimônio em um só lugar."
+                        />
+                        <FeatureCard
+                            icon={<Layout size={32} />}
+                            title="Dashboard Inteligente"
+                            desc="Visão 360º da sua saúde financeira. Gráficos em tempo real e filtros dinâmicos."
                         />
                         <FeatureCard
                             icon={<Calendar size={32} />}
@@ -121,19 +136,9 @@ export const LandingPage: React.FC = () => {
                             desc="Gestão completa de contas a pagar e receber com status visual e controle de parcelas."
                         />
                         <FeatureCard
-                            icon={<Target size={32} />}
-                            title="Metas de Economia"
-                            desc="Visualize seu progresso rumo aos seus sonhos com barras de progresso inteligentes."
-                        />
-                        <FeatureCard
                             icon={<Smartphone size={32} />}
                             title="Experiência Mobile"
                             desc="Instale o PWA e tenha o controle total no seu celular, como um app nativo."
-                        />
-                        <FeatureCard
-                            icon={<Shield size={32} />}
-                            title="Segurança Máxima"
-                            desc="Autenticação e banco de dados via Supabase (arquitetura Google Cloud)."
                         />
                     </div>
                 </div>
