@@ -662,30 +662,59 @@
     margin-bottom: 0.5rem;
 }
 
-/* Lists */
+/* Demo List (Lançamentos) */
 .demo-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1.25rem;
 }
 
 .demo-list-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 1.25rem;
     background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
+    transition: all 0.3s ease;
 }
 
-.demo-list-item.dimmed {
-    opacity: 0.5;
+.demo-list-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
 }
 
 .item-main {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
+}
+
+.status-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.status-urgent .status-icon-wrap {
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.1);
+}
+
+.status-pending .status-icon-wrap {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.status-paid .status-icon-wrap {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
 }
 
 .item-info {
@@ -695,16 +724,51 @@
 
 .item-info .name {
     font-weight: 700;
+    font-size: 1rem;
+    color: white;
 }
 
 .item-info .date {
-    font-size: 0.75rem;
-    opacity: 0.7;
+    font-size: 0.815rem;
+    color: var(--lp-text-muted);
 }
 
-.demo-list-item .val {
+.item-val-wrap {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.item-val-wrap .val {
     font-weight: 800;
+    font-size: 1.125rem;
+    color: white;
     font-family: monospace;
+}
+
+.status-badge {
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.paid {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.status-badge.urgent {
+    background: rgba(244, 63, 94, 0.2);
+    color: #f43f5e;
+}
+
+.status-badge.pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
 }
 
 .text-red {
