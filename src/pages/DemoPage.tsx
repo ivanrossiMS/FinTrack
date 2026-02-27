@@ -11,7 +11,10 @@ import {
     CheckCircle2,
     Sparkles,
     Mic,
-    Volume2
+    Volume2,
+    ShieldCheck,
+    Lightbulb,
+    PiggyBank
 } from 'lucide-react';
 import './Dashboard.css';
 import './Reports.css';
@@ -83,24 +86,50 @@ export const DemoPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* AI INSIGHTS SECTION */}
                     <div className="demo-card-elite">
                         <div className="demo-card-header">
                             <div className="header-icon ai"><BrainCircuit size={20} /></div>
                             <h3>Insights Financeiros</h3>
+                            <span className="subtitle-demo">Análise inteligente do período</span>
                         </div>
-                        <div className="demo-ai-chat">
-                            <div className="ai-bubble incoming">
-                                <Sparkles size={14} className="spark-ai" />
-                                <p>Análise de Outubro concluída. Notei um aumento de 12% em assinaturas recorrentes. <b>Economia potencial identificada:</b> R$ 240,00/mês ao cancelar serviços não utilizados.</p>
-                            </div>
-                            <div className="ai-bubble outgoing">
-                                <p>Quais serviços seriam esses?</p>
-                            </div>
-                            <div className="ai-bubble incoming">
-                                <CheckCircle2 size={14} className="check-ai" />
-                                <p>Identifiquei 2 streamings sem uso nos últimos 60 dias. Além disso, se mantiver o aporte em <b>Tesouro Direto</b>, você atingirá sua Independência 1.4 anos antes.</p>
-                            </div>
+                        <div className="demo-insights-list">
+                            <DemoInsightItem
+                                icon={<ShieldCheck size={18} />}
+                                title="Saldo Positivo"
+                                desc="Você está economizando 68% da sua renda neste período. Ótimo trabalho! Saldo de R$ 6.562,00 disponível."
+                                type="success"
+                            />
+                            <DemoInsightItem
+                                icon={<Sparkles size={18} />}
+                                title="Excelente Controle!"
+                                desc="Seus gastos representam apenas 32% da renda. Você tem uma margem saudável para investimentos."
+                                type="success"
+                            />
+                            <DemoInsightItem
+                                icon={<Lightbulb size={18} />}
+                                title="Gastos Variáveis Altos"
+                                desc="Gastos variáveis (R$ 3.138,00) superam os fixos. Estes são os mais fáceis de otimizar."
+                                type="warning"
+                            />
+                            <DemoInsightItem
+                                icon={<PiggyBank size={18} />}
+                                title="Maior Gasto: Alimentação"
+                                desc="A categoria 'Alimentação' representa 50% das suas despesas. Considere reduzir."
+                                type="danger"
+                            />
+                        </div>
+                    </div>
+
+                    {/* RECENT TRANSACTIONS (Lançamentos) */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon invest"><BarChart3 size={20} /></div>
+                            <h3>Lançamentos Recentes</h3>
+                        </div>
+                        <div className="demo-list">
+                            <DemoListItem icon={<PiggyBank size={18} />} label="Mercado Central" date="Hoje, 14:20" val="R$ 450,00" status="paid" />
+                            <DemoListItem icon={<Sparkles size={18} />} label="Rendimento FIIs" date="Ontem" val="+ R$ 1.250,00" status="paid" />
+                            <DemoListItem icon={<Mic size={18} />} label="Assinatura Spotify" date="26 de Out" val="R$ 34,90" status="paid" />
                         </div>
                     </div>
 
@@ -108,12 +137,11 @@ export const DemoPage: React.FC = () => {
                     <div className="demo-card-elite">
                         <div className="demo-card-header">
                             <div className="header-icon alarm"><Calendar size={20} /></div>
-                            <h3>Lançamentos e Compromissos</h3>
+                            <h3>Próximos Compromissos</h3>
                         </div>
                         <div className="demo-list">
                             <DemoListItem icon={<AlertCircle size={18} />} label="Aluguel Mensal" date="Vence Amanhã" val="R$ 2.500,00" status="urgent" />
                             <DemoListItem icon={<Calendar size={18} />} label="Energia Elétrica" date="02 de Outubro" val="R$ 320,00" status="pending" />
-                            <DemoListItem icon={<CheckCircle2 size={18} />} label="Internet Fibra" date="Liquidado" val="R$ 159,90" status="paid" />
                             <DemoListItem icon={<Calendar size={18} />} label="Condomínio" date="05 de Outubro" val="R$ 680,00" status="pending" />
                         </div>
                     </div>
@@ -176,6 +204,16 @@ const DemoStatCard = ({ label, value, color }: { label: string, value: string, c
     </div>
 );
 
+const DemoInsightItem = ({ icon, title, desc, type }: any) => (
+    <div className={`demo-insight-item type-${type}`}>
+        <div className="insight-icon-wrap">{icon}</div>
+        <div className="insight-content">
+            <h4>{title}</h4>
+            <p>{desc}</p>
+        </div>
+    </div>
+);
+
 const DemoListItem = ({ icon, label, date, val, status }: any) => (
     <div className={`demo-list-item status-${status}`}>
         <div className="item-main">
@@ -187,7 +225,7 @@ const DemoListItem = ({ icon, label, date, val, status }: any) => (
         </div>
         <div className="item-val-wrap">
             <span className="val">{val}</span>
-            <div className={`status-badge ${status}`}>{status === 'paid' ? 'PAGO' : status === 'urgent' ? 'HOJE' : 'AGENDADO'}</div>
+            <div className={`status-badge ${status}`}>{status === 'paid' ? 'CONCLUÍDO' : status === 'urgent' ? 'VENCE HOJE' : 'AGENDADO'}</div>
         </div>
     </div>
 );

@@ -275,15 +275,15 @@
 
 .mockup-full-wrapper {
     position: relative;
-    width: 200%;
-    margin-left: -50%;
+    width: 220%;
+    margin-left: -60%;
     z-index: 2;
-    transform: perspective(1500px) rotateY(-10deg) translateY(-30px);
+    transform: perspective(2000px) rotateY(-12deg) translateY(-40px);
     transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .mockup-full-wrapper:hover {
-    transform: perspective(1500px) rotateY(-5deg) translateY(-40px) scale(1.02);
+    transform: perspective(2000px) rotateY(-6deg) translateY(-50px) scale(1.05);
 }
 
 .hero-mockup-img {
@@ -621,6 +621,78 @@
 
 .header-icon.voice {
     background: linear-gradient(135deg, #6366f1, #3b82f6);
+}
+
+.subtitle-demo {
+    font-size: 0.8125rem;
+    color: var(--lp-text-muted);
+    font-weight: 500;
+}
+
+/* AI Insights List Style */
+.demo-insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.demo-insight-item {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+    border: 1px solid transparent;
+}
+
+.demo-insight-item.type-success {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.1);
+}
+
+.demo-insight-item.type-warning {
+    background: rgba(245, 158, 11, 0.05);
+    border-color: rgba(245, 158, 11, 0.1);
+}
+
+.demo-insight-item.type-danger {
+    background: rgba(244, 63, 94, 0.05);
+    border-color: rgba(244, 63, 94, 0.1);
+}
+
+.insight-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.type-success .insight-icon-wrap {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.type-warning .insight-icon-wrap {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.type-danger .insight-icon-wrap {
+    background: rgba(244, 63, 94, 0.15);
+    color: #f43f5e;
+}
+
+.insight-content h4 {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.insight-content p {
+    font-size: 0.8125rem;
+    color: var(--lp-text-muted);
+    line-height: 1.5;
 }
 
 /* AI Chat */
