@@ -1,12 +1,11 @@
-```javascript
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    Layout, 
-    PieChart, 
-    Smartphone, 
-    Lock, 
-    Globe, 
+    Layout,
+    PieChart,
+    Smartphone,
+    Lock,
+    Globe,
     Calendar,
     ArrowRight,
     Gem,
