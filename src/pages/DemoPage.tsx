@@ -60,11 +60,34 @@ export const DemoPage: React.FC = () => {
 
                 <div className="demo-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
 
-                    {/* AI ASSISTANT SECTION */}
+                    {/* VOICE ASSISTANT INTERACTION */}
+                    <div className="demo-card-elite">
+                        <div className="demo-card-header">
+                            <div className="header-icon voice"><Mic size={20} /></div>
+                            <h3>Assistente de Voz IA</h3>
+                        </div>
+                        <div className="demo-voice-content">
+                            <div className={`mic-button-wrap ${isListening ? 'listening' : ''}`} onClick={handleVoiceClick}>
+                                <div className="mic-rings">
+                                    <div className="ring" />
+                                    <div className="ring" />
+                                </div>
+                                <button className="mic-main-btn">
+                                    {isListening ? <Volume2 size={32} /> : <Mic size={32} />}
+                                </button>
+                            </div>
+                            <div className="voice-status-wrapper">
+                                <p className="voice-status-text">{voiceText}</p>
+                                {isListening && <div className="voice-wave"><span></span><span></span><span></span><span></span></div>}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* AI INSIGHTS SECTION */}
                     <div className="demo-card-elite">
                         <div className="demo-card-header">
                             <div className="header-icon ai"><BrainCircuit size={20} /></div>
-                            <h3>FinTrack AI Assistant</h3>
+                            <h3>Insights Financeiros</h3>
                         </div>
                         <div className="demo-ai-chat">
                             <div className="ai-bubble incoming">
@@ -129,29 +152,6 @@ export const DemoPage: React.FC = () => {
                                 <div className="chart-line-bg" />
                                 <div className="chart-line-active" />
                                 <div className="chart-point" style={{ left: '80%', top: '30%' }} />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* VOICE ASSISTANT INTERACTION */}
-                    <div className="demo-card-elite">
-                        <div className="demo-card-header">
-                            <div className="header-icon voice"><Mic size={20} /></div>
-                            <h3>Assistente de Voz IA</h3>
-                        </div>
-                        <div className="demo-voice-content">
-                            <div className={`mic-button-wrap ${isListening ? 'listening' : ''}`} onClick={handleVoiceClick}>
-                                <div className="mic-rings">
-                                    <div className="ring" />
-                                    <div className="ring" />
-                                </div>
-                                <button className="mic-main-btn">
-                                    {isListening ? <Volume2 size={32} /> : <Mic size={32} />}
-                                </button>
-                            </div>
-                            <div className="voice-status-wrapper">
-                                <p className="voice-status-text">{voiceText}</p>
-                                {isListening && <div className="voice-wave"><span></span><span></span><span></span><span></span></div>}
                             </div>
                         </div>
                     </div>
