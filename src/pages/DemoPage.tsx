@@ -1,14 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Home,
-    DollarSign,
-    PieChart,
-    Calendar,
-    Target,
-    TrendingUp,
-    ArrowLeft,
-    Crown
+    ArrowLeft
 } from 'lucide-react';
 import './Dashboard.css';
 import './Reports.css';

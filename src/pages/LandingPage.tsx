@@ -3,15 +3,11 @@ import { Link } from 'react-router-dom';
 import {
     Layout,
     Shield,
-    Zap,
     PieChart,
     Target,
-    TrendingUp,
     Smartphone,
     Lock,
     Globe,
-    ChevronRight,
-    CheckCircle2,
     Calendar,
     ArrowRight
 } from 'lucide-react';
