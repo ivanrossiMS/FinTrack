@@ -9,6 +9,7 @@ import { ExpensesPieChart } from '../components/charts/ExpensesPieChart';
 import { getCategoryExpenses } from '../utils/statistics';
 import { Button } from '../components/ui/Button';
 import { Transaction, Commitment } from '../models/types';
+import { Filter as FilterIcon } from 'lucide-react';
 
 type PeriodMode = 'TODAY' | '7DAYS' | 'MONTH' | 'CUSTOM';
 
@@ -57,6 +58,8 @@ export const Reports: React.FC = () => {
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
     const [commitmentFilter, setCommitmentFilter] = useState<CommitmentFilter>('ALL');
+    const [flowCategoryId, setFlowCategoryId] = useState<string>('');
+
 
     // ── Compute effective date range based on period mode ──
     const dateRange = useMemo(() => {
@@ -125,6 +128,15 @@ export const Reports: React.FC = () => {
         const variable = expense - fixed;
         return { income, expense, fixed, variable, balance: income - expense };
     }, [filteredData]);
+
+    const filteredFlowData = useMemo(() => {
+        if (!flowCategoryId) return filteredData;
+        return filteredData.filter(t => t.categoryId === flowCategoryId);
+    }, [filteredData, flowCategoryId]);
+
+    const flowCategoryTotal = useMemo(() => {
+        return filteredFlowData.reduce((acc, t) => acc + (t.type === 'EXPENSE' ? -t.amount : t.amount), 0);
+    }, [filteredFlowData]);
 
     const handleExportCSV = () => {
         exportToCSV(
@@ -267,11 +279,35 @@ export const Reports: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Detailed Statement */}
-                    <div className="rep-card rep-table-card">
-                        <div className="rep-table-header-bar">
-                            <h3 className="rep-card-title">Extrato de Fluxo</h3>
-                            <span className="rep-count-badge">{filteredData.length} transações</span>
+                    {/* Detailed Statement - Reformulated */}
+                    <div className="rep-card rep-table-card rep-flow-card">
+                        <div className="rep-table-header-bar rep-flow-header">
+                            <div className="rep-flow-header-left">
+                                <h3 className="rep-card-title">Extrato de Fluxo</h3>
+                                <div className="rep-flow-total-pill">
+                                    <span className="label">Total no Filtro:</span>
+                                    <span className={`value ${flowCategoryTotal >= 0 ? 'positive' : 'negative'}`}>
+                                        <CountUp end={flowCategoryTotal} />
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="rep-flow-controls">
+                                <span className="rep-count-badge">{filteredFlowData.length} transações</span>
+                                <div className="rep-flow-filter-wrapper">
+                                    <FilterIcon size={16} className="rep-flow-filter-icon" />
+                                    <select
+                                        className="rep-flow-cat-select"
+                                        value={flowCategoryId}
+                                        onChange={(e) => setFlowCategoryId(e.target.value)}
+                                    >
+                                        <option value="">Todas Categorias</option>
+                                        {data.categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="rep-grid-header">
@@ -282,7 +318,7 @@ export const Reports: React.FC = () => {
                         </div>
 
                         <div className="rep-items-list">
-                            {filteredData.map((tx) => {
+                            {filteredFlowData.map((tx) => {
                                 const cat = data.categories.find(c => c.id === tx.categoryId);
                                 const isExpense = tx.type === 'EXPENSE';
                                 return (
@@ -321,10 +357,10 @@ export const Reports: React.FC = () => {
                                 );
                             })}
 
-                            {filteredData.length === 0 && (
+                            {filteredFlowData.length === 0 && (
                                 <div className="rep-empty-state">
                                     <Filter size={32} opacity={0.2} />
-                                    <span>Nenhum lançamento encontrado.</span>
+                                    <span>Nenhum lançamento encontrado para este filtro.</span>
                                 </div>
                             )}
                         </div>
