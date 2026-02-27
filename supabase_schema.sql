@@ -202,22 +202,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Authorization check function (VANTA-BLACK OPTIMIZATION: JWT-Only, Zero-Query)
+-- Authorization check function (VANTA-BLACK OPTIMIZATION: JWT-Only + Fast DB Fallback)
 CREATE OR REPLACE FUNCTION public.check_is_authorized() 
 RETURNS BOOLEAN AS $$
 DECLARE
   jwt_email TEXT;
   jwt_auth TEXT;
+  db_auth BOOLEAN;
 BEGIN
-  -- 1. Get JWT data ONCE
+  -- 1. Get JWT data ONCE (Fast-Path)
   jwt_email := auth.jwt() ->> 'email';
   jwt_auth := auth.jwt() -> 'app_metadata' ->> 'is_authorized';
 
   -- 2. Fast-Path master admin
   IF jwt_email = 'ivanrossi@outlook.com' THEN RETURN TRUE; END IF;
 
-  -- 3. JWT app_metadata Path
+  -- 3. JWT app_metadata Path (Primary)
   IF jwt_auth = 'true' THEN RETURN TRUE; END IF;
+
+  -- 4. DB Fallback (Safety-Path for stale JWTs)
+  -- This ensures newly authorized users can see data immediately.
+  SELECT is_authorized INTO db_auth FROM public.profiles WHERE id = auth.uid();
+  IF db_auth = TRUE THEN RETURN TRUE; END IF;
 
   RETURN FALSE;
 END;
@@ -359,6 +365,24 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Trigger to sync profile updates back to auth.users metadata
+-- This ensures RLS stays in sync with user status changes
+CREATE OR REPLACE FUNCTION public.sync_profile_to_auth() 
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE auth.users 
+  SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || 
+    jsonb_build_object('role', NEW.role, 'is_authorized', NEW.is_authorized)
+  WHERE id = NEW.id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_profile_updated ON public.profiles;
+CREATE TRIGGER on_profile_updated
+  AFTER UPDATE OF role, is_authorized ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.sync_profile_to_auth();
 
 -- ── REPAIR ORPHAN PROFILES & SEED DEFAULTS ──
 INSERT INTO public.profiles (id, name, email, role, is_authorized)
