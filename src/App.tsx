@@ -20,6 +20,8 @@ import { Commitments } from './pages/Commitments';
 import { Savings } from './pages/Savings';
 import { Investments } from './pages/Investments';
 import { Help } from './pages/Help';
+import { LandingPage } from './pages/LandingPage';
+import { DemoPage } from './pages/DemoPage';
 
 import { OrientationLock } from './components/ui/OrientationLock';
 import { useEffect } from 'react';
@@ -46,6 +48,8 @@ function App() {
                 <OrientationLock />
                 <BrowserRouter>
                     <Routes>
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/demo" element={<DemoPage />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -53,7 +57,7 @@ function App() {
 
                         <Route element={<ProtectedRoute />}>
                             <Route element={<Layout />}>
-                                <Route path="/" element={<Dashboard />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/transactions" element={<Transactions />} />
                                 <Route path="/commitments" element={<Commitments />} />
                                 <Route path="/savings" element={<Savings />} />

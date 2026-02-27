@@ -44,7 +44,8 @@ export const Register: React.FC = () => {
             justifyContent: 'center',
             alignItems: 'center',
             minHeight: '100vh',
-            backgroundColor: 'var(--color-bg)'
+            backgroundColor: 'var(--color-bg)',
+            padding: '1rem'
         }}>
             <div style={{
                 width: '100%',

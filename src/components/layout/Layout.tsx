@@ -29,7 +29,7 @@ export const Layout: React.FC = () => {
     const closeMenu = () => setIsMenuOpen(false);
 
     const navItems = [
-        { path: '/', label: 'Dashboard', icon: Home },
+        { path: '/dashboard', label: 'Dashboard', icon: Home },
         { path: '/transactions', label: 'Lançamentos', icon: DollarSign },
         { path: '/commitments', label: 'Compromissos', icon: Calendar },
         { path: '/savings', label: 'Economia', icon: Target },
@@ -46,7 +46,7 @@ export const Layout: React.FC = () => {
 
     // Mobile specific nav items (Bottom Bar V5)
     const mobileBottomItems = [
-        { path: '/', icon: Home, label: 'DASHBOARD' },
+        { path: '/dashboard', icon: Home, label: 'DASHBOARD' },
         { path: '/transactions', icon: DollarSign, label: 'LANÇAMENTOS' },
         { path: '/commitments', icon: Calendar, label: 'COMPROMISSOS' },
         { path: '/savings', icon: Target, label: 'ECONOMIA' },

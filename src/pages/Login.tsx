@@ -19,7 +19,7 @@ export const Login: React.FC = () => {
         setError('');
         const { success, error: authError } = await login(email, password);
         if (success) {
-            navigate('/');
+            navigate('/dashboard');
         } else {
             setError(authError || 'E-mail ou senha incorretos');
         }
