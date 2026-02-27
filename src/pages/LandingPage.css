@@ -275,16 +275,18 @@
 
 .mockup-full-wrapper {
     position: relative;
-    width: 130%;
-    margin-left: -15%;
+    width: 150%;
+    margin-left: -25%;
     z-index: 2;
+    transform: perspective(1000px) rotateY(-5deg);
 }
 
 .hero-mockup-img {
     width: 100%;
     height: auto;
-    border-radius: 20px;
-    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+    border-radius: 24px;
+    box-shadow: 0 50px 120px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mockup-inner {

@@ -27,7 +27,7 @@ export const DemoPage: React.FC = () => {
         setTimeout(() => {
             setIsListening(false);
             setVoiceText('Entendido! Lançamento de "Almoço R$ 45,00" adicionado com sucesso.');
-        }, 2500);
+        }, 3250);
     };
 
     return (
