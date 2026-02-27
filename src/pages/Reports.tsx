@@ -281,21 +281,23 @@ export const Reports: React.FC = () => {
 
                     {/* Detailed Statement - Reformulated */}
                     <div className="rep-card rep-table-card rep-flow-card">
-                        <div className="rep-table-header-bar rep-flow-header">
-                            <div className="rep-flow-header-left">
-                                <h3 className="rep-card-title">Extrato de Fluxo</h3>
-                                <div className="rep-flow-total-pill">
-                                    <span className="label">Total no Filtro:</span>
-                                    <span className={`value ${flowCategoryTotal >= 0 ? 'positive' : 'negative'}`}>
-                                        <CountUp end={flowCategoryTotal} />
-                                    </span>
+                        <div className="rep-flow-header">
+                            <div className="rep-flow-header-main">
+                                <div className="rep-flow-title-group">
+                                    <h3 className="rep-card-title">Extrato de Fluxo</h3>
+                                    <span className="rep-count-badge">{filteredFlowData.length} lançamentos</span>
+                                </div>
+                                <div className={`rep-flow-total-badge ${flowCategoryTotal >= 0 ? 'positive' : 'negative'}`}>
+                                    <span className="label">Saldo do Filtro</span>
+                                    <div className="value">
+                                        {formatCurrency(flowCategoryTotal)}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="rep-flow-controls">
-                                <span className="rep-count-badge">{filteredFlowData.length} transações</span>
-                                <div className="rep-flow-filter-wrapper">
-                                    <FilterIcon size={16} className="rep-flow-filter-icon" />
+                            <div className="rep-flow-header-actions">
+                                <div className="rep-select-container">
+                                    <FilterIcon size={16} className="rep-select-icon" />
                                     <select
                                         className="rep-flow-cat-select"
                                         value={flowCategoryId}
@@ -324,14 +326,16 @@ export const Reports: React.FC = () => {
                                 return (
                                     <div key={tx.id} className="rep-grid-row">
                                         <div className="rep-col-date">
-                                            <span className="day">{new Date(tx.date).getDate()}</span>
+                                            <span className="day">{new Date(tx.date).getDate().toString().padStart(2, '0')}</span>
                                             <span className="month">{formatDate(tx.date).split('/')[1]}</span>
                                         </div>
                                         <div className="rep-col-info">
                                             <div className="rep-col-desc" title={tx.description}>
                                                 <div className="rep-desc-content">
                                                     <span className="rep-main-text">{tx.description}</span>
-                                                    <span className="rep-sub-text">{tx.paymentMethodId || '—'}</span>
+                                                    <span className="rep-sub-text">
+                                                        {data.paymentMethods.find(m => m.id === tx.paymentMethodId)?.name || tx.paymentMethodId || '—'}
+                                                    </span>
                                                 </div>
                                                 {tx.isFixed && <span className="rep-fixed-tag">Fixa</span>}
                                             </div>
