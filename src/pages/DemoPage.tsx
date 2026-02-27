@@ -92,14 +92,14 @@ export const DemoPage: React.FC = () => {
                         <div className="demo-ai-chat">
                             <div className="ai-bubble incoming">
                                 <Sparkles size={14} className="spark-ai" />
-                                <p>Olá! Analisei seus gastos de Fevereiro. Você economizou 15% a mais em lazer do que o planejado. Que tal destinar R$ 400,00 extras para sua meta <b>"Viagem Europa"</b>?</p>
+                                <p>Análise de Outubro concluída. Notei um aumento de 12% em assinaturas recorrentes. <b>Economia potencial identificada:</b> R$ 240,00/mês ao cancelar serviços não utilizados.</p>
                             </div>
                             <div className="ai-bubble outgoing">
-                                <p>Sim, por favor! Faça a transferência agora.</p>
+                                <p>Quais serviços seriam esses?</p>
                             </div>
                             <div className="ai-bubble incoming">
                                 <CheckCircle2 size={14} className="check-ai" />
-                                <p>Feito! Seu progresso para <b>"Viagem Europa"</b> subiu para 68%. Mantendo este ritmo, você atingirá a meta 2 meses antes do previsto.</p>
+                                <p>Identifiquei 2 streamings sem uso nos últimos 60 dias. Além disso, se mantiver o aporte em <b>Tesouro Direto</b>, você atingirá sua Independência 1.4 anos antes.</p>
                             </div>
                         </div>
                     </div>
@@ -108,13 +108,13 @@ export const DemoPage: React.FC = () => {
                     <div className="demo-card-elite">
                         <div className="demo-card-header">
                             <div className="header-icon alarm"><Calendar size={20} /></div>
-                            <h3>Contas a Pagar (Próximos 7 dias)</h3>
+                            <h3>Lançamentos e Compromissos</h3>
                         </div>
                         <div className="demo-list">
-                            <DemoListItem icon={<AlertCircle className="text-red" />} label="Aluguel" date="Amanhã" val="R$ 2.500,00" />
-                            <DemoListItem icon={<AlertCircle className="text-yellow" />} label="Energia Elétrica" date="02/03" val="R$ 320,00" />
-                            <DemoListItem icon={<CheckCircle2 className="text-gray" />} label="Internet Fibra" date="Pago" val="R$ 159,90" dimmed />
-                            <DemoListItem icon={<AlertCircle className="text-yellow" />} label="Condomínio" date="05/03" val="R$ 680,00" />
+                            <DemoListItem icon={<AlertCircle size={18} />} label="Aluguel Mensal" date="Vence Amanhã" val="R$ 2.500,00" status="urgent" />
+                            <DemoListItem icon={<Calendar size={18} />} label="Energia Elétrica" date="02 de Outubro" val="R$ 320,00" status="pending" />
+                            <DemoListItem icon={<CheckCircle2 size={18} />} label="Internet Fibra" date="Liquidado" val="R$ 159,90" status="paid" />
+                            <DemoListItem icon={<Calendar size={18} />} label="Condomínio" date="05 de Outubro" val="R$ 680,00" status="pending" />
                         </div>
                     </div>
 
@@ -176,16 +176,19 @@ const DemoStatCard = ({ label, value, color }: { label: string, value: string, c
     </div>
 );
 
-const DemoListItem = ({ icon, label, date, val, dimmed }: any) => (
-    <div className={`demo-list-item ${dimmed ? 'dimmed' : ''}`}>
+const DemoListItem = ({ icon, label, date, val, status }: any) => (
+    <div className={`demo-list-item status-${status}`}>
         <div className="item-main">
-            {icon}
+            <div className="status-icon-wrap">{icon}</div>
             <div className="item-info">
                 <span className="name">{label}</span>
                 <span className="date">{date}</span>
             </div>
         </div>
-        <span className="val">{val}</span>
+        <div className="item-val-wrap">
+            <span className="val">{val}</span>
+            <div className={`status-badge ${status}`}>{status === 'paid' ? 'PAGO' : status === 'urgent' ? 'HOJE' : 'AGENDADO'}</div>
+        </div>
     </div>
 );
 

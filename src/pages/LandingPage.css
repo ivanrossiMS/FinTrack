@@ -275,10 +275,15 @@
 
 .mockup-full-wrapper {
     position: relative;
-    width: 180%;
-    margin-left: -40%;
+    width: 200%;
+    margin-left: -50%;
     z-index: 2;
-    transform: perspective(1200px) rotateY(-8deg) translateY(-20px);
+    transform: perspective(1500px) rotateY(-10deg) translateY(-30px);
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mockup-full-wrapper:hover {
+    transform: perspective(1500px) rotateY(-5deg) translateY(-40px) scale(1.02);
 }
 
 .hero-mockup-img {
