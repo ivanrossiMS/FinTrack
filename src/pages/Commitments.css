@@ -848,5 +848,8 @@
         width: 100% !important;
         height: 3rem !important;
         box-shadow: none !important;
+        background: var(--color-success) !important;
+        color: white !important;
+        border: none !important;
     }
 }
