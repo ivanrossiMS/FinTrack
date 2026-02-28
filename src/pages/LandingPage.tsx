@@ -42,10 +42,10 @@ export const LandingPage: React.FC = () => {
                     <div className="hero-content">
                         <div className="badge-premium pulse">
                             <CrownIcon size={14} />
-                            <span>GESTÃO FINANCEIRA DE ELITE</span>
+                            <span>GESTÃO FINANCEIRA DE ELITE V2.0</span>
                         </div>
                         <h1 className="hero-title">
-                            Seu Centro de Comando para a <span className="gradient-text">Liberdade Financeira</span>
+                            Seu <span className="gradient-text">Centro de Comando</span> para a Liberdade Financeira
                         </h1>
                         <p className="hero-subtitle">
                             O FinTrack não é apenas um gerenciador; é uma experiência premium desenhada para quem busca clareza, precisão e o próximo nível de controle sobre seu dinheiro.

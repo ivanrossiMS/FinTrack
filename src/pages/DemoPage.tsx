@@ -123,13 +123,13 @@ export const DemoPage: React.FC = () => {
                     {/* RECENT TRANSACTIONS (Lançamentos) */}
                     <div className="demo-card-elite">
                         <div className="demo-card-header">
-                            <div className="header-icon invest"><BarChart3 size={20} /></div>
-                            <h3>Lançamentos Recentes</h3>
+                            <div className="header-icon invest"><TrendingUp size={20} /></div>
+                            <h3>Lançamentos (Histórico)</h3>
                         </div>
                         <div className="demo-list">
-                            <DemoListItem icon={<PiggyBank size={18} />} label="Mercado Central" date="Hoje, 14:20" val="R$ 450,00" status="paid" />
-                            <DemoListItem icon={<Sparkles size={18} />} label="Rendimento FIIs" date="Ontem" val="+ R$ 1.250,00" status="paid" />
-                            <DemoListItem icon={<Mic size={18} />} label="Assinatura Spotify" date="26 de Out" val="R$ 34,90" status="paid" />
+                            <DemoListItem icon={<PiggyBank size={18} />} label="Supermercado Modelo" date="Hoje, 14:20" val="R$ 450,00" status="paid" />
+                            <DemoListItem icon={<Sparkles size={18} />} label="Rendimento Dividendos" date="Ontem" val="+ R$ 1.250,00" status="paid" />
+                            <DemoListItem icon={<Mic size={18} />} label="Assinatura Netflix" date="26 de Out" val="R$ 55,90" status="paid" />
                         </div>
                     </div>
 
@@ -140,8 +140,8 @@ export const DemoPage: React.FC = () => {
                             <h3>Próximos Compromissos</h3>
                         </div>
                         <div className="demo-list">
-                            <DemoListItem icon={<AlertCircle size={18} />} label="Aluguel Mensal" date="Vence Amanhã" val="R$ 2.500,00" status="urgent" />
-                            <DemoListItem icon={<Calendar size={18} />} label="Energia Elétrica" date="02 de Outubro" val="R$ 320,00" status="pending" />
+                            <DemoListItem icon={<AlertCircle size={18} />} label="Aluguel de Imóvel" date="Vence Amanhã" val="R$ 2.500,00" status="urgent" />
+                            <DemoListItem icon={<Calendar size={18} />} label="Fatura Cartão Black" date="02 de Outubro" val="R$ 4.720,00" status="pending" />
                             <DemoListItem icon={<Calendar size={18} />} label="Condomínio" date="05 de Outubro" val="R$ 680,00" status="pending" />
                         </div>
                     </div>
