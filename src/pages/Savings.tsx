@@ -7,7 +7,7 @@ import {
     Target, Plus, TrendingUp, Calendar,
     Edit, Trash2, CheckCircle2,
     ArrowRightCircle, BrainCircuit, Sparkles,
-    Zap, TrendingDown, ShieldCheck, ArrowRight
+    Zap, TrendingDown, ShieldCheck
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import { differenceInMonths, parseISO, startOfMonth, subMonths, isAfter } from 'date-fns';
@@ -199,45 +199,6 @@ export const Savings: React.FC = () => {
                 </div>
             </div>
 
-            {/* AI INTELLIGENCE CENTER */}
-            <section className="sav-ai-section">
-                <div className="sav-ai-card-premium">
-                    <div className="sav-ai-header-prof">
-                        <div className="ai-icon-boxed">
-                            <BrainCircuit size={36} />
-                        </div>
-                        <div className="sav-ai-title-wrap">
-                            <span>Brain Engine Ativo</span>
-                            <h2>Inteligência de Conquista</h2>
-                        </div>
-                    </div>
-
-                    <div className="sav-ai-grid-modern">
-                        {insights.map(item => (
-                            <div key={item.id} className="insight-card-prof">
-                                <div className="insight-header-prof">
-                                    <span className={`insight-badge-prof ${item.tagClass}`}>{item.tag}</span>
-                                    <div style={{ color: 'var(--color-primary)' }}>{item.icon}</div>
-                                </div>
-                                <div className="insight-content-prof">
-                                    <h4>{item.title}</h4>
-                                    <p>{item.description}</p>
-                                </div>
-                                {item.prescription && (
-                                    <div className="insight-prescriptive">
-                                        {item.prescription}
-                                    </div>
-                                )}
-                                <button className="insight-action-prof">
-                                    {item.action}
-                                    <ArrowRight size={16} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
             <div className="sav-goals-grid">
                 {goals.length === 0 ? (
                     <div className="sav-empty-state col-span-full">
@@ -264,7 +225,7 @@ export const Savings: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="sav-goal-actions">
-                                        <button onClick={() => handleEdit(goal)} className="sav-goal-btn" title="Editar">
+                                        <button onClick={() => handleEdit(goal)} className="sav-goal-btn" title="Edit">
                                             <Edit size={16} />
                                         </button>
                                         <button onClick={() => handleDelete(goal.id)} className="sav-goal-btn delete" title="Excluir">
@@ -311,6 +272,41 @@ export const Savings: React.FC = () => {
                     })
                 )}
             </div>
+
+            {/* AI INTELLIGENCE CENTER */}
+            <section className="sav-ai-section">
+                <div className="sav-ai-card-premium">
+                    <div className="sav-ai-header-prof">
+                        <div className="ai-icon-boxed">
+                            <BrainCircuit size={36} />
+                        </div>
+                        <div className="sav-ai-title-wrap">
+                            <span>Brain Engine Ativo</span>
+                            <h2>Inteligência de Conquista</h2>
+                        </div>
+                    </div>
+
+                    <div className="sav-ai-grid-modern">
+                        {insights.map(item => (
+                            <div key={item.id} className="insight-card-prof">
+                                <div className="insight-header-prof">
+                                    <span className={`insight-badge-prof ${item.tagClass}`}>{item.tag}</span>
+                                    <div style={{ color: 'var(--color-primary)' }}>{item.icon}</div>
+                                </div>
+                                <div className="insight-content-prof">
+                                    <h4>{item.title}</h4>
+                                    <p>{item.description}</p>
+                                </div>
+                                {item.prescription && (
+                                    <div className="insight-prescriptive">
+                                        {item.prescription}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
             <Modal
                 isOpen={isFormOpen}
