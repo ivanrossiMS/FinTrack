@@ -11,9 +11,12 @@ import {
     Mic,
     Volume2,
     ShieldCheck,
-    Lightbulb,
     PiggyBank,
-    ArrowRight
+    ArrowRight,
+    Fingerprint,
+    Zap,
+    FilePieChart,
+    Bell
 } from 'lucide-react';
 import './LandingPage.css';
 
@@ -66,21 +69,23 @@ export const DemoPage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#2563EB', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>
                         <BrainCircuit size={18} /> Dashboard de Elite
                     </div>
-                    <h1 className="section-title" style={{ textAlign: 'left', margin: 0 }}>Bem-vindo ao FinTrack</h1>
-                    <p className="section-subtitle" style={{ textAlign: 'left', marginTop: '0.5rem' }}>Explore a ferramenta de gestão financeira mais completa do mercado.</p>
+                    <h1 className="section-title" style={{ textAlign: 'left', margin: 0 }}>Gestão Financeira do Futuro</h1>
+                    <p className="section-subtitle" style={{ textAlign: 'left', marginTop: '0.5rem' }}>Visualize seu patrimônio com a clareza e o poder que ele merece.</p>
                 </header>
 
                 <div className="features-grid" style={{ marginBottom: '3rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-                    <DemoStatCard label="Patrimônio Total" value="R$ 158.420,00" trend="+2.4%" icon={<TrendingUp size={20} />} trendColor="#10b981" />
-                    <DemoStatCard label="Disponível" value="R$ 12.450,00" trend="+ R$ 1.200" icon={<PiggyBank size={20} />} trendColor="#10b981" />
-                    <DemoStatCard label="Investido" value="R$ 145.970,00" trend="+1.8%" icon={<BarChart3 size={20} />} trendColor="#10b981" />
-                    <DemoStatCard label="Contas do Mês" value="R$ 3.240,00" trend="-12%" icon={<Calendar size={20} />} trendColor="#f43f5e" />
+                    <DemoStatCard label="Patrimônio Total" value="R$ 158.420,00" trend="+2.4%" icon={<TrendingUp size={20} />} trendColor="#10b981" accent="blue" tint="" />
+                    <DemoStatCard label="Disponível" value="R$ 12.450,00" trend="+ R$ 1.200" icon={<PiggyBank size={20} />} trendColor="#10b981" accent="green" tint="green" />
+                    <DemoStatCard label="Investido" value="R$ 145.970,00" trend="+1.8%" icon={<BarChart3 size={20} />} trendColor="#10b981" accent="purple" tint="purple" />
+                    <DemoStatCard label="Contas do Mês" value="R$ 3.240,00" trend="-12%" icon={<Calendar size={20} />} trendColor="#f43f5e" accent="pink" tint="pink" />
                 </div>
 
-                <div className="demo-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+                <div className="demo-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '2rem' }}>
 
                     {/* VOICE ASSISTANT */}
-                    <div className="feature-card-elite" style={{ padding: '2rem' }}>
+                    <div className="card-modern" style={{ padding: '2rem' }}>
+                        <div className="card-accent-bar blue" />
+                        <div className="card-bg-tint" />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2rem' }}>
                             <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px' }}><Mic size={20} /></div>
                             <h3 className="feature-title" style={{ margin: 0 }}>Assistente de Voz IA</h3>
@@ -101,33 +106,73 @@ export const DemoPage: React.FC = () => {
                     </div>
 
                     {/* INSIGHTS */}
-                    <div className="feature-card-elite" style={{ padding: '2rem' }}>
+                    <div className="card-modern" style={{ padding: '2rem' }}>
+                        <div className="card-accent-bar green" />
+                        <div className="card-bg-tint green" />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
                             <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><BrainCircuit size={20} /></div>
                             <h3 className="feature-title" style={{ margin: 0 }}>Insights Financeiros</h3>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <DemoInsightItem icon={<ShieldCheck size={18} />} title="Saldo Positivo" type="success" desc="Você está economizando 68% da sua renda neste período. Ótimo trabalho! Saldo de R$ 6.562,00 disponível." />
-                            <DemoInsightItem icon={<Sparkles size={18} />} title="Excelente Controle!" type="success" desc="Seus gastos representam apenas 32% da renda. Você tem uma margem saudável para investimentos." />
-                            <DemoInsightItem icon={<Lightbulb size={18} />} title="Gastos Variáveis Altos" type="warning" desc="Gastos variáveis (R$ 3.138,00) superam os fixos. Estes são os mais fáceis de otimizar." />
+                            <DemoInsightItem icon={<ShieldCheck size={18} />} title="Saldo Positivo" type="success" desc="Você está economizando 68% da sua renda neste período. Ótimo trabalho!" />
+                            <DemoInsightItem icon={<Zap size={18} />} title="Ação Recomendada" type="warning" desc="Detectamos R$ 850,00 parados que poderiam render 1.2% a.m. no Fundo Liquidez." />
                         </div>
                     </div>
 
-                    {/* TRANSACTIONS */}
-                    <div className="feature-card-elite" style={{ padding: '2rem' }}>
+                    {/* COMPROMISSOS (BOLETOS) */}
+                    <div className="card-modern" style={{ padding: '2rem' }}>
+                        <div className="card-accent-bar orange" />
+                        <div className="card-bg-tint orange" />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-                            <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}><TrendingUp size={20} /></div>
-                            <h3 className="feature-title" style={{ margin: 0 }}>Lançamentos (Histórico)</h3>
+                            <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}><Bell size={20} /></div>
+                            <h3 className="feature-title" style={{ margin: 0 }}>Próximos Boletos</h3>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <DemoListItem label="Supermercado Modelo" date="Hoje, 14:20" val="- R$ 450,00" type="expense" />
-                            <DemoListItem label="Rendimento Dividendos" date="Ontem" val="+ R$ 1.250,00" type="income" />
-                            <DemoListItem label="Assinatura Netflix" date="26 de Out" val="- R$ 55,90" type="expense" />
+                            <DemoListItem label="Aluguel Outubro" date="Vence em 2 dias" val="R$ 2.450,00" type="pending" />
+                            <DemoListItem label="Condomínio" date="Vence em 5 dias" val="R$ 890,00" type="pending" />
                         </div>
                     </div>
 
-                    {/* GOALS */}
-                    <div className="feature-card-elite" style={{ padding: '2rem' }}>
+                    {/* INVESTIMENTOS IA */}
+                    <div className="card-modern" style={{ padding: '2rem' }}>
+                        <div className="card-accent-bar purple" />
+                        <div className="card-bg-tint purple" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+                            <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}><Fingerprint size={20} /></div>
+                            <h3 className="feature-title" style={{ margin: 0 }}>Investimentos com IA</h3>
+                        </div>
+                        <div style={{ background: 'rgba(124, 58, 237, 0.05)', padding: '1.25rem', borderRadius: '16px', border: '1px dashed rgba(124, 58, 237, 0.2)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                <TrendingUp size={16} color="#7c3aed" />
+                                <span style={{ fontWeight: 700, fontSize: '0.8125rem', color: '#7c3aed' }}>SUGESTÃO DO DIA</span>
+                            </div>
+                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--lp-text)' }}>Aumente sua exposição em Renda Fixa High Yield. Potencial de +2.5% vs CDI.</p>
+                        </div>
+                    </div>
+
+                    {/* RELATÓRIOS PERSONALIZADOS */}
+                    <div className="card-modern" style={{ padding: '2rem' }}>
+                        <div className="card-accent-bar cyan" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+                            <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4' }}><FilePieChart size={20} /></div>
+                            <h3 className="feature-title" style={{ margin: 0 }}>Relatórios de Elite</h3>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>68%</div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--lp-text-muted)' }}>ECONOMIA</div>
+                            </div>
+                            <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>-15%</div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--lp-text-muted)' }}>GASTOS FIXOS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SONHOS */}
+                    <div className="card-modern" style={{ padding: '2rem' }}>
+                        <div className="card-accent-bar pink" />
+                        <div className="card-bg-tint pink" />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
                             <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(236, 72, 153, 0.1)', color: '#ec4899' }}><Target size={20} /></div>
                             <h3 className="feature-title" style={{ margin: 0 }}>Modo Sonhos</h3>
@@ -135,13 +180,13 @@ export const DemoPage: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <DemoDreamItem label="Viagem Japão" current={12000} total={25000} color="#2563EB" />
                             <DemoDreamItem label="Reserva de Emergência" current={15000} total={15000} color="#10b981" />
-                            <DemoDreamItem label="Novo MacBook Pro" current={4500} total={18000} color="#f59e0b" />
                         </div>
                     </div>
 
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: '5rem', padding: '4rem', background: 'white', borderRadius: '32px', border: '1px solid var(--lp-border)', boxShadow: 'var(--shadow-card)' }}>
+                <div style={{ textAlign: 'center', marginTop: '5rem', padding: '4rem', background: 'white', borderRadius: '32px', border: '1px solid var(--lp-border)', boxShadow: 'var(--shadow-card)', position: 'relative', overflow: 'hidden' }}>
+                    <div className="card-accent-bar" />
                     <h2 className="section-title">Pronto para transformar sua realidade?</h2>
                     <p className="section-subtitle" style={{ marginBottom: '2.5rem' }}>Comece hoje mesmo a gerir seu patrimônio com a ferramenta usada pela elite financeira.</p>
                     <button onClick={() => navigate('/register')} className="btn-hero-primary" style={{ margin: '0 auto' }}>
@@ -154,14 +199,16 @@ export const DemoPage: React.FC = () => {
     );
 };
 
-const DemoStatCard = ({ label, value, trend, icon, trendColor }: any) => (
-    <div className="feature-card-elite" style={{ padding: '1.5rem' }}>
+const DemoStatCard = ({ label, value, trend, icon, trendColor, accent, tint }: any) => (
+    <div className={`card-modern`} style={{ padding: '1.5rem' }}>
+        <div className={`card-accent-bar ${accent}`} />
+        {tint && <div className={`card-bg-tint ${tint}`} />}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
             <div style={{ color: 'var(--lp-text-muted)' }}>{icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: trendColor, background: `${trendColor}10`, padding: '2px 8px', borderRadius: '100px' }}>{trend}</div>
         </div>
         <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--lp-text-muted)', marginBottom: '4px' }}>{label}</div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--lp-text)' }}>{value}</div>
+        <div className="stat-value">{value}</div>
     </div>
 );
 
@@ -183,8 +230,8 @@ const DemoListItem = ({ label, date, val, type }: any) => (
         </div>
         <div style={{ textAlign: 'right' }}>
             <div style={{ fontWeight: 800, color: type === 'income' ? '#10b981' : 'var(--lp-text)' }}>{val}</div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: type === 'income' ? '#10b981' : '#f43f5e', opacity: 0.8 }}>
-                {type === 'income' ? 'RECEBIDO' : 'PAGO'}
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: type === 'pending' ? '#f59e0b' : (type === 'income' ? '#10b981' : '#f43f5e'), opacity: 0.8 }}>
+                {type === 'pending' ? 'PENDENTE' : (type === 'income' ? 'RECEBIDO' : 'PAGO')}
             </div>
         </div>
     </div>

@@ -618,31 +618,108 @@
 }
 
 /* --- DEMO SPECIFIC --- */
+.card-modern {
+    position: relative;
+    overflow: hidden;
+    background: var(--lp-surface);
+    border: 1px solid var(--lp-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-float);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.card-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--grad-primary);
+}
+
+.card-accent-bar.blue {
+    background: #2563EB;
+}
+
+.card-accent-bar.green {
+    background: #10B981;
+}
+
+.card-accent-bar.purple {
+    background: #7C3AED;
+}
+
+.card-accent-bar.pink {
+    background: #EC4899;
+}
+
+.card-accent-bar.orange {
+    background: #F59E0B;
+}
+
+.card-accent-bar.cyan {
+    background: #06B6D4;
+}
+
+.card-bg-tint {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent 70%);
+    pointer-events: none;
+}
+
+.card-bg-tint.green {
+    background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.05), transparent 70%);
+}
+
+.card-bg-tint.purple {
+    background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.05), transparent 70%);
+}
+
+.card-bg-tint.pink {
+    background: radial-gradient(circle at top right, rgba(236, 72, 153, 0.05), transparent 70%);
+}
+
+.card-bg-tint.orange {
+    background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.05), transparent 70%);
+}
+
 .demo-stat-mini {
     background: var(--lp-surface);
     border: 1px solid var(--lp-border);
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-card);
     transition: transform 0.3s;
+    position: relative;
+    overflow: hidden;
 }
 
-.demo-stat-mini:hover {
-    transform: translateY(-5px);
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+.demo-stat-mini::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--grad-primary);
+    opacity: 0.8;
 }
 
 .stat-value {
-    font-size: 2rem;
-    font-weight: 900;
+    font-size: 1.75rem;
+    font-weight: 800;
     margin-top: 0.5rem;
+    color: var(--lp-text);
 }
 
 .demo-card-elite {
