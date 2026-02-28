@@ -716,10 +716,59 @@
 }
 
 .stat-value {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+    /* Reduced to avoid overflow */
     font-weight: 800;
     margin-top: 0.5rem;
     color: var(--lp-text);
+    white-space: nowrap;
+    /* Prevent wrapping */
+}
+
+/* Charts & Graphs for Demo */
+.mini-chart-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 100px;
+    padding: 1rem 0;
+}
+
+.mini-chart-bar {
+    flex: 1;
+    border-radius: 6px 6px 2px 2px;
+    background: var(--grad-primary);
+    transition: height 1s ease;
+    opacity: 0.8;
+}
+
+.mini-chart-bar.secondary {
+    background: var(--grad-secondary);
+}
+
+.category-row {
+    margin-bottom: 1.25rem;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.category-bar-bg {
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.category-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--grad-primary);
 }
 
 .demo-card-elite {
