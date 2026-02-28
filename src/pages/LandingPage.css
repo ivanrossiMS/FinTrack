@@ -206,21 +206,30 @@
 }
 
 .hero-easy-login-link {
-    color: var(--lp-text-muted);
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    width: fit-content;
+    display: none;
 }
 
-.hero-easy-login-link strong {
-    color: var(--color-primary, #2563EB);
+.btn-hero-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    padding: 1rem 1.75rem;
+    border-radius: var(--radius-btn);
     font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.hero-easy-login-link:hover {
-    color: var(--lp-text);
-    transform: translateX(4px);
+.btn-hero-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(99, 102, 241, 0.4);
+    filter: brightness(1.1);
 }
 
 .hero-promo-badge {

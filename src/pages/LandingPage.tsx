@@ -74,13 +74,13 @@ export const LandingPage: React.FC = () => {
                                     Criar conta grátis
                                     <ArrowRight size={20} />
                                 </Link>
+                                <Link to="/login" className="btn-hero-login">
+                                    Login Fácil
+                                </Link>
                                 <Link to="/demo" className="btn-hero-secondary">
                                     Ver demonstração
                                 </Link>
                             </div>
-                            <Link to="/login" className="hero-easy-login-link">
-                                Já tem conta? <strong>Login Fácil</strong>
-                            </Link>
 
                             <div className="hero-promo-badge">
                                 <ShieldCheck size={14} className="promo-check" />
