@@ -340,8 +340,7 @@ export const parseTranscriptionAsync = async (
     examples: any[] = []
 ): Promise<ParsedTransaction> => {
     try {
-        const categoryNames = Object.keys(CATEGORY_KEYWORDS);
-        const aiResult = await parseTransactionWithAI(text, categoryNames, examples);
+        const aiResult = await parseTransactionWithAI(text, examples);
 
         if (aiResult && aiResult.confianca > 0.6) {
             const cat = categories.find(c => normalise(c.name) === normalise(aiResult.categoria)) ||

@@ -124,7 +124,6 @@ export interface AIParseResult {
 
 export async function parseTransactionWithAI(
     text: string,
-    categories: string[],
     examples: any[] = []
 ): Promise<AIParseResult | null> {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
