@@ -124,10 +124,20 @@ export interface AIParseResult {
 
 export async function parseTransactionWithAI(
     text: string,
-    categories: string[]
+    categories: string[],
+    examples: any[] = []
 ): Promise<AIParseResult | null> {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
     if (!apiKey) return null;
+
+    const examplesText = examples.length > 0
+        ? examples.map(ex => `Entrada: "${ex.transcript}" -> Saída: ${JSON.stringify({
+            tipo: ex.type === 'INCOME' ? 'RECEITA' : 'DESPESA',
+            valor: ex.amount,
+            categoria: ex.categoryId, // Needs mapping to name or kept as ID if prompt handles it
+            descricao: ex.description
+        })}`).join('\n')
+        : 'Nenhum exemplo adicional disponível.';
 
     const prompt = `Atue como o melhor programador e Engenheiro(a) de Machine Learning (Machine Learning Engineer) e um classificador inteligente de lançamentos financeiros de um app pessoal.
 
@@ -145,6 +155,10 @@ REGRAS GERAIS:
 7) Se o valor não estiver claro, tente extrair mesmo assim. Se não conseguir, retorne valor = null.
 8) Se a frase não indicar claramente se é receita ou despesa, use contexto da palavra-chave.
 9) Se ainda ambíguo, assumir DESPESA e categoria "Extras".
+10) Se o usuário falar valores como "um conto", "dois paus", "cinquenta pilas", entenda como Moeda Corrente (BRL).
+
+EXEMPLOS DE APRENDIZADO RECENTES (USE COMO REFERÊNCIA):
+${examplesText}
 
 TEXTO FALADO: "${text}"
 

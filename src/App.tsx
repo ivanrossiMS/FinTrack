@@ -25,6 +25,7 @@ import { DemoPage } from './pages/DemoPage';
 
 import { OrientationLock } from './components/ui/OrientationLock';
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
     useEffect(() => {
@@ -45,6 +46,7 @@ function App() {
     return (
         <AuthProvider>
             <DataProvider>
+                <Toaster position="top-right" reverseOrder={false} />
                 <OrientationLock />
                 <BrowserRouter>
                     <Routes>

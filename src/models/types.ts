@@ -113,3 +113,14 @@ export interface AppData {
     savingsGoals?: SavingsGoal[];
     userProfile?: UserProfile;
 }
+export interface VoiceExample {
+    id: string;
+    userId: string;
+    transcript: string;
+    categoryId?: string;
+    amount?: number;
+    type: 'INCOME' | 'EXPENSE';
+    description?: string;
+    date?: string;
+    createdAt: number;
+}

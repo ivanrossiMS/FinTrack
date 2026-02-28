@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
-import { Category, Transaction, PaymentMethod, Commitment, SavingsGoal, Supplier, UserProfile } from '../models/types';
+import { Category, Transaction, PaymentMethod, Commitment, SavingsGoal, Supplier, UserProfile, VoiceExample } from '../models/types';
 import { DEFAULT_CATEGORIES, DEFAULT_METHODS } from '../constants/defaults';
 
 export const SupabaseDataService = {
@@ -500,7 +500,7 @@ export const SupabaseDataService = {
                 icon: c.icon,
                 is_default: true
             })));
-        
+
         if (catError) {
             console.error('Error syncing default categories:', catError);
         } else {
@@ -517,11 +517,55 @@ export const SupabaseDataService = {
                 color: m.color,
                 is_default: true
             })));
-            
+
         if (pmError) {
             console.error('Error syncing default payment methods:', pmError);
         } else {
             console.log('✅ Default payment methods synchronized.');
+        }
+    },
+
+    // ─── VOICE EXAMPLES (FEW-SHOT LEARNING) ───
+    async getVoiceExamples(userId: string): Promise<VoiceExample[]> {
+        const data = await this._wrap('getVoiceExamples', supabase
+            .from('ai_voice_examples')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(10) as any);
+
+        if (!data) return [];
+
+        return (data as any[]).map(item => ({
+            id: item.id,
+            userId: item.user_id,
+            transcript: item.transcript,
+            categoryId: item.category_id,
+            amount: item.amount,
+            type: item.type,
+            description: item.description,
+            date: item.date,
+            createdAt: new Date(item.created_at).getTime()
+        }));
+    },
+
+    async saveVoiceExample(example: Partial<VoiceExample>) {
+        console.log('📝 [SERVICE] saveVoiceExample');
+        const { error } = await supabase
+            .from('ai_voice_examples')
+            .insert({
+                user_id: example.userId,
+                transcript: example.transcript,
+                category_id: example.categoryId,
+                amount: example.amount,
+                type: example.type,
+                description: example.description,
+                date: example.date
+            });
+
+        if (error) {
+            console.error('❌ [saveVoiceExample] Error:', error.message);
+            throw error;
         }
     }
 };

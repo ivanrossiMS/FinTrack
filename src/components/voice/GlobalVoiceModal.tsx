@@ -9,8 +9,12 @@ import {
     resolveQuery,
     stopSpeaking,
     parseCommitment,
+    speak,
     type VoiceIntent,
 } from '../../utils/intentParser';
+import { supabase } from '../../lib/supabaseClient';
+import { SupabaseDataService } from '../../services/supabaseData';
+import { toast } from 'react-hot-toast';
 import { askGemini, type FinancialContext } from '../../utils/geminiAI';
 import { playActivationBeep, playExecutionBeep, playDeactivationBeep } from '../../utils/audioSystem';
 import './GlobalVoiceModal.css';
@@ -195,6 +199,15 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             isProcessingRef.current = false;
         };
 
+        const handleUndo = async (id: string) => {
+            try {
+                await SupabaseDataService.deleteTransaction(id);
+                toast.success('Lançamento removido. 🔄');
+            } catch (err) {
+                toast.error('Erro ao desfazer.');
+            }
+        };
+
         const handleOkConfirm = () => {
             if (!window.speechSynthesis) return;
             const utter = new SpeechSynthesisUtterance("Ok");
@@ -215,9 +228,60 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             case 'transaction': {
                 setStatus('PROCESSING');
                 handleOkConfirm();
-                const parsed = await parseTranscriptionAsync(text, d.categories, d.paymentMethods, d.suppliers);
-                nav('/transactions', { state: { voicePrefill: parsed, openForm: true } });
-                close();
+
+                // Fetch few-shot examples for better precision
+                const user = (await supabase.auth.getUser()).data.user;
+                let examples: any[] = [];
+                if (user) {
+                    examples = await SupabaseDataService.getVoiceExamples(user.id);
+                }
+
+                const parsed = await parseTranscriptionAsync(text, d.categories, d.paymentMethods, d.suppliers, examples);
+
+                // Elite Auto-Save Logic
+                if (parsed.confidence >= 0.8 && !parsed.needsClarification) {
+                    setStatus('PROCESSING');
+                    const newId = crypto.randomUUID();
+                    const transactionToSave = {
+                        ...parsed,
+                        id: newId,
+                        user_id: user?.id,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    };
+
+                    await SupabaseDataService.upsertTransaction(transactionToSave);
+
+                    toast((t) => (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span>Lançamento salvo! ✅</span>
+                            <button
+                                onClick={() => {
+                                    handleUndo(newId);
+                                    toast.dismiss(t.id);
+                                }}
+                                style={{
+                                    background: 'var(--color-primary)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '0.8rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Desfazer
+                            </button>
+                        </div>
+                    ), { duration: 8000 });
+
+                    speak("Salvo com sucesso!");
+                    close();
+                } else {
+                    // Manual review fallback
+                    nav('/transactions', { state: { voicePrefill: parsed, openForm: true } });
+                    close();
+                }
                 break;
             }
             case 'commitment': {
@@ -338,6 +402,12 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                 transcriptRef.current = full;
 
                 const detected = detectIntent(full);
+
+                // "OK" command to stop recording
+                if (full.toLowerCase().includes('ok') || full.toLowerCase().includes('okay')) {
+                    executeCommandRef.current(full.replace(/ok|okay/gi, '').trim());
+                    return;
+                }
 
                 // Auto-execute after 0.9s of silence if confident
                 if (detected.confidence >= 0.6 && detected.type !== 'unknown' && !isProcessingRef.current) {

@@ -235,7 +235,7 @@ export const parseTranscription = (
         ['sessenta', 60], ['cinquenta', 50], ['quarenta', 40], ['trinta', 30], ['vinte e cinco', 25],
         ['vinte', 20], ['quinze', 15], ['quatorze', 14], ['treze', 13], ['doze', 12],
         ['onze', 11], ['dez', 10], ['nove', 9], ['oito', 8], ['sete', 7], ['seis', 6],
-        ['cinco', 5], ['quatro', 4], ['tres', 3], ['dois', 2], ['dois e meio', 2.5],
+        ['cinco', 5], ['quatro', 4], ['tres', 3], ['dois', 2], ['um conto', 1], ['um pila', 1],
     ];
     for (const [word, val] of written) {
         if (norm.includes(word) && val > bestAmount) { bestAmount = val; break; }
@@ -419,12 +419,13 @@ export const parseTranscriptionAsync = async (
     text: string,
     categories: Category[],
     paymentMethods: PaymentMethod[],
-    suppliers: Supplier[]
+    suppliers: Supplier[],
+    examples: any[] = []
 ): Promise<ParsedTransaction> => {
     // 1. Try AI first for elite perception
     try {
         const categoryNames = categories.map(c => c.name);
-        const aiResult = await parseTransactionWithAI(text, categoryNames);
+        const aiResult = await parseTransactionWithAI(text, categoryNames, examples);
 
         if (aiResult && aiResult.confianca > 0.6) {
             console.log('[aiParser] AI perception success:', aiResult);
