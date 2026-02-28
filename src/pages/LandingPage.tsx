@@ -69,19 +69,24 @@ export const LandingPage: React.FC = () => {
                             A plataforma definitiva para quem busca clareza financeira,
                             automatização inteligente e o caminho real para a liberdade.
                         </p>
-                        <div className="hero-actions">
-                            <Link to="/register" className="btn-hero-primary">
-                                Criar conta grátis
-                                <ArrowRight size={20} />
+                        <div className="hero-actions-container">
+                            <div className="hero-actions">
+                                <Link to="/register" className="btn-hero-primary">
+                                    Criar conta grátis
+                                    <ArrowRight size={20} />
+                                </Link>
+                                <Link to="/demo" className="btn-hero-secondary">
+                                    Ver demonstração
+                                </Link>
+                            </div>
+                            <Link to="/login" className="hero-easy-login-link">
+                                Já tem conta? <strong>Login Fácil</strong>
                             </Link>
-                            <Link to="/demo" className="btn-hero-secondary">
-                                Ver demonstração
-                            </Link>
-                        </div>
-                        <div className="hero-trust-bar">
-                            <div className="trust-item"><ShieldCheck size={18} /> Dados Criptografados</div>
-                            <div className="trust-item"><Globe size={18} /> Acesso Global</div>
-                            <div className="trust-item"><Smartphone size={18} /> Multi-plataforma</div>
+
+                            <div className="hero-promo-badge">
+                                <ShieldCheck size={14} className="promo-check" />
+                                <span>Sem cartões, sem pegadinhas. <strong>Acesso livre por tempo limitado.</strong></span>
+                            </div>
                         </div>
                     </div>
 
