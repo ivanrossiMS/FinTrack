@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     BrainCircuit,
     Calendar,
+    Target,
     TrendingUp,
     Mic,
     Volume2,
@@ -183,6 +184,70 @@ export const DemoPage: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <DemoInsightItem icon={<ShieldCheck size={18} />} title="Saldo Saudável" type="success" desc="Sua reserva de emergência cobriria 8 meses de custos." />
                             <DemoInsightItem icon={<TrendingDown size={18} />} title="Atenção" type="warning" desc="Gastos com delivery subiram 15% esta semana." />
+                        </div>
+                    </div>
+
+                    {/* PLANEJAMENTO DE SONHOS (ECONOMY MODE) */}
+                    <div className="card-modern-lg">
+                        <div className="card-accent-bar orange" />
+                        <div className="card-bg-tint" style={{ width: '300px', height: '300px', background: 'radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 70%)' }} />
+
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                                <div className="badge-premium" style={{ marginBottom: 0, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+                                    <Target size={14} style={{ marginRight: '6px' }} /> MODO ECONOMIA ATIVO
+                                </div>
+                            </div>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 1rem', letterSpacing: '-0.03em' }}>
+                                Rumo à Independência
+                            </h2>
+                            <p style={{ fontSize: '1.125rem', color: 'var(--lp-text-muted)', lineHeight: '1.5', maxWidth: '480px' }}>
+                                Com seu perfil atual, você atingirá seu objetivo de **R$ 500.000** em **4 anos e 2 meses**.
+                                No Modo Economia, reduzimos esse prazo em **8 meses**.
+                            </p>
+
+                            <div className="dream-milestone-track">
+                                <div className="dream-milestone-progress" style={{ width: '65%' }} />
+                                <div className="milestone-node completed" style={{ left: '0%' }}>
+                                    <ShieldCheck size={20} />
+                                    <span className="milestone-label">Início</span>
+                                </div>
+                                <div className="milestone-node completed" style={{ left: '33%' }}>
+                                    <PiggyBank size={20} />
+                                    <span className="milestone-label">Reserva</span>
+                                </div>
+                                <div className="milestone-node current" style={{ left: '66%' }}>
+                                    <TrendingUp size={24} />
+                                    <span className="milestone-label" style={{ color: '#2563EB' }}>Crescimento</span>
+                                </div>
+                                <div className="milestone-node" style={{ left: '100%' }}>
+                                    <Target size={20} color="#94a3b8" />
+                                    <span className="milestone-label">Liberdade</span>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '4rem' }}>
+                                <div className="economy-suggestion">
+                                    <Zap size={20} color="#f59e0b" />
+                                    <div>
+                                        <div style={{ fontWeight: 800, fontSize: '0.875rem' }}>DICA DE ECONOMIA</div>
+                                        <div style={{ fontSize: '0.8125rem', color: 'var(--lp-text-muted)' }}>Mude 3 jantares fora por mês e ganhe +R$ 450 no seu aporte mensal.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                            <div className="gauge-wrap" style={{ '--p': '85%' } as any}>
+                                <div className="gauge-content">
+                                    <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#2563EB' }}>85%</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--lp-text-muted)', textTransform: 'uppercase' }}>Probabilidade</div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--lp-text-muted)' }}>STATUS DO SONHO</div>
+                                <div style={{ fontSize: '1.125rem', fontWeight: 800, color: '#10b981' }}>TOTALMENTE POSSÍVEL</div>
+                            </div>
                         </div>
                     </div>
 
