@@ -35,6 +35,7 @@ export const Commitments: React.FC = () => {
         key: 'dueDate',
         direction: 'asc'
     });
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
     // ── Pagination State ──
     const [currentPage, setCurrentPage] = useState(1);
@@ -302,7 +303,7 @@ export const Commitments: React.FC = () => {
             </div>
 
             <div className="cm-ai-card-premium shadow-3d mb-2">
-                <div className="cm-ai-card-header">
+                <div className="cm-ai-card-header items-center">
                     <div className="flex items-center gap-3">
                         <div className="cm-ai-icon-pulse">
                             <BrainCircuit size={24} className="text-primary" />
@@ -312,23 +313,13 @@ export const Commitments: React.FC = () => {
                             <p className="cm-ai-subtitle">Análise preditiva de compromissos e fluxo de caixa</p>
                         </div>
                     </div>
-                    <div className="cm-ai-badge-elite">
-                        <Sparkles size={14} />
-                        Insight I.A.
-                    </div>
-                </div>
-
-                <div className="cm-ai-grid-modern">
-                    {aiInsights.map((insight, idx) => (
-                        <div key={idx} className={`cm-ai-item-elite ${insight.type}`}>
-                            <div className="cm-ai-item-head">
-                                <div className="cm-ai-item-icon">{insight.icon}</div>
-                                <span className="cm-ai-item-badge">{insight.badge}</span>
-                            </div>
-                            <h3 className="cm-ai-item-title">{insight.title}</h3>
-                            <p className="cm-ai-item-desc">{insight.desc}</p>
-                        </div>
-                    ))}
+                    <button
+                        onClick={() => setIsAiModalOpen(true)}
+                        className="cm-ai-trigger-btn flex items-center gap-2"
+                    >
+                        <Sparkles size={16} />
+                        Clique e veja sugestão da IA
+                    </button>
                 </div>
             </div>
 
@@ -536,6 +527,32 @@ export const Commitments: React.FC = () => {
                 onClose={() => setViewingAttachments(null)}
                 attachments={viewingAttachments || []}
             />
+
+            <Modal
+                isOpen={isAiModalOpen}
+                onClose={() => setIsAiModalOpen(false)}
+                title="Sugestões Financeiras - IA FinTrack"
+            >
+                <div className="cm-ai-modal-content">
+                    <div className="cm-ai-grid-modern">
+                        {aiInsights.map((insight, idx) => (
+                            <div key={idx} className={`cm-ai-item-elite ${insight.type}`}>
+                                <div className="cm-ai-item-head">
+                                    <div className="cm-ai-item-icon">{insight.icon}</div>
+                                    <span className="cm-ai-item-badge">{insight.badge}</span>
+                                </div>
+                                <h3 className="cm-ai-item-title">{insight.title}</h3>
+                                <p className="cm-ai-item-desc">{insight.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-8 flex justify-end">
+                        <Button onClick={() => setIsAiModalOpen(false)} variant="secondary">
+                            Entendido
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
