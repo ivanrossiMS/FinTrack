@@ -386,39 +386,88 @@
     background: var(--lp-surface);
     border: 1px solid var(--lp-border);
     border-radius: var(--radius-card);
-    padding: 2.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 3rem 2.5rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
 }
 
 .feature-card-elite:hover {
-    transform: translateY(-8px);
+    transform: translateY(-12px);
     box-shadow: var(--shadow-float);
-    border-color: rgba(37, 99, 235, 0.2);
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.card-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--grad-primary);
+}
+
+.card-accent-bar.blue {
+    background: #2563EB;
+}
+
+.card-accent-bar.purple {
+    background: #7C3AED;
+}
+
+.card-accent-bar.orange {
+    background: #F59E0B;
+}
+
+.card-accent-bar.cyan {
+    background: #06B6D4;
+}
+
+.card-accent-bar.pink {
+    background: #EC4899;
+}
+
+.card-accent-bar.green {
+    background: #10B981;
 }
 
 .feature-icon-wrap {
-    width: 52px;
-    height: 52px;
-    background: rgba(37, 99, 235, 0.08);
-    color: #2563EB;
+    width: 60px;
+    height: 60px;
+    background: #f8fafc;
+    color: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    transition: all 0.3s;
+    border: 1px solid #f1f5f9;
+}
+
+.feature-card-elite:hover .feature-icon-wrap {
+    background: var(--grad-primary);
+    color: white;
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
 }
 
 .feature-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--lp-text);
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
 }
 
 .feature-desc {
     color: var(--lp-text-muted);
-    line-height: 1.6;
+    line-height: 1.7;
     font-size: 0.9375rem;
+    font-weight: 500;
 }
 
 /* --- CTA SECTION --- */

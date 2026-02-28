@@ -8,7 +8,11 @@ import {
     BarChart3,
     BrainCircuit,
     ShieldCheck,
-    TrendingUp
+    TrendingUp,
+    Receipt,
+    PieChart,
+    Lock,
+    Zap
 } from 'lucide-react';
 import './LandingPage.css';
 
@@ -53,8 +57,9 @@ const MockupUI = () => (
     </div>
 );
 
-const FeatureCard = ({ icon, title, desc }: { icon: any, title: string, desc: string }) => (
+const FeatureCard = ({ icon, title, desc, variant = 'blue' }: { icon: any, title: string, desc: string, variant?: string }) => (
     <div className="feature-card-elite">
+        <div className={`card-accent-bar ${variant}`} />
         <div className="feature-icon-wrap">{icon}</div>
         <h3 className="feature-title">{title}</h3>
         <p className="feature-desc">{desc}</p>
@@ -136,18 +141,51 @@ export const LandingPage: React.FC = () => {
                     <div className="features-grid">
                         <FeatureCard
                             icon={<BrainCircuit size={28} />}
-                            title="Inteligência de Voice"
+                            title="Inteligência de Voz"
                             desc="Lance gastos e receitas apenas falando. Nossa IA processa e categoriza tudo instantaneamente."
+                            variant="blue"
+                        />
+                        <FeatureCard
+                            icon={<Zap size={28} />}
+                            title="IA de Insights"
+                            desc="Análise preditiva que sugere cortes e otimizações automáticas para acelerar sua riqueza."
+                            variant="purple"
+                        />
+                        <FeatureCard
+                            icon={<Receipt size={28} />}
+                            title="Controle de Boletos"
+                            desc="Gestão completa de compromissos e contas fixas. Nunca mais pague juros por atraso."
+                            variant="orange"
                         />
                         <FeatureCard
                             icon={<BarChart3 size={28} />}
                             title="Dashboard de Elite"
-                            desc="Visão clara de patrimônio, investimentos e fluxo de caixa com gráficos ultra-profissionais."
+                            desc="Visão clara de patrimônio e fluxo de caixa com gráficos ultra-profissionais e modernos."
+                            variant="cyan"
                         />
                         <FeatureCard
                             icon={<Gem size={28} />}
                             title="Modo Sonhos"
                             desc="Planeje metas e objetivos. Veja visualmente o quão perto você está de realizar seus sonhos."
+                            variant="pink"
+                        />
+                        <FeatureCard
+                            icon={<PieChart size={28} />}
+                            title="Relatórios Elite"
+                            desc="Análises profundas por categoria e período. Entenda cada centavo da sua vida financeira."
+                            variant="green"
+                        />
+                        <FeatureCard
+                            icon={<Lock size={28} />}
+                            title="Segurança Máxima"
+                            desc="Seus dados protegidos por criptografia de ponta a ponta e rígidos controles de acesso."
+                            variant="blue"
+                        />
+                        <FeatureCard
+                            icon={<Globe size={28} />}
+                            title="Acesso Global"
+                            desc="Gerencie suas finanças de qualquer lugar do mundo, em qualquer dispositivo, a qualquer hora."
+                            variant="cyan"
                         />
                     </div>
                 </div>
