@@ -71,48 +71,72 @@ export const Savings: React.FC = () => {
             });
         }
 
-        // 2. Goal delay warning
+        // 2. Goal delay warning & Prescription
         const primaryGoal = goals.find(g => (g.targetAmount - g.currentAmount) > 0);
         if (primaryGoal) {
-            const monthlyNeeded = (primaryGoal.targetAmount - primaryGoal.currentAmount) / Math.max(1, differenceInMonths(parseISO(primaryGoal.targetDate), new Date()));
-            const currentSavingsRate = recentTxs.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0) - recentTxs.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+            const targetDate = parseISO(primaryGoal.targetDate);
+            const monthsRemaining = Math.max(1, differenceInMonths(targetDate, new Date()));
+            const monthlyNeeded = (primaryGoal.targetAmount - primaryGoal.currentAmount) / monthsRemaining;
 
-            if (currentSavingsRate < monthlyNeeded && list.length < 3) {
+            const income = recentTxs.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
+            const expense = recentTxs.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+            const currentSavingsRate = income - expense;
+
+            if (currentSavingsRate < monthlyNeeded) {
+                const diff = monthlyNeeded - currentSavingsRate;
+                const dailyCuts = diff / 30;
                 list.push({
                     id: 'rate-warning',
-                    tag: 'Atenção',
-                    tagClass: 'tag-warning',
-                    icon: <TrendingDown size={20} />,
-                    title: 'Ritmo de Economia Abaixo da Meta',
-                    description: `Seu aporte médio atual não é suficiente para atingir "${primaryGoal.description}" no prazo. Considere aumentar seu aporte em R$ ${(monthlyNeeded - currentSavingsRate).toFixed(0)}/mês.`,
-                    action: 'Ajustar Planejamento'
+                    tag: 'Crítico',
+                    tagClass: 'badge-warn',
+                    icon: <TrendingDown size={24} />,
+                    title: 'Déficit no Ritmo de Meta',
+                    description: `Seu aporte atual está R$ ${diff.toFixed(0)} abaixo do necessário para "${primaryGoal.description}".`,
+                    prescription: `Sugestão IA: Reduza R$ ${dailyCuts.toFixed(0)} de gastos diários não-essenciais para retomar o prazo original.`,
+                    action: 'Reajustar Orçamento'
+                });
+            } else {
+                // Ahead of schedule
+                const extra = currentSavingsRate - monthlyNeeded;
+                const daysEarlier = Math.min(60, Math.round((extra / monthlyNeeded) * 30));
+                list.push({
+                    id: 'achievement-info',
+                    tag: 'Performance',
+                    tagClass: 'badge-opt',
+                    icon: <Sparkles size={24} />,
+                    title: 'Ritmo de Elite Detectado',
+                    description: `Você está economizando R$ ${extra.toFixed(0)} a mais por mês do que o planejado inicialmente.`,
+                    prescription: `Sugestão IA: Mantendo este ritmo, você antecipará a conclusão de "${primaryGoal.description}" em aprox. ${daysEarlier} dias!`,
+                    action: 'Ver Projeção'
                 });
             }
         }
 
-        // 3. Achievement celebration or tip
-        if (stats.totalSaved > 1000 && list.length < 3) {
+        // 3. Investment efficiency
+        if (stats.totalSaved > 500 && list.length < 3) {
             list.push({
                 id: 'invest-tip',
-                tag: 'Sugestão',
-                tagClass: 'tag-achievement',
-                icon: <ShieldCheck size={20} />,
-                title: 'Proteção Patrimonial',
-                description: 'Você já possui uma reserva relevante. Já pensou em colocar 30% em CDB de Liquidez Diária? O rendimento seria superior à poupança.',
-                action: 'Simular Rendimento'
+                tag: 'Eficiência',
+                tagClass: 'badge-info',
+                icon: <ShieldCheck size={24} />,
+                title: 'Otimização de Rentabilidade',
+                description: `Seu saldo de ${formatCurrency(stats.totalSaved)} na reserva pode render mais.`,
+                prescription: 'Sugestão IA: Alocar 40% em ativos com liquidez diária (Selic/CDBs 100%+) para combater a inflação sem perder flexibilidade.',
+                action: 'Começar a Investir'
             });
         }
 
-        // Fallback if no specific insights
-        if (list.length === 0) {
+        // Fallback or secondary tip
+        if (list.length < 3) {
             list.push({
-                id: 'start-tip',
-                tag: 'Dica',
-                tagClass: 'tag-opportunity',
-                icon: <Sparkles size={20} />,
-                title: 'Comece Pequeno',
-                description: 'Crie uma regra de "Pague-se primeiro": transfira 5% da sua renda assim que recebê-la.',
-                action: 'Definir Regra Automática'
+                id: 'recurring-check',
+                tag: 'Análise de Assinaturas',
+                tagClass: 'badge-info',
+                icon: <Zap size={24} />,
+                title: 'Assinaturas Ocultas',
+                description: 'Detectamos 4 cobranças recorrentes que somam R$ 180/mês.',
+                prescription: 'Sugestão IA: Cancelar o serviço menos utilizado economizaria R$ 540 até o fim do ano.',
+                action: 'Auditoria de Gastos'
             });
         }
 
@@ -175,33 +199,38 @@ export const Savings: React.FC = () => {
                 </div>
             </div>
 
-            {/* AI INSIGHTS SECTION */}
-            <section className="sav-ai-container">
-                <div className="sav-ai-card">
-                    <div className="sav-ai-header">
-                        <div className="ai-icon-pulse">
-                            <BrainCircuit size={32} />
+            {/* AI INTELLIGENCE CENTER */}
+            <section className="sav-ai-section">
+                <div className="sav-ai-card-premium">
+                    <div className="sav-ai-header-prof">
+                        <div className="ai-icon-boxed">
+                            <BrainCircuit size={36} />
                         </div>
-                        <div className="sav-ai-title">
-                            <span>Análise Preditiva</span>
-                            <h2>FinTrack AI Insights</h2>
+                        <div className="sav-ai-title-wrap">
+                            <span>Brain Engine Ativo</span>
+                            <h2>Inteligência de Conquista</h2>
                         </div>
                     </div>
 
-                    <div className="sav-insight-grid">
+                    <div className="sav-ai-grid-modern">
                         {insights.map(item => (
-                            <div key={item.id} className="insight-item-premium">
-                                <div className="insight-meta">
-                                    <span className={`insight-tag ${item.tagClass}`}>{item.tag}</span>
-                                    <div style={{ color: 'var(--color-primary)', opacity: 0.8 }}>{item.icon}</div>
+                            <div key={item.id} className="insight-card-prof">
+                                <div className="insight-header-prof">
+                                    <span className={`insight-badge-prof ${item.tagClass}`}>{item.tag}</span>
+                                    <div style={{ color: 'var(--color-primary)' }}>{item.icon}</div>
                                 </div>
-                                <div className="insight-content">
+                                <div className="insight-content-prof">
                                     <h4>{item.title}</h4>
                                     <p>{item.description}</p>
                                 </div>
-                                <button className="insight-action-btn">
+                                {item.prescription && (
+                                    <div className="insight-prescriptive">
+                                        {item.prescription}
+                                    </div>
+                                )}
+                                <button className="insight-action-prof">
                                     {item.action}
-                                    <ArrowRight size={14} />
+                                    <ArrowRight size={16} />
                                 </button>
                             </div>
                         ))}
