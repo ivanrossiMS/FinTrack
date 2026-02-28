@@ -192,11 +192,58 @@
     max-width: 520px;
 }
 
+.hero-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
 .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 1.25rem;
-    margin-bottom: 2rem;
+}
+
+.hero-easy-login-link {
+    color: var(--lp-text-muted);
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: fit-content;
+}
+
+.hero-easy-login-link strong {
+    color: var(--color-primary, #2563EB);
+    font-weight: 700;
+}
+
+.hero-easy-login-link:hover {
+    color: var(--lp-text);
+    transform: translateX(4px);
+}
+
+.hero-promo-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(37, 99, 235, 0.05);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    padding: 0.75rem 1.25rem;
+    border-radius: 100px;
+    width: fit-content;
+    font-size: 0.9rem;
+    color: var(--lp-text-muted);
+    backdrop-filter: blur(8px);
+}
+
+.promo-check {
+    color: #10b981;
+}
+
+.hero-promo-badge strong {
+    color: #2563EB;
+    margin-left: 4px;
 }
 
 .btn-hero-primary {
@@ -238,18 +285,8 @@
     border-color: var(--lp-text-muted);
 }
 
-.hero-trust-bar {
-    display: flex;
-    gap: 2rem;
-}
-
-.trust-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--lp-text-muted);
+font-weight: 600;
+color: var(--lp-text-muted);
 }
 
 /* UI MOCKUP HERO */

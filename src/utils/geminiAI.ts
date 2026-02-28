@@ -143,19 +143,42 @@ export async function parseTransactionWithAI(
 
 Sua função é analisar uma frase curta em português falada no assistente IA, extrair o valor e classificar o lançamento em UMA categoria existente do sistema.
 
+CONHECIMENTO DE CATEGORIZAÇÃO (GUIA DE REFERÊNCIA):
+- Alimentação: almoço, jantar, lanche, restaurante, ifood, uber eats, marmita, pizza, hamburguer, açaí, padaria, café, cafeteria, sorveteria, churrasco, água, refri, energético, cerveja, vinho.
+- Assinaturas: Netflix, Prime Video, Amazon Prime, Disney+, Max, Apple TV+, GloboPlay, Spotify, Deezer, YouTube Premium, iCloud, Google One, Microsoft 365, Adobe, Canva, ChatGPT, Notion, Trello, Dropbox, Kindle Unlimited, Xbox Game Pass, PlayStation Plus.
+- Beleza e autocuidado: cabelo, barbearia, salão, escova, progressiva, tintura, unha, manicure, pedicure, skin care, hidratante, perfume, maquiagem, depilação, sobrancelha, massagem, spa.
+- Cartão de crédito: fatura do cartão, fatura, anuidade, parcela do cartão, juros do cartão, rotativo, Nubank, Inter, Itaú card, Santander card (quando sobre pagamento/fatura).
+- Casa e manutenção: conserto, manutenção, pedreiro, pintor, eletricista, encanador, material de construção, cimento, tinta, ferramentas, móveis, sofá, colchão, cama, guarda-roupa, jardinagem, corte de grama.
+- Compras/mercado: mercado, supermercado, atacadão, assai, carrefour, big, pão de açúcar, hortifruti, feira, açougue, produtos de limpeza, detergente, sabão, papel higiênico, compra do mês, rancho.
+- Contas: internet, wifi, banda larga, claro net, vivo fibra, oi fibra, luz, energia, água, esgoto, gás, telefone, celular, plano móvel, condomínio.
+- Dívidas/Empréstimos: empréstimo, parcelamento, financiamento, consignado, acordo, renegociação, serasa, boleto do empréstimo, parcela do financiamento.
+- Educação e livros: mensalidade escolar, escola, colégio, faculdade, curso, apostila, livro, material escolar, caderno, uniforme escolar, aula particular, reforço, idiomas, inglês.
+- Impostos e taxas: IPTU, IPVA, IR, imposto de renda, taxa, multa, cartório, licenciamento, detran, guia, DARF, DAS, multa de trânsito.
+- Investimentos: apliquei, investi, aporte, renda fixa, Tesouro, CDB, LCI, LCA, ações, ETF, FII, fundos, corretora, XP, Rico, NuInvest.
+- Lazer: cinema, show, teatro, bar, balada, passeio, parque, ingresso, evento.
+- Pets e cuidado: ração, pet shop, banho e tosa, veterinário, vacina do pet, remédio do pet, areia, tapete higiênico.
+- Presentes e doações: presente, lembrancinha, aniversário, doação, igreja, dízimo, vaquinha, ação social, ONG.
+- Saúde: farmácia, remédio, medicamento, consulta, médico, exame, laboratório, dentista, ortodontia, fisioterapia, psicólogo, terapia, academia.
+- Seguros: seguro do carro, seguro automóvel, seguro residencial, seguro de vida, seguro viagem, proteção, assistência 24h.
+- Tecnologia: celular, iphone, android, tablet, notebook, computador, mouse, teclado, monitor, impressora, assistência técnica, conserto do celular, app, software.
+- Transporte/Veículos: gasolina, combustível, etanol, álcool, diesel, posto, abasteci, abastecimento, uber, 99, taxi, ônibus, metrô, passagem, estacionamento, zona azul, lavagem, lava jato, pneu, troca de óleo, oficina, mecânico, revisão, alinhamento, balanceamento, bateria.
+- Vestuários: roupa, camisa, calça, sapato, tênis, loja, shopping, moda, vestido, conserto de roupa, costureira, uniforme.
+- Viagens: hotel, pousada, airbnb, passagem, voo, aéreo, milhas, aluguel de carro, transfer, passeio, excursão, tour, seguro viagem.
+
+REGRAS DE PRIORIDADE:
+1) Se tiver "fatura", "rotativo", "anuidade" -> Cartão de crédito
+2) Se tiver "mensalidade", "apostila", "curso" -> Educação e livros
+3) Se tiver "hotel", "passagem", "airbnb" -> Viagens
+4) Se tiver "spotify/netflix/youtube premium" -> Assinaturas
+5) Se tiver "posto/abasteci/gasolina" -> Transporte/Veículos
+6) Se não identificar COM CONFIANÇA -> Extras
+
 REGRAS GERAIS:
 1) Nunca invente categorias fora da lista.
 2) Sempre retorne exatamente um tipo: "RECEITA" ou "DESPESA".
 3) Sempre retorne exatamente uma categoria do tipo escolhido.
-4) Quando não identificar a categoria com confiança, use:
-   - DESPESA -> "Extras"
-   - RECEITA -> "Rendimentos"
-5) Se houver conflito entre palavras, priorize a palavra mais específica. Ex: "farmácia pet" -> "Pets & Cuidado"
-6) Aceite erros de digitação, abreviações e fala informal.
-7) Se o valor não estiver claro, tente extrair mesmo assim. Se não conseguir, retorne valor = null.
-8) Se a frase não indicar claramente se é receita ou despesa, use contexto da palavra-chave.
-9) Se ainda ambíguo, assumir DESPESA e categoria "Extras".
-10) Se o usuário falar valores como "um conto", "dois paus", "cinquenta pilas", entenda como Moeda Corrente (BRL).
+4) Se o valor não estiver claro, retorne valor = null.
+5) Aceite informalidades: "um conto", "dois paus", "cinquenta pilas" = BRL.
 
 EXEMPLOS DE APRENDIZADO RECENTES (USE COMO REFERÊNCIA):
 ${examplesText}

@@ -55,7 +55,7 @@ const PAYMENT_SIGNALS = new Set(['pix', 'crédito', 'credito', 'débito', 'debit
 const INCOME_KEYWORDS = [
     'recebi', 'ganhei', 'salário', 'salario', 'renda', 'pix recebido',
     'venda', 'provento', 'receita', 'depósito', 'deposito', 'freelance',
-    'entrou', 'transferência recebida', 'reembolso', 'dividendos',
+    'entrou', 'transferência recebida', 'reembolso', 'dividendos', 'rendimento', 'aporte extra',
 ];
 
 const EXPENSE_KEYWORDS = [
@@ -72,7 +72,8 @@ const CATEGORY_HINTS: { keywords: string[]; themes: string[] }[] = [
     },
     {
         keywords: ['almoço', 'almoco', 'jantar', 'ifood', 'rappi', 'lanche', 'restaurante', 'padaria', 'pão', 'pao', 'misto', 'bauru', 'café', 'cafe',
-            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira'],
+            'pizza', 'hamburguer', 'hamburger', 'sushi', 'comida', 'feira', 'uber eats', 'marmita', 'açaí', 'cafeteria', 'sorveteria', 'churrasco',
+            'água', 'refri', 'refrigerante', 'energético', 'cerveja', 'vinho', 'chopp'],
         themes: ['Alimentação'],
     },
     {
