@@ -156,48 +156,33 @@ export const LandingPage: React.FC = () => {
                     <div className="cta-box">
                         <h2 className="cta-title">Sua jornada para a liberdade começa aqui.</h2>
                         <p className="cta-text">
-                            Junte-se a milhares de pessoas que já transformaram sua relação com o dinheiro usando o FinTrack.
+                            Aproveite que é totalmente grátis por tempo limitado! Junte-se a milhares de pessoas que já transformaram sua relação com o dinheiro.
                         </p>
                         <Link to="/register" className="btn-cta-final">
-                            Ativar meu acesso Premium
+                            Ativar meu acesso Gratuito
                         </Link>
-                        <p className="cta-footer-note">Test drive gratuito por 7 dias. Sem compromisso.</p>
+                        <p className="cta-footer-note">Sem cartões, sem pegadinhas. Acesso livre por tempo limitado.</p>
                     </div>
                 </div>
             </section>
 
             <footer className="landing-footer">
                 <div className="landing-container">
-                    <div className="footer-grid">
-                        <div className="footer-brand">
-                            <div className="landing-logo">
-                                <div className="logo-icon-wrap">
-                                    <TrendingUp size={22} strokeWidth={3} />
-                                </div>
-                                <span className="logo-text">FinTrack</span>
-                            </div>
-                            <p className="footer-desc">
-                                A tecnologia mais avançada aplicada à sua gestão financeira pessoal.
-                            </p>
-                        </div>
-                        <div className="footer-links">
-                            <div className="footer-link-group">
-                                <h4>Produto</h4>
-                                <Link to="/demo">Demo</Link>
-                                <Link to="/features">Recursos</Link>
-                            </div>
-                            <div className="footer-link-group">
-                                <h4>Legal</h4>
-                                <Link to="/privacy">Privacidade</Link>
-                                <Link to="/terms">Termos</Link>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="footer-bottom">
-                        <p>&copy; 2026 FinTrack Elite. Todos os direitos reservados.</p>
-                    </div>
+                    <Link to="/demo">Demo</Link>
+                    <Link to="/features">Recursos</Link>
                 </div>
-            </footer>
+                <div className="footer-link-group">
+                    <h4>Legal</h4>
+                    <Link to="/privacy">Privacidade</Link>
+                    <Link to="/terms">Termos</Link>
+                </div>
         </div>
+                    </div >
+    <div className="footer-bottom">
+        <p>&copy; 2026 FinTrack Elite. Todos os direitos reservados.</p>
+    </div>
+                </div >
+            </footer >
+        </div >
     );
 };
