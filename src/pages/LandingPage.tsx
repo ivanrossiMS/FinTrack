@@ -15,7 +15,7 @@ import {
     Zap
 } from 'lucide-react';
 import './LandingPage.css';
-import HeroMockup from '../assets/hero-mockup-new.png';
+import HeroMockup from '../assets/hero-dashboard-new.png';
 
 const FeatureCard = ({ icon, title, desc, variant = 'blue' }: { icon: any, title: string, desc: string, variant?: string }) => (
     <div className="feature-card-elite">
