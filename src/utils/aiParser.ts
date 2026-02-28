@@ -72,37 +72,36 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "playstation plus", "assinatura", "assinaturas", "mensalidade de app"
     ],
     'beleza e autocuidado': [
-        "salao", "salão", "cabelo", "barbearia", "corte", "escova", "progressiva", "tintura", "unha", "manicure", "pedicure",
-        "skin care", "skincare", "hidratante", "perfume", "maquiagem", "massagem", "spa", "depilacao", "depilação", "shampoo", "creme"
+        "salao", "salão", "cabelo", "barbearia", "corte", "escova", "progressiva", "tintura",
+        "manicure", "pedicure", "unha", "sobrancelha", "depilacao", "depilação",
+        "skin care", "skincare", "hidratante", "perfume", "maquiagem", "massagem", "spa"
     ],
     'cartão de credito': [
         "fatura", "fatura do cartao", "fatura do cartão", "cartao", "cartão", "anuidade", "rotativo", "juros do cartao",
-        "parcelamento do cartao", "parcela do cartao", "nubank", "inter card", "mastercard", "visa", "crédito", "credito"
+        "parcelamento do cartao", "parcela do cartao", "nubank fatura", "itau card", "santander card", "inter card"
     ],
     'casa e manutencao': [
         "conserto", "manutencao", "manutenção", "pedreiro", "pintor", "eletricista", "encanador",
         "material de construcao", "material de construção", "cimento", "tinta", "ferramenta", "ferramentas",
-        "movel", "móvel", "sofa", "sofá", "colchao", "colchão", "cama", "guarda-roupa", "jardinagem", "corte de grama",
-        "reforma", "pintura", "torneira", "chuveiro", "lampada", "móveis", "decoracao", "decoração", "limpeza", "faxina"
+        "movel", "móvel", "sofa", "sofá", "colchao", "colchão", "cama", "guarda-roupa", "jardinagem", "corte de grama"
     ],
     'compras/mercado': [
         "mercado", "supermercado", "atacadao", "atacadão", "assai", "açai atacadista", "carrefour", "pao de acucar",
         "pão de açúcar", "hortifruti", "feira", "acougue", "açougue", "rancho", "compra do mes", "compra do mês",
-        "produtos de limpeza", "detergente", "sabao", "sabão", "papel higienico", "papel higiênico", "compras", "extra", "atacado"
+        "produtos de limpeza", "detergente", "sabao", "sabão", "papel higienico", "papel higiênico"
     ],
     'contas': [
         "internet", "wifi", "banda larga", "vivo fibra", "claro net", "oi fibra",
         "luz", "energia", "agua", "água", "esgoto", "gas", "gás",
-        "telefone", "celular", "plano", "condominio", "condomínio", "boleto de conta", "fixos"
+        "telefone", "celular", "plano", "condominio", "condomínio", "boleto de conta"
     ],
     'dividas/emprestimos': [
         "emprestimo", "empréstimo", "financiamento", "consignado", "acordo", "renegociacao", "renegociação",
-        "serasa", "parcela do financiamento", "parcela do emprestimo", "boleto do emprestimo", "boleto do empréstimo",
-        "divida", "dívida", "juros", "quitar", "shopee parcelado"
+        "serasa", "parcela do financiamento", "parcela do emprestimo", "boleto do emprestimo", "boleto do empréstimo"
     ],
     'educacao e livros': [
         "mensalidade escolar", "mensalidade", "escola", "colegio", "colégio", "faculdade", "curso", "idioma", "ingles", "inglês",
-        "apostila", "livro", "material escolar", "caderno", "reforco", "reforço", "aula particular", "udemy", "hotmart"
+        "apostila", "livro", "material escolar", "caderno", "reforco", "reforço", "aula particular"
     ],
     'extras': [
         "diversos", "outros", "imprevisto", "extra", "avulso", "aleatorio", "aleatório"
@@ -139,7 +138,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "celular", "iphone", "tablet", "notebook", "computador", "pc", "monitor", "mouse", "teclado", "impressora",
         "assistencia tecnica", "assistência técnica", "conserto do celular", "hardware", "eletronico", "eletrônico"
     ],
-    'transporte/veiculos': [
+    'tranposte/vekiculos': [
         "gasolina", "combustivel", "combustível", "etanol", "alcool", "álcool", "diesel",
         "posto", "abasteci", "abastecimento",
         "uber", "99", "taxi", "táxi", "onibus", "ônibus", "metro", "metrô", "passagem",
@@ -162,7 +161,7 @@ const PRIORITY_ORDER = [
     'viagens',
     'assinaturas',
     'contas',
-    'transporte/veiculos',
+    'tranposte/vekiculos',
     'compras/mercado',
     'educacao e livros',
     'saude',
@@ -174,9 +173,36 @@ const PRIORITY_ORDER = [
     'investimentos',
     'beleza e autocuidado',
     'lazer',
+    'seguros',
+    'tecnologia',
     'dividas/emprestimos',
     'alimentacao'
 ];
+
+// Helper to map user display names/slugs to official system IDs
+const CATEGORY_MAP: Record<string, string> = {
+    'alimentacao': 'cat_alimentacao',
+    'assinaturas': 'cat_assinaturas',
+    'beleza e autocuidado': 'cat_beleza',
+    'cartão de credito': 'cat_cartao',
+    'casa e manutencao': 'cat_casa_manut',
+    'compras/mercado': 'cat_mercado',
+    'contas': 'cat_contas_casa',
+    'dividas/emprestimos': 'cat_dividas',
+    'educacao e livros': 'cat_educacao',
+    'extras': 'cat_extras',
+    'impostos e taxas': 'cat_impostos',
+    'investimentos': 'cat_investimentos',
+    'lazer': 'cat_lazer',
+    'pets e cuidado': 'cat_pets',
+    'presentes e doacoes': 'cat_presentes',
+    'saude': 'cat_saude',
+    'seguros': 'cat_seguros',
+    'tecnologia': 'cat_tecnologia',
+    'tranposte/vekiculos': 'cat_transporte',
+    'vestuarios': 'cat_vestuario',
+    'viagens': 'cat_viagens'
+};
 
 function normalise(s: string): string {
     return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.,!?;:]/g, '');
@@ -232,10 +258,10 @@ export const parseTranscription = (
     let date = format(new Date(), 'yyyy-MM-dd');
     let categoryId = '';
     // FORÇAR "Dinheiro" como padrão prioritário se não houver detecção
-    const defaultPM = paymentMethods.find(m => m.name.toUpperCase().includes('DINHEIRO')) || paymentMethods[0];
+    const defaultPM = paymentMethods.find(m => m.id === 'pm_dinheiro') || paymentMethods[0];
     let paymentMethodId = defaultPM?.id;
     let supplierId: string | undefined;
-    let confidence = 0.4;
+    let confidence = 0.5;
 
     const isIncome = INCOME_KEYWORDS.some(kw => norm.includes(normalise(kw)));
     const isExpense = EXPENSE_KEYWORDS.some(kw => norm.includes(normalise(kw)));
@@ -317,9 +343,10 @@ export const parseTranscriptionAsync = async (
     try {
         const aiResult = await parseTransactionWithAI(text, examples);
 
-        if (aiResult && aiResult.confianca > 0.6) {
-            const cat = categories.find(c => normalise(c.name) === normalise(aiResult.categoria)) ||
-                categories.find(c => c.name.toLowerCase() === 'extras') ||
+        if (aiResult && aiResult.confianca >= 0.8) {
+            const mappedId = CATEGORY_MAP[aiResult.categoria];
+            const cat = categories.find(c => c.id === mappedId) ||
+                categories.find(c => c.id === 'cat_extras') ||
                 categories[0];
 
             return {

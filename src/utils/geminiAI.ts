@@ -160,7 +160,7 @@ LISTA OBRIGATÓRIA DE CATEGORIAS:
 16) saude
 17) seguros
 18) tecnologia
-19) transporte/veiculos
+19) tranposte/vekiculos
 20) vestuarios
 21) viagens
 
@@ -169,7 +169,7 @@ REGRAS DE CLASSIFICAÇÃO (PRIORIDADE):
 2. Viagens: se citar "hotel", "airbnb", "passagem aérea", "turismo".
 3. Assinaturas: se citar "netflix", "spotify", "mensalidade de app", "disney".
 4. Contas: se citar "luz", "água", "internet", "gás", "boletos fixos".
-5. Transporte/Veículos: se citar "gasolina", "uber", "99", "oficina", "combustível".
+5. tranposte/vekiculos: se citar "gasolina", "uber", "99", "oficina", "combustível".
 6. Educação e Livros: se citar "curso", "faculdade", "escola", "livro".
 7. Alimentação: se citar "comida", "ifood", "almoço", "jantar", "restaurante".
 8. Compras/Mercado: se citar "mercado", "supermercado", "compras do mês".
