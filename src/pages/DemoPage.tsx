@@ -7,7 +7,6 @@ import {
     Target,
     BarChart3,
     TrendingUp,
-    Sparkles,
     Mic,
     Volume2,
     ShieldCheck,
