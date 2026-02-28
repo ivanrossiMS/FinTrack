@@ -256,7 +256,8 @@ export const parseTranscription = (
     let amount = 0;
     let date = format(new Date(), 'yyyy-MM-dd');
     let categoryId = '';
-    const defaultPM = paymentMethods.find(m => normalise(m.name).includes('dinheiro')) || paymentMethods[0];
+    // FORÇAR "Dinheiro" como padrão prioritário se não houver detecção
+    const defaultPM = paymentMethods.find(m => m.name.toUpperCase().includes('DINHEIRO')) || paymentMethods[0];
     let paymentMethodId = defaultPM?.id;
     let supplierId: string | undefined;
     let confidence = 0.4;

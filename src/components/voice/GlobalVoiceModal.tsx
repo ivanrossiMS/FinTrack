@@ -306,6 +306,10 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                             });
 
                             close();
+                            // FORÇAR REFRESH PARA O USUÁRIO VER O LANÇAMENTO IMEDIATAMENTE
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
                         } catch (err) {
                             console.error('Auto-save error:', err);
                             setErrorMsg('Erro ao salvar automaticamente.');

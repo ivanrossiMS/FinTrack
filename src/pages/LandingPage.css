@@ -311,7 +311,7 @@
 
 @media (max-width: 1024px) {
     .hero-visual {
-        display: none;
+        display: none !important;
     }
 }
 
