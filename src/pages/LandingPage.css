@@ -285,10 +285,6 @@
     border-color: var(--lp-text-muted);
 }
 
-font-weight: 600;
-color: var(--lp-text-muted);
-}
-
 /* UI MOCKUP HERO */
 .hero-mockup-img {
     width: 100%;
