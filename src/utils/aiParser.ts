@@ -63,80 +63,93 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "almoco", "almoço", "jantar", "lanche", "restaurante", "lanchonete", "padaria", "cafe", "café", "cafeteria",
         "ifood", "i-food", "uber eats", "ubereats", "delivery", "pizza", "hamburguer", "hambúrguer", "acai", "açaí",
         "sorvete", "sorveteria", "churrasco", "refeicao", "refeição", "bebida", "agua", "água", "refrigerante", "refri",
-        "suco", "energético", "energetico"
+        "suco", "energético", "energetico", "mcdonalds", "mc donalds", "bk", "burger king", "subway", "pastel", "pizzaria",
+        "espetinho", "marmita", "quentinha", "vr", "vale refeicao", "vale refeição", "alimentacao", "alimentação", "va"
     ],
     'assinaturas': [
         "netflix", "amazon prime", "prime video", "primevideo", "disney", "disney+", "hbo", "max", "globoplay", "globo play",
         "spotify", "deezer", "youtube premium", "yt premium", "icloud", "google one", "microsoft 365", "office 365",
         "adobe", "canva", "chatgpt", "notion", "dropbox", "kindle unlimited", "game pass", "xbox game pass", "ps plus",
-        "playstation plus", "assinatura", "assinaturas", "mensalidade de app", "youtube"
+        "playstation plus", "assinatura", "assinaturas", "mensalidade de app", "youtube", "star+", "crunchyroll", "deezer",
+        "tidal", "apple music", "onlyfans", "patreon", "twitch", "discord nitro"
     ],
     'beleza e autocuidado': [
         "salao", "salão", "cabelo", "barbearia", "corte", "escova", "progressiva", "tintura",
         "manicure", "pedicure", "unha", "sobrancelha", "depilacao", "depilação",
-        "skin care", "skincare", "hidratante", "perfume", "maquiagem", "massagem", "spa"
+        "skin care", "skincare", "hidratante", "perfume", "maquiagem", "massagem", "spa", "cosmetico", "cosmético",
+        "batom", "shampoo", "condicionador", "creme", "barba", "bigode", "estetica", "estética"
     ],
     'cartão de credito': [
         "fatura", "fatura do cartao", "fatura do cartão", "cartao", "cartão", "anuidade", "rotativo", "juros do cartao",
-        "parcelamento do cartao", "parcela do cartao", "nubank fatura", "itau card", "santander card", "inter card"
+        "parcelamento do cartao", "parcela do cartao", "nubank fatura", "itau card", "santander card", "inter card",
+        "limite do cartao", "pagamento fatura", "cartao de credito", "cartão de crédito", "mastercard", "visa", "amex"
     ],
     'casa e manutencao': [
         "conserto", "manutencao", "manutenção", "pedreiro", "pintor", "eletricista", "encanador",
         "material de construcao", "material de construção", "cimento", "tinta", "ferramenta", "ferramentas",
-        "movel", "móvel", "sofa", "sofá", "colchao", "colchão", "cama", "guarda-roupa", "jardinagem", "corte de grama"
+        "movel", "móvel", "sofa", "sofá", "colchao", "colchão", "cama", "guarda-roupa", "jardinagem", "corte de grama",
+        "reforma", "obra", "telha", "tijolo", "fio", "lampada", "lâmpada", "torneira", "chuveiro", "vassoura", "rodo"
     ],
     'compras/mercado': [
         "mercado", "supermercado", "atacadao", "atacadão", "assai", "açai atacadista", "carrefour", "pao de acucar",
         "pão de açúcar", "hortifruti", "feira", "acougue", "açougue", "rancho", "compra do mes", "compra do mês",
-        "produtos de limpeza", "detergente", "sabao", "sabão", "papel higienico", "papel higiênico"
+        "produtos de limpeza", "detergente", "sabao", "sabão", "papel higienico", "papel higiênico", "bahamas", "epa",
+        "supermercados", "sacolao", "sacolão", "peixaria", "mercearia", "arroz", "feijao", "leite", "carne"
     ],
     'contas': [
         "internet", "wifi", "banda larga", "vivo fibra", "claro net", "oi fibra",
         "luz", "energia", "agua", "água", "esgoto", "gas", "gás",
-        "telefone", "celular", "plano", "condominio", "condomínio", "boleto de conta"
+        "telefone", "celular", "plano", "condominio", "condomínio", "boleto de conta", "conta de luz", "conta de agua",
+        "conta de telefone", "tim", "claro", "vivo", "oi", "sky", "aluguel"
     ],
     'dividas/emprestimos': [
         "emprestimo", "empréstimo", "financiamento", "consignado", "acordo", "renegociacao", "renegociação",
-        "serasa", "parcela do financiamento", "parcela do emprestimo", "boleto do emprestimo", "boleto do empréstimo"
+        "serasa", "parcela do financiamento", "parcela do emprestimo", "boleto do emprestimo", "boleto do empréstimo",
+        "divida", "dívida", "quitar", "parcelas", "juros"
     ],
     'educacao e livros': [
         "mensalidade escolar", "mensalidade", "escola", "colegio", "colégio", "faculdade", "curso", "idioma", "ingles", "inglês",
-        "apostila", "livro", "material escolar", "caderno", "reforco", "reforço", "aula particular"
+        "apostila", "livro", "material escolar", "caderno", "reforco", "reforço", "aula particular", "pos", "pós", "mba",
+        "graduacao", "graduação", "udemy", "alura", "hotmart"
     ],
     'extras': [
-        "diversos", "outros", "imprevisto", "extra", "avulso", "aleatorio", "aleatório"
+        "diversos", "outros", "imprevisto", "extra", "avulso", "aleatorio", "aleatório", "coisa", "bagulhinho", "treco"
     ],
     'impostos e taxas': [
         "iptu", "ipva", "ir", "imposto de renda", "darf", "das", "licenciamento", "detran",
-        "multa", "multa de transito", "multa de trânsito", "taxa", "cartorio", "cartório"
+        "multa", "multa de transito", "multa de trânsito", "taxa", "cartorio", "cartório", "mei", "simples nacional",
+        "prefeitura", "receita federal", "tributo", "taxas"
     ],
     'investimentos': [
         "investi", "investimento", "aporte", "apliquei", "tesouro", "cdb", "lci", "lca", "acoes", "ações",
-        "etf", "fii", "fundo", "fundos", "corretora", "xp", "rico", "nuinvest"
+        "etf", "fii", "fundo", "fundos", "corretora", "xp", "rico", "nuinvest", "binance", "bitget", "crypto", "bitcoin"
     ],
     'lazer': [
-        "cinema", "show", "teatro", "bar", "balada", "ingresso", "evento", "passeio", "parque"
+        "cinema", "show", "teatro", "bar", "balada", "ingresso", "evento", "passeio", "parque", "viagem", "ferias",
+        "férias", "clube", "piscina", "cerveja", "chopp", "drink", "festa"
     ],
     'pets e cuidado': [
         "pet", "pet shop", "petshop", "racao", "ração", "banho e tosa", "veterinario", "veterinário",
-        "vacina do pet", "areia", "tapete higienico", "tapete higiênico"
+        "vacina do pet", "areia", "tapete higienico", "tapete higiênico", "coleira", "brinquedo pet", "gato", "cachorro"
     ],
     'presentes e doacoes': [
         "presente", "lembrancinha", "aniversario", "aniversário", "doacao", "doação", "dizimo", "dízimo",
-        "igreja", "ong", "vaquinha"
+        "igreja", "ong", "vaquinha", "caridade", "presentinho", "mimo"
     ],
     'saude': [
         "farmacia", "farmácia", "remedio", "remédio", "medicamento",
         "consulta", "medico", "médico", "exame", "laboratorio", "laboratório",
-        "dentista", "psicologo", "psicólogo", "terapia", "fisioterapia", "academia"
+        "dentista", "psicologo", "psicólogo", "terapia", "fisioterapia", "academia", "hospital", "clinica", "clínica",
+        "plano de saude", "plano de saúde", "unimed", "bradesco saude", "check-up", "psicologa", "dentaria"
     ],
     'seguros': [
         "seguro", "seguro do carro", "seguro automovel", "seguro automóvel", "seguro residencial", "seguro de vida",
-        "seguro viagem", "assistencia 24h", "assistência 24h", "proteção veicular"
+        "seguro viagem", "assistencia 24h", "assistência 24h", "proteção veicular", "ituran", "porto seguro", "bradesco seguros"
     ],
     'tecnologia': [
         "celular", "iphone", "tablet", "notebook", "computador", "pc", "monitor", "mouse", "teclado", "impressora",
-        "assistencia tecnica", "assistência técnica", "conserto do celular", "hardware", "eletronico", "eletrônico"
+        "assistencia tecnica", "assistência técnica", "conserto do celular", "hardware", "eletronico", "eletrônico",
+        "carregador", "fone de ouvido", "headset", "gamer", "placa de video", "ssd", "ram"
     ],
     'transporte/veículos': [
         "gasolina", "combustivel", "combustível", "etanol", "alcool", "álcool", "diesel",
@@ -144,15 +157,16 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "uber", "99", "taxi", "táxi", "onibus", "ônibus", "metro", "metrô", "passagem",
         "estacionamento", "zona azul",
         "lava jato", "lavagem", "pneu", "troca de oleo", "troca de óleo", "oficina", "mecanico", "mecânico",
-        "revisao", "revisão", "alinhamento", "balanceamento", "bateria"
+        "revisao", "revisão", "alinhamento", "balanceamento", "bateria", "pedagio", "pedágio", "ipva", "multa"
     ],
     'vestuarios': [
         "roupa", "camisa", "calca", "calça", "sapato", "tenis", "tênis", "vestido", "shopping", "moda",
-        "costureira", "conserto de roupa", "loja de roupa"
+        "costureira", "conserto de roupa", "loja de roupa", "cueca", "calcinha", "meia", "jaqueta", "blusa", "short",
+        "bermuda", "saia", "tenis", "tênis", "sandalia", "sandália", "chinelo"
     ],
     'viagens': [
         "viagem", "hotel", "pousada", "airbnb", "passagem", "voo", "aereo", "aéreo", "milhas",
-        "aluguel de carro", "transfer", "tour", "excursao", "excursão"
+        "aluguel de carro", "transfer", "tour", "excursao", "excursão", "hospedagem", "turismo", "mala", "passaporte"
     ]
 };
 

@@ -138,8 +138,26 @@ export async function parseTransactionWithAI(
         })}`).join('\n')
         : 'Nenhum exemplo adicional disponível.';
 
-    const prompt = `Atue como um Engenheiro(a) de Machine Learning de Elite especializado em Finanças.
-Sua missão é extrair dados de um lançamento financeiro falado (transcrito) e classificar OBRIGATORIAMENTE em uma das 21 categorias abaixo.
+    const GOLDEN_EXAMPLES = `
+- "recebi quinhentos reais de bonus": {"tipo": "RECEITA", "valor": 500, "categoria": "extras", "descricao": "Bônus recebido", "confianca": 0.95}
+- "paguei a fatura do nubank 1200": {"tipo": "DESPESA", "valor": 1200, "categoria": "cartão de crédito", "descricao": "Fatura Nubank", "confianca": 0.98}
+- "aluguel mil e duzentos": {"tipo": "DESPESA", "valor": 1200, "categoria": "contas", "descricao": "Aluguel", "confianca": 0.95}
+- "cinquenta reais de gasolina": {"tipo": "DESPESA", "valor": 50, "categoria": "transporte/veículos", "descricao": "Gasolina", "confianca": 0.98}
+- "compra no carrefour 350": {"tipo": "DESPESA", "valor": 350, "categoria": "compras/mercado", "descricao": "Compra Carrefour", "confianca": 0.95}
+- "vendi meu celular por 800": {"tipo": "RECEITA", "valor": 800, "categoria": "extras", "descricao": "Venda de celular", "confianca": 0.90}
+- "mensalidade da netflix": {"tipo": "DESPESA", "valor": null, "categoria": "assinaturas", "descricao": "Netflix", "confianca": 0.99}
+- "comi um bauru de 25 reais": {"tipo": "DESPESA", "valor": 25, "categoria": "alimentação", "descricao": "Lanche/Bauru", "confianca": 0.95}
+- "consulta no dentista 200": {"tipo": "DESPESA", "valor": 200, "categoria": "saúde", "descricao": "Dentista", "confianca": 0.98}
+- "depositei 100 na poupança": {"tipo": "DESPESA", "valor": 100, "categoria": "investimentos", "descricao": "Depósito Poupança", "confianca": 0.92}
+`;
+
+    const prompt = `Atue como um Engenheiro(a) de Machine Learning e Analista Financeiro de Elite.
+Sua missão é extrair dados de um lançamento financeiro falado (transcrito) e classificar OBRIGATORIAMENTE em uma das 21 categorias permitidas.
+
+REGRAS DE OURO:
+1. Prioridade Extrema: Cartão de Crédito sempre vence se houver termos como "fatura" ou nomes de bancos.
+2. Descrição Limpa: Remova termos como "paguei", "gastei", "comprei" da descrição final.
+3. Inteligência de Valor: Entenda "cinquenta reais" como 50 e "mil e duzentos" como 1200.
 
 LISTA OBRIGATÓRIA DE CATEGORIAS:
 1) alimentação
@@ -168,8 +186,8 @@ REGRAS DE CLASSIFICAÇÃO (PRIORIDADE):
 1. Cartão de Crédito: se citar "fatura", "anuidade", "nubank", "inter card", etc.
 2. Viagens: se citar "hotel", "airbnb", "passagem aérea", "turismo".
 3. Assinaturas: se citar "netflix", "spotify", "mensalidade de app", "disney".
-4. Contas: se citar "luz", "água", "internet", "gás", "boletos fixos".
-5. tranposte/vekiculos: se citar "gasolina", "uber", "99", "oficina", "combustível".
+4. Contas: se citar "luz", "água", "internet", "gás", "boletos fixos", "aluguel".
+5. transporte/veículos: se citar "gasolina", "uber", "99", "oficina", "combustível".
 6. Educação e Livros: se citar "curso", "faculdade", "escola", "livro".
 7. Alimentação: se citar "comida", "ifood", "almoço", "jantar", "restaurante".
 8. Compras/Mercado: se citar "mercado", "supermercado", "compras do mês".
@@ -182,7 +200,10 @@ REGRAS GERAIS:
 - CONFIANÇA: 0.0 a 1.0. Se a categoria for baseada em regra clara, use > 0.9.
 - PRECISA_CONFIRMACAO: true se o valor for nulo ou a categoria for "extras".
 
-EXEMPLOS DE APRENDIZADO:
+CONJUNTO DE DADOS GOLDEN (REFERÊNCIA):
+${GOLDEN_EXAMPLES}
+
+EXEMPLOS DE APRENDIZADO DO USUÁRIO (HISTÓRICO):
 ${examplesText}
 
 TEXTO FALADO: "${text}"
