@@ -142,26 +142,26 @@ export async function parseTransactionWithAI(
 Sua missão é extrair dados de um lançamento financeiro falado (transcrito) e classificar OBRIGATORIAMENTE em uma das 21 categorias abaixo.
 
 LISTA OBRIGATÓRIA DE CATEGORIAS:
-1) alimentacao
+1) alimentação
 2) assinaturas
 3) beleza e autocuidado
-4) cartão de credito
-5) casa e manutencao
+4) cartão de crédito
+5) casa e manutenção
 6) compras/mercado
 7) contas
-8) dividas/emprestimos
-9) educacao e livros
+8) dividas/empréstimos
+9) educação e livros
 10) extras
 11) impostos e taxas
 12) investimentos
 13) lazer
 14) pets e cuidado
-15) presentes e doacoes
-16) saude
+15) presentes e doaçoes
+16) saúde
 17) seguros
 18) tecnologia
-19) tranposte/vekiculos
-20) vestuarios
+19) transporte/veículos
+20) vestuários
 21) viagens
 
 REGRAS DE CLASSIFICAÇÃO (PRIORIDADE):

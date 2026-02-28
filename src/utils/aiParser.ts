@@ -69,7 +69,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "netflix", "amazon prime", "prime video", "primevideo", "disney", "disney+", "hbo", "max", "globoplay", "globo play",
         "spotify", "deezer", "youtube premium", "yt premium", "icloud", "google one", "microsoft 365", "office 365",
         "adobe", "canva", "chatgpt", "notion", "dropbox", "kindle unlimited", "game pass", "xbox game pass", "ps plus",
-        "playstation plus", "assinatura", "assinaturas", "mensalidade de app"
+        "playstation plus", "assinatura", "assinaturas", "mensalidade de app", "youtube"
     ],
     'beleza e autocuidado': [
         "salao", "salão", "cabelo", "barbearia", "corte", "escova", "progressiva", "tintura",
@@ -138,7 +138,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "celular", "iphone", "tablet", "notebook", "computador", "pc", "monitor", "mouse", "teclado", "impressora",
         "assistencia tecnica", "assistência técnica", "conserto do celular", "hardware", "eletronico", "eletrônico"
     ],
-    'tranposte/vekiculos': [
+    'transporte/veículos': [
         "gasolina", "combustivel", "combustível", "etanol", "alcool", "álcool", "diesel",
         "posto", "abasteci", "abastecimento",
         "uber", "99", "taxi", "táxi", "onibus", "ônibus", "metro", "metrô", "passagem",
@@ -161,7 +161,7 @@ const PRIORITY_ORDER = [
     'viagens',
     'assinaturas',
     'contas',
-    'tranposte/vekiculos',
+    'transporte/veículos',
     'compras/mercado',
     'educacao e livros',
     'saude',
@@ -182,25 +182,34 @@ const PRIORITY_ORDER = [
 // Helper to map user display names/slugs to official system IDs
 const CATEGORY_MAP: Record<string, string> = {
     'alimentacao': 'cat_alimentacao',
+    'alimentação': 'cat_alimentacao',
     'assinaturas': 'cat_assinaturas',
     'beleza e autocuidado': 'cat_beleza',
     'cartão de credito': 'cat_cartao',
+    'cartão de crédito': 'cat_cartao',
     'casa e manutencao': 'cat_casa_manut',
+    'casa e manutenção': 'cat_casa_manut',
     'compras/mercado': 'cat_mercado',
     'contas': 'cat_contas_casa',
     'dividas/emprestimos': 'cat_dividas',
+    'dividas/empréstimos': 'cat_dividas',
     'educacao e livros': 'cat_educacao',
+    'educação e livros': 'cat_educacao',
     'extras': 'cat_extras',
     'impostos e taxas': 'cat_impostos',
     'investimentos': 'cat_investimentos',
     'lazer': 'cat_lazer',
     'pets e cuidado': 'cat_pets',
     'presentes e doacoes': 'cat_presentes',
+    'presentes e doaçoes': 'cat_presentes',
     'saude': 'cat_saude',
+    'saúde': 'cat_saude',
     'seguros': 'cat_seguros',
     'tecnologia': 'cat_tecnologia',
-    'tranposte/vekiculos': 'cat_transporte',
+    'transporte/veículos': 'cat_transporte',
+    'tranposte/veículos': 'cat_transporte',
     'vestuarios': 'cat_vestuario',
+    'vestuários': 'cat_vestuario',
     'viagens': 'cat_viagens'
 };
 

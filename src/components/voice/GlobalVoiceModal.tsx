@@ -295,7 +295,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                                     </button>
                                 </div>
                             ), {
-                                duration: 10000,
+                                duration: 5000,
                                 style: {
                                     background: parsed.type === 'INCOME' ? '#059669' : '#dc2626',
                                     color: '#fff',
@@ -314,7 +314,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                     }, 1500);
                 } else {
                     // Manual review fallback (Low Confidence or Zero Amount)
-                    navigate('/transactions', { state: { voicePrefill: parsed, openForm: true } });
+                    navigate('/transactions', { state: { voicePrefill: parsed, transcript: text, openForm: true } });
                     close();
                 }
                 break;

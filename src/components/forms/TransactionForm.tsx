@@ -8,6 +8,8 @@ import { Tag, DollarSign, Calendar, Layers, Building2, CreditCard, ArrowUpRight,
 import { formatCurrency } from '../../utils/format';
 import { AttachmentManager } from '../ui/AttachmentManager';
 import { Attachment } from '../../models/types';
+import { SupabaseDataService } from '../../services/supabaseData';
+import { supabase } from '../../lib/supabaseClient';
 
 interface TransactionFormProps {
     onClose: () => void;
@@ -97,6 +99,28 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         } else {
             addTransaction(payload);
         }
+
+        // 3. Learning Loop: Save voice example if this came from voice prefill
+        if ((initialData as any)?.transcript) {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    await SupabaseDataService.saveVoiceExample({
+                        userId: user.id,
+                        transcript: (initialData as any).transcript,
+                        categoryId: finalCategoryId,
+                        amount: val,
+                        type: type as 'INCOME' | 'EXPENSE',
+                        description: description.trim(),
+                        date: date
+                    });
+                    console.log('✅ [LearningLoop] Saved voice example correction.');
+                }
+            } catch (err) {
+                console.warn('[LearningLoop] Failed to save example:', err);
+            }
+        }
+
         onClose();
     };
 

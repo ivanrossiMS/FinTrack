@@ -75,10 +75,14 @@ export const Transactions: React.FC = () => {
 
         // Voice assistant prefill: open form with pre-parsed data
         if (location.state.openForm && location.state.voicePrefill) {
-            const vp = location.state.voicePrefill as Partial<Transaction>;
+            const vp = location.state.voicePrefill as any;
             setVoiceData(vp);
             setEditingTx(undefined);
             setIsModalOpen(true);
+            // Salvar o transcrito original para aprendizado
+            if (location.state.transcript) {
+                (vp as any).transcript = location.state.transcript;
+            }
             window.history.replaceState({}, document.title);
         } else if (location.state.categoryId) {
             setFilterCategoryId(location.state.categoryId);
