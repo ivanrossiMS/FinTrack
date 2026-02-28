@@ -648,6 +648,18 @@
         display: none !important;
     }
 
+    .hero-trust-bar {
+        display: none !important;
+    }
+
+    .hero-section {
+        padding: 4rem 0 2rem;
+    }
+
+    .hero-content {
+        margin-bottom: 0;
+    }
+
     .hero-subtitle {
         margin-left: auto;
         margin-right: auto;
