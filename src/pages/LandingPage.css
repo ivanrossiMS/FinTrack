@@ -147,9 +147,10 @@
 
 .hero-section .landing-container {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
     align-items: center;
-    gap: 5rem;
+    gap: 4rem;
 }
 
 .badge-premium {
@@ -253,103 +254,17 @@
 }
 
 /* UI MOCKUP HERO */
-.hero-visual {
-    perspective: 1000px;
-}
-
-.ui-mockup {
-    background: var(--lp-glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--lp-glass-border);
+.hero-mockup-img {
+    width: 100%;
+    height: auto;
     border-radius: 24px;
-    padding: 1.5rem;
     box-shadow: var(--shadow-float);
-    transform: rotateY(-10deg) rotateX(5deg);
+    transform: perspective(1000px) rotateY(-10deg) rotateX(5deg);
     transition: transform 0.5s ease;
 }
 
-.ui-mockup:hover {
-    transform: rotateY(-5deg) rotateX(2deg);
-}
-
-.mockup-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 1.5rem;
-}
-
-.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    opacity: 0.4;
-}
-
-.dot.r {
-    background: #ef4444;
-}
-
-.dot.y {
-    background: #f59e0b;
-}
-
-.dot.g {
-    background: #10b981;
-}
-
-.mockup-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.mockup-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1rem;
-    border: 1px solid var(--lp-border);
-    box-shadow: var(--shadow-card);
-}
-
-.mockup-chart-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    height: 60px;
-    margin-top: 1rem;
-}
-
-.chart-bar {
-    flex: 1;
-    background: var(--grad-primary);
-    border-radius: 4px 4px 0 0;
-    opacity: 0.2;
-}
-
-.chart-bar.active {
-    opacity: 1;
-}
-
-.mockup-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--lp-border);
-}
-
-.item-circle {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    background: #f1f5f9;
-}
-
-.item-line {
-    height: 8px;
-    border-radius: 4px;
-    background: #f1f5f9;
+.hero-mockup-img:hover {
+    transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
 }
 
 /* --- FEATURES --- */
@@ -653,15 +568,15 @@
     }
 
     .hero-section {
-        padding: 6rem 0 2rem;
+        padding: 6rem 0 1rem;
     }
 
-    .badge-premium {
-        margin-bottom: 1.5rem;
+    .features-grid-section {
+        padding: 2.5rem 0 4rem;
     }
 
-    .hero-content {
-        margin-bottom: 0;
+    .section-header-center {
+        margin-bottom: 2rem;
     }
 
     .hero-subtitle {

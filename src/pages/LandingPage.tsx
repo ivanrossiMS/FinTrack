@@ -15,47 +15,7 @@ import {
     Zap
 } from 'lucide-react';
 import './LandingPage.css';
-
-const MockupUI = () => (
-    <div className="ui-mockup">
-        <div className="mockup-header">
-            <div className="dot r" />
-            <div className="dot y" />
-            <div className="dot g" />
-        </div>
-        <div className="mockup-grid">
-            <div className="mockup-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <div style={{ width: '40%', height: '10px', background: '#f1f5f9', borderRadius: '4px' }} />
-                    <div style={{ width: '20%', height: '10px', background: '#e0e7ff', borderRadius: '4px' }} />
-                </div>
-                <div className="mockup-chart-row">
-                    <div className="chart-bar" style={{ height: '40%' }} />
-                    <div className="chart-bar active" style={{ height: '80%' }} />
-                    <div className="chart-bar" style={{ height: '60%' }} />
-                    <div className="chart-bar" style={{ height: '90%' }} />
-                    <div className="chart-bar" style={{ height: '50%' }} />
-                </div>
-            </div>
-            <div className="mockup-card">
-                <div className="mockup-list-item">
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '70%' }}>
-                        <div className="item-circle" />
-                        <div className="item-line" style={{ width: '60%' }} />
-                    </div>
-                    <div className="item-line" style={{ width: '20%' }} />
-                </div>
-                <div className="mockup-list-item" style={{ border: 0 }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '70%' }}>
-                        <div className="item-circle" style={{ background: '#e0e7ff' }} />
-                        <div className="item-line" style={{ width: '40%' }} />
-                    </div>
-                    <div className="item-line" style={{ width: '25%' }} />
-                </div>
-            </div>
-        </div>
-    </div>
-);
+import HeroMockup from '../assets/hero-mockup-new.png';
 
 const FeatureCard = ({ icon, title, desc, variant = 'blue' }: { icon: any, title: string, desc: string, variant?: string }) => (
     <div className="feature-card-elite">
@@ -126,7 +86,7 @@ export const LandingPage: React.FC = () => {
                     </div>
 
                     <div className="hero-visual">
-                        <MockupUI />
+                        <img src={HeroMockup} alt="FinTrack Dashboard Elite" className="hero-mockup-img animate-float" />
                     </div>
                 </div>
             </header>
