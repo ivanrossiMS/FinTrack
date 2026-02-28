@@ -10,7 +10,9 @@ import {
     Calendar, AlertCircle, CheckCircle2,
     Plus, Search, Trash2,
     Edit, CreditCard, Clock, Paperclip,
-    ArrowUpDown, ArrowUp, ArrowDown
+    ArrowUpDown, ArrowUp, ArrowDown,
+    BrainCircuit, Sparkles, Zap, TrendingDown,
+    ShieldCheck
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import { isToday, isBefore, parseISO, startOfDay } from 'date-fns';
@@ -173,6 +175,70 @@ export const Commitments: React.FC = () => {
         };
     }, [filteredCommitments]);
 
+    const aiInsights = useMemo(() => {
+        const pending = commitments.filter(c => c.status === 'PENDING');
+        const today = startOfDay(new Date());
+        const overdue = pending.filter(c => isBefore(parseISO(c.dueDate), today));
+        const next7Days = pending.filter(c => {
+            const d = parseISO(c.dueDate);
+            const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            return diff >= 0 && diff <= 7;
+        });
+
+        const insights = [];
+
+        if (overdue.length > 0) {
+            const totalOverdue = overdue.reduce((acc, c) => acc + c.amount, 0);
+            insights.push({
+                type: 'warning',
+                icon: <AlertCircle size={18} />,
+                title: 'Alerta de Inadimplência',
+                desc: `Você tem ${overdue.length} ${overdue.length === 1 ? 'boleto vencido' : 'boletos vencidos'} somando ${formatCurrency(totalOverdue)}. Pague o quanto antes para evitar juros crescentes.`,
+                badge: 'Crítico'
+            });
+        }
+
+        if (next7Days.length > 0) {
+            const totalNext = next7Days.reduce((acc, c) => acc + c.amount, 0);
+            insights.push({
+                type: 'info',
+                icon: <Zap size={18} />,
+                title: 'Fluxo Próxima Semana',
+                desc: `${next7Days.length} compromissos vencem nos próximos 7 dias. Prepare sua reserva de ${formatCurrency(totalNext)} para manter a pontualidade.`,
+                badge: 'Atenção'
+            });
+        }
+
+        // Category concentration
+        const catCounts: Record<string, number> = {};
+        pending.forEach(c => {
+            catCounts[c.categoryId] = (catCounts[c.categoryId] || 0) + c.amount;
+        });
+        const topCatId = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (topCatId) {
+            const catName = categoryMap.get(topCatId)?.name || 'nesta categoria';
+            insights.push({
+                type: 'success',
+                icon: <TrendingDown size={18} />,
+                title: 'Otimização de Custos',
+                desc: `Sua maior concentração de contas pendentes está em "${catName}". Revise se há serviços redundantes ou possibilidade de negociação nestes contratos.`,
+                badge: 'Dica Elite'
+            });
+        }
+
+        if (insights.length === 0) {
+            insights.push({
+                type: 'success',
+                icon: <ShieldCheck size={18} />,
+                title: 'Saúde Financeira Impecável',
+                desc: 'Nenhum boleto vencido ou próximo do vencimento detectado. Sua gestão de compromissos está em nível de elite.',
+                badge: 'Excelente'
+            });
+        }
+
+        return insights.slice(0, 3);
+    }, [commitments, categoryMap]);
+
     const handleEdit = (c: any) => {
         setEditingCommitment(c);
         setIsFormOpen(true);
@@ -232,6 +298,37 @@ export const Commitments: React.FC = () => {
                     <span className="cm-summ-label">Total Pago</span>
                     <span className="cm-summ-value">{formatCurrency(stats.totalPaid)}</span>
                     <div className="cm-summ-indicator"></div>
+                </div>
+            </div>
+
+            <div className="cm-ai-card-premium shadow-3d mb-2">
+                <div className="cm-ai-card-header">
+                    <div className="flex items-center gap-3">
+                        <div className="cm-ai-icon-pulse">
+                            <BrainCircuit size={24} className="text-primary" />
+                        </div>
+                        <div>
+                            <h2 className="cm-ai-title">Centro de Inteligência de Boletos</h2>
+                            <p className="cm-ai-subtitle">Análise preditiva de compromissos e fluxo de caixa</p>
+                        </div>
+                    </div>
+                    <div className="cm-ai-badge-elite">
+                        <Sparkles size={14} />
+                        Insight I.A.
+                    </div>
+                </div>
+
+                <div className="cm-ai-grid-modern">
+                    {aiInsights.map((insight, idx) => (
+                        <div key={idx} className={`cm-ai-item-elite ${insight.type}`}>
+                            <div className="cm-ai-item-head">
+                                <div className="cm-ai-item-icon">{insight.icon}</div>
+                                <span className="cm-ai-item-badge">{insight.badge}</span>
+                            </div>
+                            <h3 className="cm-ai-item-title">{insight.title}</h3>
+                            <p className="cm-ai-item-desc">{insight.desc}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
 
