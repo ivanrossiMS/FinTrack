@@ -72,36 +72,37 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "playstation plus", "assinatura", "assinaturas", "mensalidade de app"
     ],
     'beleza e autocuidado': [
-        "salao", "salão", "cabelo", "barbearia", "corte", "escova", "progressiva", "tintura",
-        "manicure", "pedicure", "unha", "sobrancelha", "depilacao", "depilação",
-        "skin care", "skincare", "hidratante", "perfume", "maquiagem", "massagem", "spa"
+        "salao", "salão", "cabelo", "barbearia", "corte", "escova", "progressiva", "tintura", "unha", "manicure", "pedicure",
+        "skin care", "skincare", "hidratante", "perfume", "maquiagem", "massagem", "spa", "depilacao", "depilação", "shampoo", "creme"
     ],
     'cartão de credito': [
         "fatura", "fatura do cartao", "fatura do cartão", "cartao", "cartão", "anuidade", "rotativo", "juros do cartao",
-        "parcelamento do cartao", "parcela do cartao", "nubank fatura", "itau card", "santander card", "inter card"
+        "parcelamento do cartao", "parcela do cartao", "nubank", "inter card", "mastercard", "visa", "crédito", "credito"
     ],
     'casa e manutencao': [
         "conserto", "manutencao", "manutenção", "pedreiro", "pintor", "eletricista", "encanador",
         "material de construcao", "material de construção", "cimento", "tinta", "ferramenta", "ferramentas",
-        "movel", "móvel", "sofa", "sofá", "colchao", "colchão", "cama", "guarda-roupa", "jardinagem", "corte de grama"
+        "movel", "móvel", "sofa", "sofá", "colchao", "colchão", "cama", "guarda-roupa", "jardinagem", "corte de grama",
+        "reforma", "pintura", "torneira", "chuveiro", "lampada", "móveis", "decoracao", "decoração", "limpeza", "faxina"
     ],
     'compras/mercado': [
         "mercado", "supermercado", "atacadao", "atacadão", "assai", "açai atacadista", "carrefour", "pao de acucar",
         "pão de açúcar", "hortifruti", "feira", "acougue", "açougue", "rancho", "compra do mes", "compra do mês",
-        "produtos de limpeza", "detergente", "sabao", "sabão", "papel higienico", "papel higiênico"
+        "produtos de limpeza", "detergente", "sabao", "sabão", "papel higienico", "papel higiênico", "compras", "extra", "atacado"
     ],
     'contas': [
         "internet", "wifi", "banda larga", "vivo fibra", "claro net", "oi fibra",
         "luz", "energia", "agua", "água", "esgoto", "gas", "gás",
-        "telefone", "celular", "plano", "condominio", "condomínio", "boleto de conta"
+        "telefone", "celular", "plano", "condominio", "condomínio", "boleto de conta", "fixos"
     ],
     'dividas/emprestimos': [
         "emprestimo", "empréstimo", "financiamento", "consignado", "acordo", "renegociacao", "renegociação",
-        "serasa", "parcela do financiamento", "parcela do emprestimo", "boleto do emprestimo", "boleto do empréstimo"
+        "serasa", "parcela do financiamento", "parcela do emprestimo", "boleto do emprestimo", "boleto do empréstimo",
+        "divida", "dívida", "juros", "quitar", "shopee parcelado"
     ],
     'educacao e livros': [
         "mensalidade escolar", "mensalidade", "escola", "colegio", "colégio", "faculdade", "curso", "idioma", "ingles", "inglês",
-        "apostila", "livro", "material escolar", "caderno", "reforco", "reforço", "aula particular"
+        "apostila", "livro", "material escolar", "caderno", "reforco", "reforço", "aula particular", "udemy", "hotmart"
     ],
     'extras': [
         "diversos", "outros", "imprevisto", "extra", "avulso", "aleatorio", "aleatório"
@@ -138,7 +139,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "celular", "iphone", "tablet", "notebook", "computador", "pc", "monitor", "mouse", "teclado", "impressora",
         "assistencia tecnica", "assistência técnica", "conserto do celular", "hardware", "eletronico", "eletrônico"
     ],
-    'transporte / veiculos': [
+    'transporte/veiculos': [
         "gasolina", "combustivel", "combustível", "etanol", "alcool", "álcool", "diesel",
         "posto", "abasteci", "abastecimento",
         "uber", "99", "taxi", "táxi", "onibus", "ônibus", "metro", "metrô", "passagem",
@@ -146,60 +147,34 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
         "lava jato", "lavagem", "pneu", "troca de oleo", "troca de óleo", "oficina", "mecanico", "mecânico",
         "revisao", "revisão", "alinhamento", "balanceamento", "bateria"
     ],
-    'vestuario': [
+    'vestuarios': [
         "roupa", "camisa", "calca", "calça", "sapato", "tenis", "tênis", "vestido", "shopping", "moda",
         "costureira", "conserto de roupa", "loja de roupa"
     ],
     'viagens': [
         "viagem", "hotel", "pousada", "airbnb", "passagem", "voo", "aereo", "aéreo", "milhas",
         "aluguel de carro", "transfer", "tour", "excursao", "excursão"
-    ],
-    'cartao de credito': [
-        "fatura", "nubank", "inter card", "mastercard", "visa", "anuidade", "cartão de crédito", "crédito", "limite do cartão"
-    ],
-    'compras / mercado extra': [
-        "mercado", "supermercado", "compras", "compras do mês", "carrefour", "extra", "pão de açúcar", "atacado", "feira"
-    ],
-    'dividas & emprestimos': [
-        "emprestimo", "empréstimo", "divida", "dívida", "parcela do banco", "juros", "financiamento", "quitar", "shopee parcelado"
-    ],
-    'impostos & taxas': [
-        "iptu", "ipva", "ir", "imposto de renda", "darf", "das", "licenciamento", "detran",
-        "multa", "multa de transito", "multa de trânsito", "taxa", "cartorio", "cartório"
-    ],
-    'beleza & autocuidado': [
-        "shampoo", "creme", "perfume", "salao", "salão", "cabeleireiro", "barbeiro", "barba", "unha", "manicure", "depilação", "estética", "autocuidado"
-    ],
-    'casa & manutencao': [
-        "reforma", "pintura", "materiais de construcao", "torneira", "chuveiro", "lampada", "móveis", "decoracao", "decoração", "limpeza", "faxina"
-    ],
-    'presentes & doacoes': [
-        "presente", "lembrancinha", "aniversario", "aniversário", "doacao", "doação", "dizimo", "dízimo",
-        "igreja", "ong", "vaquinha"
-    ],
-    'educacao & livros': [
-        "curso", "faculdade", "escola", "livro", "mensalidade escolar", "material escolar", "udemy", "hotmart"
     ]
 };
 
 const PRIORITY_ORDER = [
-    'cartao de credito',
+    'cartão de credito',
     'viagens',
     'assinaturas',
     'contas',
-    'transporte / veiculos',
-    'compras / mercado extra',
-    'educacao & livros',
+    'transporte/veiculos',
+    'compras/mercado',
+    'educacao e livros',
     'saude',
-    'casa & manutencao',
-    'vestuario',
-    'presentes & doacoes',
-    'pets & cuidado',
-    'impostos & taxas',
+    'casa e manutencao',
+    'vestuarios',
+    'presentes e doacoes',
+    'pets e cuidado',
+    'impostos e taxas',
     'investimentos',
-    'beleza & autocuidado',
+    'beleza e autocuidado',
     'lazer',
-    'dividas & emprestimos',
+    'dividas/emprestimos',
     'alimentacao'
 ];
 
@@ -210,11 +185,11 @@ function normalise(s: string): string {
 function resolveCategoryDeterministic(normText: string): { name: string; confidence: number } {
     for (const catName of PRIORITY_ORDER) {
         const keywords = CATEGORY_KEYWORDS[catName];
-        if (keywords.some(kw => normText.includes(normalise(kw)))) {
+        if (keywords && keywords.some(kw => normText.includes(normalise(kw)))) {
             return { name: catName, confidence: 0.95 };
         }
     }
-    return { name: 'extras', confidence: 0.5 };
+    return { name: 'extras', confidence: 0.2 };
 }
 
 const PAYMENT_KEYWORDS: { patterns: RegExp; themes: string[] }[] = [

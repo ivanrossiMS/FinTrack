@@ -538,23 +538,6 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             resetForNextCommand();
             isProcessingRef.current = false;
 
-            // Initial Greeting Greeting (Female, Fast)
-            const speakGreeting = () => {
-                if (!window.speechSynthesis) return;
-                window.speechSynthesis.cancel();
-                const utter = new SpeechSynthesisUtterance("Olá, estou ouvindo.");
-                utter.lang = 'pt-BR';
-                const voices = window.speechSynthesis.getVoices();
-                const femaleVoice = voices.find(v => v.lang.includes('pt-BR') &&
-                    (v.name.includes('Maria') || v.name.includes('Francisca') || v.name.includes('Daniela') || v.name.includes('Google português do Brasil')));
-                if (femaleVoice) utter.voice = femaleVoice;
-                utter.rate = 1.8;
-                window.speechSynthesis.speak(utter);
-            };
-
-            // Short delay to ensure voices are loaded if possible
-            setTimeout(speakGreeting, 100);
-
             // 6-second auto-close if no speech detected
             if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
             inactivityTimerRef.current = setTimeout(() => {
