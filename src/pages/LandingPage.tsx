@@ -87,8 +87,8 @@ export const LandingPage: React.FC = () => {
                     </Link>
 
                     <div className="landing-nav-links">
-                        <Link to="/" className="nav-link-item">Home</Link>
-                        <Link to="/demo" className="nav-link-item">Demonstração</Link>
+                        <Link to="/" className="nav-link-item hide-mobile">Home</Link>
+                        <Link to="/demo" className="nav-link-item hide-mobile">Demonstração</Link>
                         <Link to="/login" className="nav-link-item">Login</Link>
                         <Link to="/register" className="nav-btn-primary">Começar Agora</Link>
                     </div>
