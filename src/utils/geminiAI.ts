@@ -134,107 +134,70 @@ export async function parseTransactionWithAI(
         ? examples.map(ex => `Entrada: "${ex.transcript}" -> Saída: ${JSON.stringify({
             tipo: ex.type === 'INCOME' ? 'RECEITA' : 'DESPESA',
             valor: ex.amount,
-            categoria: ex.categoryId, // Needs mapping to name or kept as ID if prompt handles it
+            categoria: ex.category_name || ex.categoryId,
             descricao: ex.description
         })}`).join('\n')
         : 'Nenhum exemplo adicional disponível.';
 
-    const prompt = `Atue como o melhor programador e Engenheiro(a) de Machine Learning (Machine Learning Engineer) e um classificador inteligente de lançamentos financeiros de um app pessoal.
+    const prompt = `Atue como um Engenheiro(a) de Machine Learning de Elite especializado em Finanças.
+Sua missão é extrair dados de um lançamento financeiro falado (transcrito) e classificar OBRIGATORIAMENTE em uma das 21 categorias abaixo.
 
-Sua função é analisar uma frase curta em português falada no assistente IA, extrair o valor e classificar o lançamento em UMA categoria existente do sistema.
+LISTA OBRIGATÓRIA DE CATEGORIAS:
+1) alimentacao
+2) assinaturas
+3) beleza e autocuidado
+4) cartão de credito
+5) casa e manutencao
+6) compras/mercado
+7) contas
+8) dividas/emprestimos
+9) educacao e livros
+10) extras
+11) impostos e taxas
+12) investimentos
+13) lazer
+14) pets e cuidado
+15) presentes e doacoes
+16) saude
+17) seguros
+18) tecnologia
+19) transporte/veiculos
+20) vestuarios
+21) viagens
 
-CONHECIMENTO DE CATEGORIZAÇÃO (GUIA DE REFERÊNCIA):
-- Alimentação: almoço, jantar, lanche, restaurante, ifood, uber eats, marmita, pizza, hamburguer, açaí, padaria, café, cafeteria, sorveteria, churrasco, água, refri, energético, cerveja, vinho.
-- Assinaturas: Netflix, Prime Video, Amazon Prime, Disney+, Max, Apple TV+, GloboPlay, Spotify, Deezer, YouTube Premium, iCloud, Google One, Microsoft 365, Adobe, Canva, ChatGPT, Notion, Trello, Dropbox, Kindle Unlimited, Xbox Game Pass, PlayStation Plus.
-- Beleza e autocuidado: cabelo, barbearia, salão, escova, progressiva, tintura, unha, manicure, pedicure, skin care, hidratante, perfume, maquiagem, depilação, sobrancelha, massagem, spa.
-- Cartão de crédito: fatura do cartão, fatura, anuidade, parcela do cartão, juros do cartão, rotativo, Nubank, Inter, Itaú card, Santander card (quando sobre pagamento/fatura).
-- Casa e manutenção: conserto, manutenção, pedreiro, pintor, eletricista, encanador, material de construção, cimento, tinta, ferramentas, móveis, sofá, colchão, cama, guarda-roupa, jardinagem, corte de grama.
-- Compras/mercado: mercado, supermercado, atacadão, assai, carrefour, big, pão de açúcar, hortifruti, feira, açougue, produtos de limpeza, detergente, sabão, papel higiênico, compra do mês, rancho.
-- Contas: internet, wifi, banda larga, claro net, vivo fibra, oi fibra, luz, energia, água, esgoto, gás, telefone, celular, plano móvel, condomínio.
-- Dívidas/Empréstimos: empréstimo, parcelamento, financiamento, consignado, acordo, renegociação, serasa, boleto do empréstimo, parcela do financiamento.
-- Educação e livros: mensalidade escolar, escola, colégio, faculdade, curso, apostila, livro, material escolar, caderno, uniforme escolar, aula particular, reforço, idiomas, inglês.
-- Impostos e taxas: IPTU, IPVA, IR, imposto de renda, taxa, multa, cartório, licenciamento, detran, guia, DARF, DAS, multa de trânsito.
-- Investimentos: apliquei, investi, aporte, renda fixa, Tesouro, CDB, LCI, LCA, ações, ETF, FII, fundos, corretora, XP, Rico, NuInvest.
-- Lazer: cinema, show, teatro, bar, balada, passeio, parque, ingresso, evento.
-- Pets e cuidado: ração, pet shop, banho e tosa, veterinário, vacina do pet, remédio do pet, areia, tapete higiênico.
-- Presentes e doações: presente, lembrancinha, aniversário, doação, igreja, dízimo, vaquinha, ação social, ONG.
-- Saúde: farmácia, remédio, medicamento, consulta, médico, exame, laboratório, dentista, ortodontia, fisioterapia, psicólogo, terapia, academia.
-- Seguros: seguro do carro, seguro automóvel, seguro residencial, seguro de vida, seguro viagem, proteção, assistência 24h.
-- Tecnologia: celular, iphone, android, tablet, notebook, computador, mouse, teclado, monitor, impressora, assistência técnica, conserto do celular, app, software.
-- Transporte/Veículos: gasolina, combustível, etanol, álcool, diesel, posto, abasteci, abastecimento, uber, 99, taxi, ônibus, metrô, passagem, estacionamento, zona azul, lavagem, lava jato, pneu, troca de óleo, oficina, mecânico, revisão, alinhamento, balanceamento, bateria.
-- Vestuários: roupa, camisa, calça, sapato, tênis, loja, shopping, moda, vestido, conserto de roupa, costureira, uniforme.
-- Viagens: hotel, pousada, airbnb, passagem, voo, aéreo, milhas, aluguel de carro, transfer, passeio, excursão, tour, seguro viagem.
-
-REGRAS DE PRIORIDADE:
-1) Se tiver "fatura", "rotativo", "anuidade" -> Cartão de crédito
-2) Se tiver "mensalidade", "apostila", "curso" -> Educação e livros
-3) Se tiver "hotel", "passagem", "airbnb" -> Viagens
-4) Se tiver "spotify/netflix/youtube premium" -> Assinaturas
-5) Se tiver "posto/abasteci/gasolina" -> Transporte/Veículos
-6) Se não identificar COM CONFIANÇA -> Extras
+REGRAS DE CLASSIFICAÇÃO (PRIORIDADE):
+1. Cartão de Crédito: se citar "fatura", "anuidade", "nubank", "inter card", etc.
+2. Viagens: se citar "hotel", "airbnb", "passagem aérea", "turismo".
+3. Assinaturas: se citar "netflix", "spotify", "mensalidade de app", "disney".
+4. Contas: se citar "luz", "água", "internet", "gás", "boletos fixos".
+5. Transporte/Veículos: se citar "gasolina", "uber", "99", "oficina", "combustível".
+6. Educação e Livros: se citar "curso", "faculdade", "escola", "livro".
+7. Alimentação: se citar "comida", "ifood", "almoço", "jantar", "restaurante".
+8. Compras/Mercado: se citar "mercado", "supermercado", "compras do mês".
+9. Se for incerto ou ambíguo -> "extras".
 
 REGRAS GERAIS:
-1) Nunca invente categorias fora da lista.
-2) Sempre retorne exatamente um tipo: "RECEITA" ou "DESPESA".
-3) Sempre retorne exatamente uma categoria do tipo escolhido.
-4) Se o valor não estiver claro, retorne valor = null.
-5) Aceite informalidades: "um conto", "dois paus", "cinquenta pilas" = BRL.
+- TIPO: Sempre "RECEITA" ou "DESPESA".
+- VALOR: Número puro. Se não falado, use null.
+- DESCRICAO: Curta e limpa (ex: "Almoço no Shopping").
+- CONFIANÇA: 0.0 a 1.0. Se a categoria for baseada em regra clara, use > 0.9.
+- PRECISA_CONFIRMACAO: true se o valor for nulo ou a categoria for "extras".
 
-EXEMPLOS DE APRENDIZADO RECENTES (USE COMO REFERÊNCIA):
+EXEMPLOS DE APRENDIZADO:
 ${examplesText}
 
 TEXTO FALADO: "${text}"
 
-CATEGORIAS DISPONÍVEIS (USE APENAS ESTAS):
-${categories.join(', ')}
-
-MAPEAMENTO DE REFERÊNCIA (PALAVRAS-CHAVE):
-
-### RECEITAS
-"Bônus / 13°": bonus, 13, decimo terceiro, gratificação
-"Comissões": comissão, percentual, comissionamento
-"Prêmios / Sorteios": premio, sorteio, recompensa
-"Reembolsos": reembolso, ressarcimento, reembolsaram
-"Renda de Aluguel": aluguel recebido, inquilino pagou
-"Rendimentos": rendimento, juros, dividendos, lucro investimento, cdi, poupança, cashback
-"Restituição / Devoluções": restituição, devolução, estorno
-"Salário": salário, pagamento empresa, folha, holerite, adiantamento
-"Serviços / Consultorias": serviço prestado, consultoria, honorário, freela, projeto
-"Vendas": venda, vendi, cliente pagou, produto vendido
-
-### DESPESAS
-"Alimentação": mercado, padaria, restaurante, almoço, jantar, lanche, ifood, delivery, comida, café
-"Assinaturas": assinatura, mensalidade app, netflix, spotify, prime, chatgpt, icloud
-"Beleza & Autocuidado": salão, barbearia, manicure, skincare, estética, cabelo
-"Cartão de Crédito": cartão, fatura, cartão de crédito
-"Casa & Manutenção": manutenção casa, reparo, móveis, material construção
-"Compras / Mercado Extra": compra extra, comprinhas, conveniência, utilidades
-"Contas": água, luz, internet, wifi, gás, condomínio, aluguel, iptu, boleto
-"Dívidas & Empréstimos": dívida, empréstimo, financiamento, parcela banco
-"Educação & Livros": escola, faculdade, curso, livro, apostila, inglês, estudo
-"Extras": use para baixíssima confiança
-"Impostos & Taxas": imposto, taxa, darf, das, inss, ir, ipva, licenciamento, multa
-"Investimentos": aporte, investimento, investir, compra ações, tesouro, corretora
-"Lazer": cinema, show, passeio, festa, bar, games, jogo, hobby
-"Pets & Cuidado": pet, ração, veterinário, banho e tosa, remédio pet
-"Presentes & Doações": presente, doação, ajuda, mimo
-"Saúde": academia, farmácia, remédio, consulta, médico, dentista, exame, terapia, plano de saúde
-"Seguros": seguro, seguro carro, seguro vida, apólice
-"Tecnologia": celular, notebook, hardware, software, licença, hospedagem
-"Transporte / Veículos": gasolina, combustível, uber, taxi, ônibus, metrô, estacionamento, pedágio, oficina
-"Vestuário": roupa, camisa, calça, tênis, sapato, bolsa
-"Viagens": viagem, passagem, hotel, hospedagem, aérea, avião, airbnb
-
 FORMATO DE SAÍDA (JSON PURO):
 {
   "texto_original": "${text}",
-  "valor": number,
+  "valor": number | null,
   "tipo": "RECEITA" | "DESPESA",
-  "categoria": "nome exato da categoria",
-  "descricao": "descrição curta normalizada",
-  "confianca": number (0.0 to 1.0),
+  "categoria": "nome_da_categoria_escolhida",
+  "descricao": "breve descrição",
+  "confianca": number,
   "precisa_confirmacao": boolean,
-  "motivo": "resumo curto"
+  "motivo": "explicação curta"
 }`;
 
     try {

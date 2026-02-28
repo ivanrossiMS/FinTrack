@@ -9,7 +9,6 @@ import {
     resolveQuery,
     stopSpeaking,
     parseCommitment,
-    speak,
     type VoiceIntent,
 } from '../../utils/intentParser';
 import { supabase } from '../../lib/supabaseClient';
@@ -24,7 +23,7 @@ interface GlobalVoiceModalProps {
     onClose: () => void;
 }
 
-type ModalStatus = 'IDLE' | 'LISTENING' | 'PROCESSING' | 'AI_THINKING' | 'QUERY_RESULT' | 'ERROR';
+type ModalStatus = 'IDLE' | 'LISTENING' | 'PROCESSING' | 'AI_THINKING' | 'QUERY_RESULT' | 'AUTO_SAVING' | 'ERROR';
 
 const HINTS = [
     { icon: '💸', text: '"Gastei 50 reais no mercado"' },
@@ -45,7 +44,7 @@ const INTENT_LABELS: Record<string, string> = {
 };
 
 export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onClose }) => {
-    const { data } = useData();
+    const { data, addTransaction, deleteTransaction } = useData();
     const navigate = useNavigate();
 
     const [status, setStatus] = useState<ModalStatus>('IDLE');
@@ -55,6 +54,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
     const [intent, setIntent] = useState<VoiceIntent | null>(null);
     const [queryAnswer, setQueryAnswer] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+    const [prefillFeedback, setPrefillFeedback] = useState<any>(null);
 
     // ── Refs that are always current ───────────────────────────
     const recognitionRef = useRef<any>(null);
@@ -109,6 +109,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
         setIntent(null);
         setStatus('IDLE');
         setErrorMsg('');
+        setPrefillFeedback(null);
     };
 
     // ── Execute a recognised command ─────────────────────────────
@@ -136,11 +137,10 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
         // Helper to find a female-sounding voice for pt-BR
         const findFemaleVoice = () => {
+            if (!window.speechSynthesis) return null;
             const voices = window.speechSynthesis.getVoices();
-            // Look for Google Maria, Daniela (Apple), or any with "female" in the name/metadata if possible
-            // In pt-BR, common female names are Maria, Francisca, Leticia, Victoria
             return voices.find(v => v.lang.includes('pt-BR') &&
-                (v.name.includes('Maria') || v.name.includes('Francisca') || v.name.includes('Letícia') || v.name.includes('Google português do Brasil')));
+                (v.name.includes('Maria') || v.name.includes('Francisca') || v.name.includes('Letícia') || v.name.includes('Google português do Brasil') || v.name.includes('Daniela')));
         };
 
         // Common handler for speaking and then CLOSING
@@ -199,14 +199,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             isProcessingRef.current = false;
         };
 
-        const handleUndo = async (id: string) => {
-            try {
-                await SupabaseDataService.deleteTransaction(id);
-                toast.success('Lançamento removido. 🔄');
-            } catch (err) {
-                toast.error('Erro ao desfazer.');
-            }
-        };
+        // --- UI Helpers ───
 
         const handleOkConfirm = () => {
             if (!window.speechSynthesis) return;
@@ -221,65 +214,107 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
 
         switch (detected.type) {
             case 'navigate': {
-                if (detected.route) { handleOkConfirm(); nav(detected.route); close(); }
+                if (detected.route) { handleOkConfirm(); navigate(detected.route); close(); }
                 else { isProcessingRef.current = false; startRecognitionRef.current(); }
                 break;
             }
             case 'transaction': {
                 setStatus('PROCESSING');
-                handleOkConfirm();
 
-                // Fetch few-shot examples for better precision
-                const user = (await supabase.auth.getUser()).data.user;
-                let examples: any[] = [];
-                if (user) {
-                    examples = await SupabaseDataService.getVoiceExamples(user.id);
+                // Greeting handled at start, so just proceed
+                const userObj = (await supabase.auth.getUser()).data.user;
+                if (!userObj) {
+                    setErrorMsg('Usuário não autenticado.');
+                    setStatus('ERROR');
+                    return;
                 }
 
-                const parsed = await parseTranscriptionAsync(text, d.categories, d.paymentMethods, d.suppliers, examples);
+                let examples: any[] = [];
+                try {
+                    examples = await SupabaseDataService.getVoiceExamples(userObj.id);
+                } catch (e) {
+                    console.warn('Could not fetch voice examples', e);
+                }
 
-                // Elite Auto-Save Logic
-                if (parsed.confidence >= 0.8 && !parsed.needsClarification) {
-                    setStatus('PROCESSING');
-                    const newId = crypto.randomUUID();
-                    const transactionToSave = {
-                        ...parsed,
-                        id: newId,
-                        user_id: user?.id,
-                        createdAt: Date.now(),
-                        updatedAt: Date.now()
-                    };
+                const parsed = await parseTranscriptionAsync(text, data.categories, data.paymentMethods, examples);
 
-                    await SupabaseDataService.upsertTransaction(transactionToSave);
+                // Auto-Save Logic (High Confidence & No Manual Review Flag)
+                if (!parsed.needs_review && parsed.amount > 0) {
+                    setPrefillFeedback(parsed);
+                    setStatus('AUTO_SAVING');
 
-                    toast((t) => (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <span>Lançamento salvo! ✅</span>
-                            <button
-                                onClick={() => {
-                                    handleUndo(newId);
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    background: 'var(--color-primary)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Desfazer
-                            </button>
-                        </div>
-                    ), { duration: 8000 });
+                    // 1.5s delay for visual feedback before auto-save
+                    setTimeout(async () => {
+                        const newId = crypto.randomUUID();
+                        const transactionToSave = {
+                            ...parsed,
+                            id: newId,
+                            user_id: userObj.id,
+                            createdAt: Date.now(),
+                            updatedAt: Date.now(),
+                            status: 'CONFIRMED'
+                        };
 
-                    speak("Salvo com sucesso!");
-                    close();
+                        try {
+                            await addTransaction(transactionToSave);
+
+                            // Speak confirmation
+                            const utter = new SpeechSynthesisUtterance("Salvo com sucesso");
+                            utter.lang = 'pt-BR';
+                            const femaleVoice = findFemaleVoice();
+                            if (femaleVoice) utter.voice = femaleVoice;
+                            utter.rate = 1.8;
+                            window.speechSynthesis.speak(utter);
+
+                            toast((t) => (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '300px' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <b style={{ display: 'block' }}>Lançamento Salvo! ✅</b>
+                                        <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                                            {parsed.type === 'INCOME' ? 'Receita' : 'Despesa'}: R$ {parsed.amount.toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            await deleteTransaction(newId);
+                                            toast.dismiss(t.id);
+                                        }}
+                                        style={{
+                                            background: 'rgba(255,255,255,0.2)',
+                                            color: 'white',
+                                            border: '1px solid rgba(255,255,255,0.3)',
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.85rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        Desfazer
+                                    </button>
+                                </div>
+                            ), {
+                                duration: 10000,
+                                style: {
+                                    background: parsed.type === 'INCOME' ? '#059669' : '#dc2626',
+                                    color: '#fff',
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'
+                                }
+                            });
+
+                            close();
+                        } catch (err) {
+                            console.error('Auto-save error:', err);
+                            setErrorMsg('Erro ao salvar automaticamente.');
+                            setStatus('ERROR');
+                        }
+                    }, 1500);
                 } else {
-                    // Manual review fallback
-                    nav('/transactions', { state: { voicePrefill: parsed, openForm: true } });
+                    // Manual review fallback (Low Confidence or Zero Amount)
+                    navigate('/transactions', { state: { voicePrefill: parsed, openForm: true } });
                     close();
                 }
                 break;
@@ -499,6 +534,23 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
             resetForNextCommand();
             isProcessingRef.current = false;
 
+            // Initial Greeting Greeting (Female, Fast)
+            const speakGreeting = () => {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance("Olá, estou ouvindo.");
+                utter.lang = 'pt-BR';
+                const voices = window.speechSynthesis.getVoices();
+                const femaleVoice = voices.find(v => v.lang.includes('pt-BR') &&
+                    (v.name.includes('Maria') || v.name.includes('Francisca') || v.name.includes('Daniela') || v.name.includes('Google português do Brasil')));
+                if (femaleVoice) utter.voice = femaleVoice;
+                utter.rate = 1.8;
+                window.speechSynthesis.speak(utter);
+            };
+
+            // Short delay to ensure voices are loaded if possible
+            setTimeout(speakGreeting, 100);
+
             // 6-second auto-close if no speech detected
             if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
             inactivityTimerRef.current = setTimeout(() => {
@@ -506,9 +558,9 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                     playDeactivationBeep();
                     onCloseRef.current();
                 }
-            }, 5000);
+            }, 6000);
 
-            const t = setTimeout(() => startRecognitionRef.current(), 200);
+            const t = setTimeout(() => startRecognitionRef.current(), 400);
             return () => {
                 clearTimeout(t);
                 if (inactivityTimerRef.current) {
@@ -592,6 +644,21 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                     <div className="gva-transcript-text">
                         {status === 'ERROR' ? (
                             <span style={{ color: '#dc2626', fontSize: '0.9375rem' }}>{errorMsg}</span>
+                        ) : status === 'AUTO_SAVING' && prefillFeedback ? (
+                            <div className="gva-prefill-preview">
+                                <span className="gva-prefill-type">
+                                    {prefillFeedback.type === 'INCOME' ? 'RECEITA' : 'DESPESA'}
+                                </span>
+                                <span className="gva-prefill-amount">
+                                    R$ {prefillFeedback.amount.toFixed(2)}
+                                </span>
+                                <span className="gva-prefill-desc">
+                                    {prefillFeedback.description}
+                                </span>
+                                <span className="gva-prefill-cat">
+                                    📁 {data.categories.find((c: any) => c.id === prefillFeedback.categoryId)?.name || 'Extras'}
+                                </span>
+                            </div>
                         ) : hasContent ? (
                             <>
                                 <span>{transcript}</span>
@@ -606,6 +673,11 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                     )}
                     {hasContent && status === 'LISTENING' && (
                         <div className="gva-transcript-hint">Detectando intenção... executará automaticamente ao parar de falar ⏱️</div>
+                    )}
+                    {status === 'AUTO_SAVING' && (
+                        <div className="gva-transcript-hint" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                            Salvando automaticamente em 1s... 🚀
+                        </div>
                     )}
                 </div>
 

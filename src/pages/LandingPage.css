@@ -623,7 +623,7 @@
     }
 
     .hero-visual {
-        display: block !important;
+        display: none !important;
         margin-top: 2rem;
     }
 

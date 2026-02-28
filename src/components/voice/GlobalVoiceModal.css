@@ -520,3 +520,63 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Prefill Preview (Auto-Save) ── */
+.gva-prefill-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    animation: gvaPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes gvaPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+}
+
+.gva-prefill-type {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.gva-prefill-amount {
+    font-size: 1.625rem;
+    font-weight: 900;
+    color: #1e1b4b;
+    margin-bottom: 0.15rem;
+}
+
+.gva-prefill-desc {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #475569;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gva-prefill-cat {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #7c3aed;
+    background: #ede9fe;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    margin-top: 0.4rem;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+}
