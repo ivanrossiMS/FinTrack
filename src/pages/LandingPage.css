@@ -653,7 +653,11 @@
     }
 
     .hero-section {
-        padding: 4rem 0 2rem;
+        padding: 1.5rem 0 2rem;
+    }
+
+    .badge-premium {
+        margin-bottom: 1rem;
     }
 
     .hero-content {
