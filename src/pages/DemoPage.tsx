@@ -8,7 +8,6 @@ import {
     BarChart3,
     TrendingUp,
     AlertCircle,
-    CheckCircle2,
     Sparkles,
     Mic,
     Volume2,
