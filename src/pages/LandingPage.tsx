@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
     Globe,
+    ArrowRight,
     Gem,
     BarChart3,
     BrainCircuit,
@@ -10,7 +11,9 @@ import {
     Receipt,
     PieChart,
     Lock,
-    Zap
+    Zap,
+    CheckCircle2,
+    FilePieChart
 } from 'lucide-react';
 import './LandingPage.css';
 import HeroMockup from '../assets/hero-dashboard-new.png';
