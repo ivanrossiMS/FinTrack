@@ -66,43 +66,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Unified Auth Lifecycle
     useEffect(() => {
         let mounted = true;
+        let isInitialCheckDone = false;
 
-        const syncAuth = async () => {
-            try {
-                console.log('🏗️ [AUTH] Initializing session check...');
-
-                // 1. First definitive session check
-                const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-
-                if (sessionError) {
-                    console.error('❌ [AUTH] getSession error:', sessionError.message);
-                }
-
-                if (mounted) {
-                    setSession(initialSession);
-
-                    if (initialSession) {
-                        const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
-                        const targetId = impersonatedId || initialSession.user.id;
-                        console.log(`📡 [AUTH] Fetching profile for ${targetId}`);
-                        // Non-blocking fetch so UI unlocks immediately
-                        fetchProfile(targetId);
-                    }
-                }
-            } catch (err: any) {
-                console.error(`❌ [AUTH] Initialization failed: ${err.message}`);
-            } finally {
-                if (mounted) {
-                    authInitialized.current = true;
-                    setLoading(false);
-                    console.log('🏁 [AUTH] Boot sequence completed (UI Unlocked).');
-                }
+        // Function to unlock UI safely
+        const unlockUI = () => {
+            if (mounted && !isInitialCheckDone) {
+                console.log('🏁 [AUTH] Unlocking UI (Auth settled)');
+                setLoading(false);
+                authInitialized.current = true;
+                isInitialCheckDone = true;
             }
         };
 
-        syncAuth();
+        // 1. Initial manual session check (Non-blocking backup)
+        supabase.auth.getSession().then(({ data: { session: initialSession }, error }) => {
+            if (!mounted) return;
+            if (error) console.error('❌ [AUTH] getSession error:', error.message);
 
-        // Listen for changes (Login, Logout, Refresh, Multi-tab)
+            if (initialSession) {
+                console.log('📡 [AUTH] Initial session found via getSession');
+                setSession(initialSession);
+                const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
+                const targetId = impersonatedId || initialSession.user.id;
+                fetchProfile(targetId);
+            }
+            // Even if session is null, we unlock after first check
+            unlockUI();
+        }).catch(err => {
+            console.error('❌ [AUTH] getSession crash:', err);
+            unlockUI();
+        });
+
+        // 2. Listen for changes (Login, Logout, Refresh, Multi-tab)
         const { data: authData } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
             console.log(`🔔 [AUTH] onAuthStateChange EVENT: ${event}`);
 
@@ -115,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setSession(null);
                 setIsImpersonating(false);
                 fetchingLocks.current.clear();
+                unlockUI(); // Ensure UI unlocks on sign out
                 return;
             }
 
@@ -123,19 +119,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const targetId = impersonatedId || currentSession.user.id;
 
                 // Avoid unnecessary fetches if profile is already loaded for this user
-                if (userRef.current && userRef.current.id === targetId && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
-                    return;
+                if (!userRef.current || userRef.current.id !== targetId || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                    fetchProfile(targetId);
                 }
-
-                await fetchProfile(targetId);
+                unlockUI(); // Unlock if we found a session
             } else {
                 syncUser(null);
                 setIsImpersonating(false);
+                unlockUI();
             }
         });
 
+        // 3. Failsafe: Force unlock after 4 seconds if nothing resolved
+        const failsafe = setTimeout(() => {
+            if (loading) {
+                console.warn('⚠️ [AUTH] Failsafe: UI unlock forced after 4s timeout');
+                unlockUI();
+            }
+        }, 4000);
+
         return () => {
             mounted = false;
+            clearTimeout(failsafe);
             authData.subscription.unsubscribe();
         };
     }, []);
