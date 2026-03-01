@@ -105,14 +105,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    await SupabaseDataService.saveVoiceExample({
-                        userId: user.id,
-                        transcript: (initialData as any).transcript,
-                        categoryId: finalCategoryId,
+                    await SupabaseDataService.saveTrainingExample(user.id, (initialData as any).transcript, {
+                        type,
                         amount: val,
-                        type: type as 'INCOME' | 'EXPENSE',
+                        category: data.categories.find(c => c.id === finalCategoryId)?.name,
+                        payment_method: data.paymentMethods.find(pm => pm.id === paymentMethodId)?.name,
                         description: description.trim(),
-                        date: date
+                        date
                     });
                     console.log('✅ [LearningLoop] Saved voice example correction.');
                 }

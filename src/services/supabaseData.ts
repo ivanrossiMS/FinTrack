@@ -525,47 +525,57 @@ export const SupabaseDataService = {
         }
     },
 
-    // ─── VOICE EXAMPLES (FEW-SHOT LEARNING) ───
-    async getVoiceExamples(userId: string): Promise<VoiceExample[]> {
-        const data = await this._wrap('getVoiceExamples', supabase
-            .from('ai_voice_examples')
+    // ─── AI TRAINING (FEW-SHOT LEARNING) ───
+    async getTrainingExamples(userId: string): Promise<any[]> {
+        const data = await this._wrap('getTrainingExamples', supabase
+            .from('ai_training_examples')
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
             .limit(10) as any);
 
-        if (!data) return [];
-
-        return (data as any[]).map(item => ({
-            id: item.id,
-            userId: item.user_id,
-            transcript: item.transcript,
-            categoryId: item.category_id,
-            amount: item.amount,
-            type: item.type,
-            description: item.description,
-            date: item.date,
-            createdAt: new Date(item.created_at).getTime()
-        }));
+        return (data as any[]) || [];
     },
 
-    async saveVoiceExample(example: Partial<VoiceExample>) {
-        console.log('📝 [SERVICE] saveVoiceExample');
+    async saveTrainingExample(userId: string, transcript: string, finalJson: any) {
+        console.log('📝 [SERVICE] saveTrainingExample');
         const { error } = await supabase
-            .from('ai_voice_examples')
+            .from('ai_training_examples')
             .insert({
-                user_id: example.userId,
-                transcript: example.transcript,
-                category_id: example.categoryId,
-                amount: example.amount,
-                type: example.type,
-                description: example.description,
-                date: example.date
+                user_id: userId,
+                transcript,
+                final_json: finalJson
             });
 
         if (error) {
-            console.error('❌ [saveVoiceExample] Error:', error.message);
+            console.error('❌ [saveTrainingExample] Error:', error.message);
+            throw error;
+        }
+    },
+
+    // ─── TRANSACTIONS ───
+    async addTransaction(userId: string, tx: any) {
+        console.log('📝 [SERVICE] addTransaction');
+        const { error } = await supabase
+            .from('transactions')
+            .insert({
+                ...tx,
+                user_id: userId,
+                category_id: tx.categoryId,
+                payment_method_id: tx.paymentMethodId,
+                supplier_id: tx.supplierId
+            });
+
+        if (error) {
+            console.error('❌ [addTransaction] Error:', error.message);
             throw error;
         }
     }
 };
+
+// Assuming DataContext is defined elsewhere, this is how you would add the method signature:
+// export interface DataContext {
+//     // ... other methods
+//     addTransaction: (userId: string, tx: any) => Promise<void>;
+//     // ... other methods
+// }

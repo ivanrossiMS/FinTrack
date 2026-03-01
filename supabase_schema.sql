@@ -484,3 +484,20 @@ CREATE POLICY "Users can update their own avatar" ON storage.objects FOR UPDATE 
 
 -- Storage Policies for Attachments
 CREATE POLICY "Users can manage their own attachments" ON storage.objects FOR ALL USING (bucket_id = 'attachments' AND (auth.uid()::text = (storage.foldername(name))[1] OR is_admin())) WITH CHECK (bucket_id = 'attachments' AND (auth.uid()::text = (storage.foldername(name))[1] OR is_admin()));
+
+-- 9. Create AI Training Examples table for continuous learning
+CREATE TABLE IF NOT EXISTS public.ai_training_examples (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users NOT NULL,
+    transcript TEXT NOT NULL,
+    final_json JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE public.ai_training_examples ENABLE ROW LEVEL SECURITY;
+
+-- Policy for users to manage their own examples
+CREATE POLICY "Manage own training examples" ON public.ai_training_examples
+    FOR ALL USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);

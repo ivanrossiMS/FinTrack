@@ -117,11 +117,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await loadData();
     };
 
-    const addTransaction = async (tx: any) => {
+    const addTransaction = useCallback(async (tx: any) => {
         if (!user) return;
-        await SupabaseDataService.upsertTransaction({ ...tx, user_id: user.id });
-        await refresh();
-    };
+        try {
+            await SupabaseDataService.addTransaction(user.id, tx);
+            await loadData();
+        } catch (err) {
+            console.error('Error adding transaction:', err);
+            throw err;
+        }
+    }, [user, loadData]);
 
     const updateTransaction = async (id: string, updates: any) => {
         if (!user) return;

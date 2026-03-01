@@ -114,8 +114,10 @@ export async function askGemini(
 export interface AIParseResult {
     tipo: 'RECEITA' | 'DESPESA';
     descricao: string;
-    valor: number;
+    valor: number | null;
     categoria: string;
+    metodo_pagamento: string;
+    parcelas: number | null;
     texto_original: string;
     confianca: number;
     precisa_confirmacao: boolean;
@@ -130,95 +132,54 @@ export async function parseTransactionWithAI(
     if (!apiKey) return null;
 
     const examplesText = examples.length > 0
-        ? examples.map(ex => `Entrada: "${ex.transcript}" -> Saída: ${JSON.stringify({
-            tipo: ex.type === 'INCOME' ? 'RECEITA' : 'DESPESA',
-            valor: ex.amount,
-            categoria: ex.category_name || ex.categoryId,
-            descricao: ex.description
-        })}`).join('\n')
+        ? examples.map(ex => `Entrada: "${ex.transcript}" -> Saída: ${JSON.stringify(ex.final_json)}`).join('\n')
         : 'Nenhum exemplo adicional disponível.';
 
     const GOLDEN_EXAMPLES = `
-- "recebi quinhentos reais de bonus": {"tipo": "RECEITA", "valor": 500, "categoria": "extras", "descricao": "Bônus recebido", "confianca": 0.95}
-- "paguei a fatura do nubank 1200": {"tipo": "DESPESA", "valor": 1200, "categoria": "cartão de crédito", "descricao": "Fatura Nubank", "confianca": 0.98}
-- "aluguel mil e duzentos": {"tipo": "DESPESA", "valor": 1200, "categoria": "contas", "descricao": "Aluguel", "confianca": 0.95}
-- "cinquenta reais de gasolina": {"tipo": "DESPESA", "valor": 50, "categoria": "transporte/veículos", "descricao": "Gasolina", "confianca": 0.98}
-- "compra no carrefour 350": {"tipo": "DESPESA", "valor": 350, "categoria": "compras/mercado", "descricao": "Compra Carrefour", "confianca": 0.95}
-- "vendi meu celular por 800": {"tipo": "RECEITA", "valor": 800, "categoria": "extras", "descricao": "Venda de celular", "confianca": 0.90}
-- "mensalidade da netflix": {"tipo": "DESPESA", "valor": null, "categoria": "assinaturas", "descricao": "Netflix", "confianca": 0.99}
-- "comi um bauru de 25 reais": {"tipo": "DESPESA", "valor": 25, "categoria": "alimentação", "descricao": "Lanche/Bauru", "confianca": 0.95}
-- "consulta no dentista 200": {"tipo": "DESPESA", "valor": 200, "categoria": "saúde", "descricao": "Dentista", "confianca": 0.98}
-- "depositei 100 na poupança": {"tipo": "DESPESA", "valor": 100, "categoria": "investimentos", "descricao": "Depósito Poupança", "confianca": 0.92}
+- "paguei 120 de internet no pix ontem": {"tipo": "DESPESA", "valor": 120, "categoria": "contas", "metodo_pagamento": "pix", "parcelas": null, "descricao": "Internet", "confianca": 0.98}
+- "gasolina 200 no credito": {"tipo": "DESPESA", "valor": 200, "categoria": "transporte/veículos", "metodo_pagamento": "cartao  de credito", "parcelas": null, "descricao": "Gasolina", "confianca": 0.98}
+- "recebi 1500 do joao no pix": {"tipo": "RECEITA", "valor": 1500, "categoria": "extras", "metodo_pagamento": "pix", "parcelas": null, "descricao": "Recebimento João", "confianca": 0.95}
+- "mercado 250 em 3x": {"tipo": "DESPESA", "valor": 250, "categoria": "compras/mercado", "metodo_pagamento": "cartao  de credito", "parcelas": 3, "descricao": "Mercado", "confianca": 0.99}
 `;
 
     const prompt = `Atue como um Engenheiro(a) de Machine Learning e Analista Financeiro de Elite.
-Sua missão é extrair dados de um lançamento financeiro falado (transcrito) e classificar OBRIGATORIAMENTE em uma das 21 categorias permitidas.
+Sua missão é extrair dados de um lançamento financeiro falado (transcrito) e classificar OBRIGATORIAMENTE em uma das categorias e métodos permitidos.
 
 REGRAS DE OURO:
-1. Prioridade Extrema: Cartão de Crédito sempre vence se houver termos como "fatura" ou nomes de bancos.
-2. Descrição Limpa: Remova termos como "paguei", "gastei", "comprei" da descrição final.
-3. Inteligência de Valor: Entenda "cinquenta reais" como 50 e "mil e duzentos" como 1200.
+1. CATEGORIA: Deve ser uma dessas 21 strings exatas:
+   alimentacao, assinaturas, beleza e autocuidado, cartão de credito, casa e manutencao, compras/mercado, contas, dividas/emprestimos, educacao e livros, extras, impostos e taxas, investimentos, lazer, pets e cuidado, presentes e doacoes, saude, seguros, tecnologia, transporte/veículos, vestuarios, viagens.
 
-LISTA OBRIGATÓRIA DE CATEGORIAS:
-1) alimentação
-2) assinaturas
-3) beleza e autocuidado
-4) cartão de crédito
-5) casa e manutenção
-6) compras/mercado
-7) contas
-8) dividas/empréstimos
-9) educação e livros
-10) extras
-11) impostos e taxas
-12) investimentos
-13) lazer
-14) pets e cuidado
-15) presentes e doaçoes
-16) saúde
-17) seguros
-18) tecnologia
-19) transporte/veículos
-20) vestuários
-21) viagens
+2. MÉTODO DE PAGAMENTO: Deve ser uma dessas 4 strings exatas:
+   pix, cartao  de debito, cartao  de credito, dinheiro.
 
-REGRAS DE CLASSIFICAÇÃO (PRIORIDADE):
-1. Cartão de Crédito: se citar "fatura", "anuidade", "nubank", "inter card", etc.
-2. Viagens: se citar "hotel", "airbnb", "passagem aérea", "turismo".
-3. Assinaturas: se citar "netflix", "spotify", "mensalidade de app", "disney".
-4. Contas: se citar "luz", "água", "internet", "gás", "boletos fixos", "aluguel".
-5. transporte/veículos: se citar "gasolina", "uber", "99", "oficina", "combustível".
-6. Educação e Livros: se citar "curso", "faculdade", "escola", "livro".
-7. Alimentação: se citar "comida", "ifood", "almoço", "jantar", "restaurante".
-8. Compras/Mercado: se citar "mercado", "supermercado", "compras do mês".
-9. Se for incerto ou ambíguo -> "extras".
+3. PARCELAMENTO: Se detectar "em Nx" ou "parcelado", use metodo_pagamento="cartao  de credito" e preencha "parcelas" com o número.
 
-REGRAS GERAIS:
-- TIPO: Sempre "RECEITA" ou "DESPESA".
-- VALOR: Número puro. Se não falado, use null.
-- DESCRICAO: Curta e limpa (ex: "Almoço no Shopping").
-- CONFIANÇA: 0.0 a 1.0. Se a categoria for baseada em regra clara, use > 0.9.
-- PRECISA_CONFIRMACAO: true se o valor for nulo ou a categoria for "extras".
+4. PRIORIDADES:
+   - "fatura/nubank" -> categoria="cartão de credito"
+   - "gasolina/posto" -> categoria="transporte/veículos"
+   - "internet/luz/agua" -> categoria="contas"
+   - "netflix/spotify" -> categoria="assinaturas"
 
-CONJUNTO DE DADOS GOLDEN (REFERÊNCIA):
+FORMATO DE SAÍDA (JSON PURO):
+{
+  "tipo": "RECEITA" | "DESPESA",
+  "valor": number | null,
+  "categoria": "string_exata",
+  "metodo_pagamento": "string_exata",
+  "parcelas": number | null,
+  "descricao": "string",
+  "confianca": number (0-1),
+  "precisa_confirmacao": boolean,
+  "motivo": "string"
+}
+
+CONJUNTO DE DADOS GOLDEN:
 ${GOLDEN_EXAMPLES}
 
 EXEMPLOS DE APRENDIZADO DO USUÁRIO (HISTÓRICO):
 ${examplesText}
 
-TEXTO FALADO: "${text}"
-
-FORMATO DE SAÍDA (JSON PURO):
-{
-  "texto_original": "${text}",
-  "valor": number | null,
-  "tipo": "RECEITA" | "DESPESA",
-  "categoria": "nome_da_categoria_escolhida",
-  "descricao": "breve descrição",
-  "confianca": number,
-  "precisa_confirmacao": boolean,
-  "motivo": "explicação curta"
-}`;
+TEXTO FALADO: "${text}"`;
 
     try {
         const response = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {

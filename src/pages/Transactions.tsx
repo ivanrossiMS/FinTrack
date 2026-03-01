@@ -270,11 +270,10 @@ export const Transactions: React.FC = () => {
         setVoiceData({
             type: result.type,
             description: result.description,
-            amount: result.amount,
+            amount: result.amount || 0,
             date: result.date,
             categoryId: result.categoryId,
-            paymentMethodId: result.paymentMethodId,
-            supplierId: result.supplierId
+            paymentMethodId: result.paymentMethodId
         });
         setIsModalOpen(true);
     };
