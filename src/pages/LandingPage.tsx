@@ -59,10 +59,6 @@ export const LandingPage: React.FC = () => {
             <header className="hero-section">
                 <div className="landing-container">
                     <div className="hero-content">
-                        <div className="hero-promo-badge">
-                            <ShieldCheck size={14} className="promo-check" />
-                            <span>Sem cartões, sem pegadinhas. <strong>Acesso livre por tempo limitado.</strong></span>
-                        </div>
                         <div className="badge-premium">
                             <Gem size={14} />
                             Gestão de Elite
@@ -86,6 +82,11 @@ export const LandingPage: React.FC = () => {
                                 <Link to="/demo" className="btn-hero-secondary">
                                     Ver demonstração
                                 </Link>
+                            </div>
+
+                            <div className="hero-promo-badge">
+                                <ShieldCheck size={14} className="promo-check" />
+                                <span>Sem cartões, sem pegadinhas. <strong>Acesso livre por tempo limitado.</strong></span>
                             </div>
                         </div>
                     </div>
