@@ -57,35 +57,13 @@ export const LandingPage: React.FC = () => {
             <header className="hero-section">
                 <div className="landing-container">
                     <div className="hero-content">
+                        <div className="hero-promo-badge">
+                            <ShieldCheck size={14} className="promo-check" />
+                            <span>Sem cartões, sem pegadinhas. <strong>Acesso livre por tempo limitado.</strong></span>
+                        </div>
                         <div className="badge-premium">
                             <Gem size={14} />
                             Gestão de Elite
-                        </div>
-                        <h1 className="hero-title">
-                            Finanças sob <span className="gradient-text">Controle Absoluto</span>
-                        </h1>
-                        <p className="hero-subtitle">
-                            A plataforma definitiva para quem busca clareza financeira,
-                            automatização inteligente e o caminho real para a liberdade.
-                        </p>
-                        <div className="hero-actions-container">
-                            <div className="hero-actions">
-                                <Link to="/register" className="btn-hero-primary">
-                                    Criar conta grátis
-                                    <ArrowRight size={20} />
-                                </Link>
-                                <Link to="/login" className="btn-hero-login">
-                                    Login
-                                </Link>
-                                <Link to="/demo" className="btn-hero-secondary">
-                                    Ver demonstração
-                                </Link>
-                            </div>
-
-                            <div className="hero-promo-badge">
-                                <ShieldCheck size={14} className="promo-check" />
-                                <span>Sem cartões, sem pegadinhas. <strong>Acesso livre por tempo limitado.</strong></span>
-                            </div>
                         </div>
                     </div>
 
