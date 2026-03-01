@@ -11,9 +11,7 @@ import {
     Receipt,
     PieChart,
     Lock,
-    Zap,
-    CheckCircle2,
-    FilePieChart
+    Zap
 } from 'lucide-react';
 import './LandingPage.css';
 import HeroMockup from '../assets/hero-dashboard-new.png';
