@@ -66,7 +66,7 @@ export const DemoPage: React.FC = () => {
 
             <div className="landing-container" style={{ paddingTop: '120px' }}>
                 <header style={{ marginBottom: '3rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#2563EB', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#3B82F6', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>
                         <BrainCircuit size={18} /> Dashboard de Elite
                     </div>
                     <h1 className="section-title" style={{ textAlign: 'left', margin: 0 }}>Gestão Financeira do Futuro</h1>
@@ -83,10 +83,10 @@ export const DemoPage: React.FC = () => {
                 <div className="demo-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '2rem' }}>
 
                     {/* RELATÓRIOS PREMIUM */}
-                    <div className="card-modern" style={{ padding: '2rem' }}>
+                    <div className="card-modern" style={{ padding: '2rem', background: 'var(--lp-surface)', border: '1px solid var(--lp-border)' }}>
                         <div className="card-accent-bar blue" />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-                            <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563EB' }}><FilePieChart size={20} /></div>
+                            <div className="feature-icon-wrap" style={{ margin: 0, width: '40px', height: '40px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6' }}><FilePieChart size={20} /></div>
                             <h3 className="feature-title" style={{ margin: 0 }}>Relatórios de Elite</h3>
                         </div>
 
@@ -253,7 +253,7 @@ export const DemoPage: React.FC = () => {
 
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: '5rem', padding: '4rem', background: 'white', borderRadius: '32px', border: '1px solid var(--lp-border)', boxShadow: 'var(--shadow-card)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ textAlign: 'center', marginTop: '5rem', padding: '4rem', background: 'var(--lp-surface)', borderRadius: '32px', border: '1px solid var(--lp-border)', boxShadow: 'var(--shadow-card)', position: 'relative', overflow: 'hidden' }}>
                     <div className="card-accent-bar" />
                     <h2 className="section-title">Pronto para transformar sua realidade?</h2>
                     <p className="section-subtitle" style={{ marginBottom: '2.5rem' }}>Comece hoje mesmo a gerir seu patrimônio com a ferramenta usada pela elite financeira.</p>
@@ -293,7 +293,7 @@ const CategoryProgress = ({ label, value, color }: any) => (
 );
 
 const DemoInsightItem = ({ icon, title, desc, type }: any) => (
-    <div style={{ display: 'flex', gap: '1rem', padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+    <div style={{ display: 'flex', gap: '1rem', padding: '1rem', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--lp-border)' }}>
         <div style={{ color: type === 'success' ? '#10b981' : '#f59e0b', marginTop: '2px' }}>{icon}</div>
         <div>
             <div style={{ fontWeight: 700, fontSize: '0.9375rem', marginBottom: '2px' }}>{title}</div>

@@ -1,30 +1,32 @@
 :root {
-    /* Premium SaaS Palette - Aurora Light */
-    --lp-bg-base: #F6F8FF;
-    --lp-surface: #FFFFFF;
-    --lp-glass: rgba(255, 255, 255, 0.75);
-    --lp-glass-border: rgba(255, 255, 255, 0.4);
+    /* Premium SaaS Palette - Dark Obsidian */
+    --lp-bg-base: #050505;
+    --lp-surface: #111111;
+    --lp-glass: rgba(15, 15, 15, 0.7);
+    --lp-glass-border: rgba(255, 255, 255, 0.08);
 
-    --lp-text: #0B1220;
-    --lp-text-muted: #475569;
-    --lp-border: rgba(15, 23, 42, 0.08);
+    --lp-text: #F8FAFC;
+    --lp-text-muted: #94A3B8;
+    --lp-border: rgba(255, 255, 255, 0.05);
 
-    /* GRadients */
-    --grad-primary: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #EC4899 100%);
-    --grad-secondary: linear-gradient(135deg, #06B6D4 0%, #22C55E 100%);
+    /* Gradients - Vibrant & Modern */
+    --grad-primary: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 45%, #D946EF 100%);
+    --grad-secondary: linear-gradient(135deg, #22D3EE 0%, #34D399 100%);
+    --grad-dark: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+
     --aurora-mesh:
-        radial-gradient(600px circle at 15% 10%, rgba(124, 58, 237, 0.12), transparent 60%),
-        radial-gradient(700px circle at 85% 5%, rgba(37, 99, 235, 0.12), transparent 60%),
-        radial-gradient(800px circle at 50% 90%, rgba(236, 72, 153, 0.08), transparent 60%);
+        radial-gradient(1000px circle at 15% 10%, rgba(59, 130, 246, 0.15), transparent 70%),
+        radial-gradient(1200px circle at 85% 5%, rgba(139, 92, 246, 0.15), transparent 70%),
+        radial-gradient(1100px circle at 50% 90%, rgba(217, 70, 239, 0.1), transparent 70%);
 
-    /* Shadows Soft & Deep */
-    --shadow-card: 0 1px 0 rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
-    --shadow-float: 0 1px 0 rgba(15, 23, 42, 0.04), 0 16px 48px rgba(15, 23, 42, 0.12);
+    /* Shadows Deep & Sharp */
+    --shadow-card: 0 4px 0 rgba(0, 0, 0, 0.2), 0 20px 40px rgba(0, 0, 0, 0.4);
+    --shadow-float: 0 0 80px rgba(59, 130, 246, 0.15), 0 30px 60px rgba(0, 0, 0, 0.5);
 
     /* Radii */
-    --radius-card: 20px;
-    --radius-btn: 12px;
-    --radius-input: 12px;
+    --radius-card: 24px;
+    --radius-btn: 14px;
+    --radius-input: 14px;
 }
 
 .landing-wrapper {
@@ -64,7 +66,7 @@
 
 .landing-nav.scrolled {
     height: 64px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(5, 5, 5, 0.9);
     box-shadow: var(--shadow-card);
 }
 
@@ -236,8 +238,8 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: rgba(37, 99, 235, 0.05);
-    border: 1px solid rgba(37, 99, 235, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 0.75rem 1.25rem;
     border-radius: 100px;
     width: fit-content;
@@ -290,8 +292,8 @@
 }
 
 .btn-hero-secondary:hover {
-    background: white;
-    border-color: var(--lp-text-muted);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* UI MOCKUP HERO */
@@ -415,22 +417,22 @@
 .feature-icon-wrap {
     width: 60px;
     height: 60px;
-    background: #f8fafc;
-    color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.03);
+    color: #3B82F6;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 16px;
     margin-bottom: 2rem;
     transition: all 0.3s;
-    border: 1px solid #f1f5f9;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .feature-card-elite:hover .feature-icon-wrap {
     background: var(--grad-primary);
     color: white;
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
 }
 
 .feature-title {
@@ -471,7 +473,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+    background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -494,18 +496,19 @@
 .btn-cta-final {
     display: inline-block;
     background: white;
-    color: #2563EB;
+    color: #3B82F6;
     padding: 1.125rem 2.5rem;
     border-radius: var(--radius-btn);
     font-weight: 800;
     font-size: 1.125rem;
     transition: all 0.2s;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     text-decoration: none;
 }
 
 .btn-cta-final:hover {
     transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
 .cta-footer-note {
@@ -519,6 +522,7 @@
 .landing-footer {
     padding: 80px 0 40px;
     border-top: 1px solid var(--lp-border);
+    background: #000;
 }
 
 .footer-grid {
@@ -530,6 +534,7 @@
 
 .footer-brand .logo-text {
     font-size: 1.5rem;
+    color: var(--lp-text);
 }
 
 .footer-desc {
@@ -564,7 +569,7 @@
 }
 
 .footer-link-group a:hover {
-    color: #2563EB;
+    color: #3B82F6;
 }
 
 .footer-bottom {
