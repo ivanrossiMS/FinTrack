@@ -85,7 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
                         const targetId = impersonatedId || initialSession.user.id;
                         console.log(`📡 [AUTH] Fetching profile for ${targetId}`);
-                        await fetchProfile(targetId);
+                        // Non-blocking fetch so UI unlocks immediately
+                        fetchProfile(targetId);
                     }
                 }
             } catch (err: any) {
