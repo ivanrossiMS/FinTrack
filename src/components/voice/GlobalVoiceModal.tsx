@@ -12,7 +12,6 @@ import {
     type VoiceIntent,
 } from '../../utils/intentParser';
 import { supabase } from '../../lib/supabaseClient';
-import { SupabaseDataService } from '../../services/supabaseData';
 import { toast } from 'react-hot-toast';
 import { askGemini, type FinancialContext } from '../../utils/geminiAI';
 import { playActivationBeep, playExecutionBeep, playDeactivationBeep } from '../../utils/audioSystem';
@@ -229,17 +228,11 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                     return;
                 }
 
-                let examples: any[] = [];
-                try {
-                    examples = await SupabaseDataService.getVoiceExamples(userObj.id);
-                } catch (e) {
-                    console.warn('Could not fetch voice examples', e);
-                }
 
-                const parsed = await parseTranscriptionAsync(text, data.categories, data.paymentMethods, examples);
+                const parsed = await parseTranscriptionAsync(text, userObj.id, data.categories, data.paymentMethods);
 
                 // Auto-Save Logic (High Confidence & No Manual Review Flag)
-                if (!parsed.needs_review && parsed.amount > 0) {
+                if (!parsed.needs_review && parsed.amount !== null && parsed.amount > 0) {
                     setPrefillFeedback(parsed);
                     setStatus('AUTO_SAVING');
 
@@ -271,7 +264,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                                     <div style={{ flex: 1 }}>
                                         <b style={{ display: 'block' }}>Lançamento Salvo! ✅</b>
                                         <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                                            {parsed.type === 'INCOME' ? 'Receita' : 'Despesa'}: R$ {parsed.amount.toFixed(2)}
+                                            {parsed.type === 'INCOME' ? 'Receita' : 'Despesa'}: R$ {parsed.amount?.toFixed(2) || '0.00'}
                                         </span>
                                     </div>
                                     <button
@@ -633,7 +626,7 @@ export const GlobalVoiceModal: React.FC<GlobalVoiceModalProps> = ({ isOpen, onCl
                                     {prefillFeedback.type === 'INCOME' ? 'RECEITA' : 'DESPESA'}
                                 </span>
                                 <span className="gva-prefill-amount">
-                                    R$ {prefillFeedback.amount.toFixed(2)}
+                                    R$ {prefillFeedback.amount?.toFixed(2) || '0.00'}
                                 </span>
                                 <span className="gva-prefill-desc">
                                     {prefillFeedback.description}

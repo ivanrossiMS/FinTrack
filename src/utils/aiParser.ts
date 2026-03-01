@@ -1,5 +1,5 @@
 import { TransactionType, Category, PaymentMethod } from '../models/types';
-import { format, subDays, parseISO } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { supabase } from '../lib/supabaseClient';
 
 export interface ParsedTransaction {
@@ -143,7 +143,7 @@ function resolveFinalFields(normText: string) {
 
 // ── Layer 3: Training Retrieval (Learning Layer) ──────────────────────────────
 
-async function getRecentExamples(userId: string, transcript: string) {
+async function getRecentExamples(userId: string) {
     try {
         // Simple string similarity fallback since we don't have vector search enabled here
         // We fetch the last 20 examples and we'll filter them
@@ -180,7 +180,7 @@ export const parseTranscriptionAsync = async (
     const installments = parseInstallments(raw);
 
     // Step 2: Retrieval Layer 3
-    const examples = await getRecentExamples(userId, raw);
+    const examples = await getRecentExamples(userId);
 
     // Step 3: LLM Layer 2 (Refinement)
     let aiResult = null;

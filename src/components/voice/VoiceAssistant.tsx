@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { parseTranscriptionAsync, ParsedTransaction } from '../../utils/aiParser';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabaseClient';
 import { Mic, MicOff, X, Check, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/Button';
 import './VoiceAssistant.css';

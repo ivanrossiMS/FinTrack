@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
-import { Category, Transaction, PaymentMethod, Commitment, SavingsGoal, Supplier, UserProfile, VoiceExample } from '../models/types';
+import { Category, Transaction, PaymentMethod, Commitment, SavingsGoal, Supplier, UserProfile } from '../models/types';
 import { DEFAULT_CATEGORIES, DEFAULT_METHODS } from '../constants/defaults';
 
 export const SupabaseDataService = {

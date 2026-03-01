@@ -441,10 +441,43 @@
         max-width: 100%;
     }
 
-    .users-table th:nth-child(2),
-    .users-table td:nth-child(2),
-    .users-table th:nth-child(3),
-    .users-table td:nth-child(3) {
+    .users-table-container {
+        margin: 0 -1rem;
+        padding: 0 1rem;
+    }
+
+    .users-table th, 
+    .users-table td {
+        padding: 1rem 0.75rem;
+    }
+
+    .user-info {
+        gap: 0.75rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+    }
+
+    .user-name {
+        font-size: 0.875rem;
+    }
+
+    .user-email {
+        font-size: 0.75rem;
+    }
+
+    .plan-badge,
+    .status-btn,
+    .role-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.7rem;
+    }
+
+    .status-btn svg,
+    .role-btn svg {
         display: none;
     }
 }

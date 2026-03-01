@@ -162,7 +162,7 @@ export const Admin: React.FC = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-label">Usuários</span>
-                        <span className="stat-value">{users.length}</span>
+                        <span className="stat-value">{loading ? '...' : users.length}</span>
                     </div>
                 </div>
                 <div className="stat-card">
@@ -171,7 +171,7 @@ export const Admin: React.FC = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-label">Ativos</span>
-                        <span className="stat-value">{users.filter(u => u.is_authorized).length}</span>
+                        <span className="stat-value">{loading ? '...' : users.filter(u => u.is_authorized).length}</span>
                     </div>
                 </div>
                 <div className="stat-card">
@@ -180,7 +180,7 @@ export const Admin: React.FC = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-label">Admins</span>
-                        <span className="stat-value">{users.filter(u => u.role === 'ADMIN').length}</span>
+                        <span className="stat-value">{loading ? '...' : users.filter(u => u.role === 'ADMIN').length}</span>
                     </div>
                 </div>
             </div>
