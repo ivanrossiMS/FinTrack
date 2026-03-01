@@ -250,6 +250,53 @@
     /* Destaque elegante para busca */
 }
 
+/* Month Filter Custom UI */
+.month-filter-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.month-filter-wrapper .input-field.all-months {
+    color: transparent;
+}
+
+.tx-month-placeholder {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.tx-month-clear {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 6px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.tx-month-clear:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
 .tx-filter-label {
     font-size: 0.65rem;
     /* Ultra pequeno e sofisticado */

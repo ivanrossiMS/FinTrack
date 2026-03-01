@@ -57,7 +57,7 @@ export const Transactions: React.FC = () => {
     // ── Filter state ──
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<string>('ALL');
-    const [filterMonth, setFilterMonth] = useState<string>(new Date().toISOString().slice(0, 7));
+    const [filterMonth, setFilterMonth] = useState<string>('');
     const [dateStart, setDateStart] = useState('');
     const [dateEnd, setDateEnd] = useState('');
     const [filterFixed, setFilterFixed] = useState<'ALL' | 'FIXED' | 'VARIABLE'>('ALL');
@@ -291,7 +291,7 @@ export const Transactions: React.FC = () => {
     const clearAllFilters = useCallback(() => {
         setSearchTerm('');
         setFilterType('ALL');
-        setFilterMonth(new Date().toISOString().slice(0, 7));
+        setFilterMonth('');
         setDateStart('');
         setDateEnd('');
         setFilterFixed('ALL');
@@ -493,14 +493,26 @@ export const Transactions: React.FC = () => {
                         {/* Month */}
                         <div className="tx-filter-group month-picker">
                             <label className="tx-filter-label">Mês</label>
-                            <div className="tx-filter-item">
+                            <div className="tx-filter-item month-filter-wrapper">
                                 <Input
                                     type="month"
                                     value={filterMonth}
                                     onChange={e => setFilterMonth(e.target.value)}
                                     disabled={isPeriodActive}
-                                    className={isPeriodActive ? 'tx-disabled' : ''}
+                                    className={`${isPeriodActive ? 'tx-disabled' : ''} ${!filterMonth ? 'all-months' : ''}`}
                                 />
+                                {filterMonth && (
+                                    <button
+                                        className="tx-month-clear"
+                                        onClick={() => setFilterMonth('')}
+                                        title="Mostrar todos os meses"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                                {!filterMonth && (
+                                    <div className="tx-month-placeholder">Todos</div>
+                                )}
                             </div>
                         </div>
 
