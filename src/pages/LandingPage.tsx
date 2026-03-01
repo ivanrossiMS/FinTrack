@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
     Globe,
-    ArrowRight,
     Gem,
     BarChart3,
     BrainCircuit,
@@ -64,6 +63,27 @@ export const LandingPage: React.FC = () => {
                         <div className="badge-premium">
                             <Gem size={14} />
                             Gestão de Elite
+                        </div>
+                        <h1 className="hero-title">
+                            Finanças sob <span className="gradient-text">Controle Absoluto</span>
+                        </h1>
+                        <p className="hero-subtitle">
+                            A plataforma definitiva para quem busca clareza financeira,
+                            automatização inteligente e o caminho real para a liberdade.
+                        </p>
+                        <div className="hero-actions-container">
+                            <div className="hero-actions">
+                                <Link to="/register" className="btn-hero-primary">
+                                    Criar conta grátis
+                                    <ArrowRight size={20} />
+                                </Link>
+                                <Link to="/login" className="btn-hero-login">
+                                    Login
+                                </Link>
+                                <Link to="/demo" className="btn-hero-secondary">
+                                    Ver demonstração
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
