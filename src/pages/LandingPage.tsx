@@ -75,7 +75,7 @@ export const LandingPage: React.FC = () => {
                                     <ArrowRight size={20} />
                                 </Link>
                                 <Link to="/login" className="btn-hero-login">
-                                    Login Fácil
+                                    Login
                                 </Link>
                                 <Link to="/demo" className="btn-hero-secondary">
                                     Ver demonstração
