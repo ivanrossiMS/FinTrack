@@ -14,7 +14,7 @@ import { formatCurrency, formatDate } from '../utils/format';
 import { useLocation } from 'react-router-dom';
 import { TransactionForm } from '../components/forms/TransactionForm';
 import { AttachmentViewer } from '../components/ui/AttachmentViewer';
-import { Input, Select } from '../components/ui/Input';
+import { Select } from '../components/ui/Input';
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { compareLocalePTBR, parseDateISO, normalizeSearch } from '../utils/sorting';
 import { VoiceAssistant } from '../components/voice/VoiceAssistant';
@@ -490,29 +490,34 @@ export const Transactions: React.FC = () => {
                 {/* Row 2: Temporal Controls and Actions */}
                 <div className="tx-filters-row temporal">
                     <div className="tx-temporal-group">
-                        {/* Month */}
-                        <div className="tx-filter-group month-picker">
-                            <label className="tx-filter-label">Mês</label>
-                            <div className="tx-filter-item month-filter-wrapper">
-                                <Input
-                                    type="month"
-                                    value={filterMonth}
-                                    onChange={e => setFilterMonth(e.target.value)}
+                        {/* Month Selection - Modern Segmented Control */}
+                        <div className="tx-filter-group month-picker-modern">
+                            <label className="tx-filter-label">Período Mensal</label>
+                            <div className="tx-month-segmented">
+                                <button
+                                    className={`tx-month-pill ${!filterMonth ? 'active' : ''}`}
+                                    onClick={() => setFilterMonth('')}
                                     disabled={isPeriodActive}
-                                    className={`${isPeriodActive ? 'tx-disabled' : ''} ${!filterMonth ? 'all-months' : ''}`}
-                                />
-                                {filterMonth && (
-                                    <button
-                                        className="tx-month-clear"
-                                        onClick={() => setFilterMonth('')}
-                                        title="Mostrar todos os meses"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                )}
-                                {!filterMonth && (
-                                    <div className="tx-month-placeholder">Todos</div>
-                                )}
+                                >
+                                    Todos
+                                </button>
+                                <div className={`tx-month-selector-group ${filterMonth ? 'active' : ''}`}>
+                                    <input
+                                        type="month"
+                                        id="hidden-month-picker"
+                                        value={filterMonth}
+                                        onChange={e => setFilterMonth(e.target.value)}
+                                        disabled={isPeriodActive}
+                                        className="tx-hidden-input"
+                                    />
+                                    <label htmlFor="hidden-month-picker" className="tx-month-display-pill">
+                                        <Calendar size={14} />
+                                        <span>{filterMonth ? filterMonth : 'Selecionar Mês'}</span>
+                                        {filterMonth && (
+                                            <div className="tx-month-active-dot" />
+                                        )}
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
