@@ -42,8 +42,6 @@ export const ProtectedRoute: React.FC = () => {
                         </p>
                         <button
                             onClick={() => {
-                                sessionStorage.clear();
-                                localStorage.clear();
                                 window.location.href = '/login';
                             }}
                             style={{
@@ -53,7 +51,7 @@ export const ProtectedRoute: React.FC = () => {
                                 textDecoration: 'underline'
                             }}
                         >
-                            Voltar para o Login
+                            Tentar recarregar
                         </button>
                     </div>
                 </div>

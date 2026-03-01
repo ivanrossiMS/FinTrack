@@ -8,11 +8,17 @@ import logoFull from '../assets/logo-full.svg';
 import './Login.css';
 
 export const Login: React.FC = () => {
-    const { login } = useAuth();
+    const { login, isAuthenticated, loading } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
+    React.useEffect(() => {
+        if (!loading && isAuthenticated) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [isAuthenticated, loading, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -65,33 +65,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Unified Auth Lifecycle
     useEffect(() => {
-        const syncAuth = async () => {
-            if (authInitialized.current) return;
+        let mounted = true;
 
+        const syncAuth = async () => {
             try {
-                console.log('🏗️ [AUTH] syncAuth: Starting boot session check...');
+                console.log('🏗️ [AUTH] Initializing session check...');
+
+                // 1. First definitive session check
                 const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
 
                 if (sessionError) {
-                    console.error('❌ [AUTH] syncAuth: getSession error:', sessionError.message);
+                    console.error('❌ [AUTH] getSession error:', sessionError.message);
                 }
 
-                setSession(initialSession);
-                console.log('📡 [AUTH] syncAuth: Session determination complete.');
+                if (mounted) {
+                    setSession(initialSession);
 
-                if (initialSession) {
-                    const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
-                    const targetId = impersonatedId || initialSession.user.id;
-
-                    console.log(`📡 [AUTH] syncAuth: Fetching profile for ${targetId} ${impersonatedId ? '(IMPERSONATED)' : ''}`);
-                    fetchProfile(targetId);
+                    if (initialSession) {
+                        const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
+                        const targetId = impersonatedId || initialSession.user.id;
+                        console.log(`📡 [AUTH] Fetching profile for ${targetId}`);
+                        await fetchProfile(targetId);
+                    }
                 }
             } catch (err: any) {
-                console.error(`❌ [AUTH] syncAuth: Critical fail: ${err.message}`);
+                console.error(`❌ [AUTH] Initialization failed: ${err.message}`);
             } finally {
-                authInitialized.current = true;
-                setLoading(false); // ALWAYS unlock UI here
-                console.log('🏁 [AUTH] syncAuth: Boot sequence completed (UI Unlocked).');
+                if (mounted) {
+                    authInitialized.current = true;
+                    setLoading(false);
+                    console.log('🏁 [AUTH] Boot sequence completed (UI Unlocked).');
+                }
             }
         };
 
@@ -99,16 +103,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Listen for changes (Login, Logout, Refresh, Multi-tab)
         const { data: authData } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            console.log(`🔔 [AUTH] onAuthStateChange EVENT: ${event} | Session: ${currentSession ? 'PRESENT' : 'NULL'}`);
+            console.log(`🔔 [AUTH] onAuthStateChange EVENT: ${event}`);
+
+            if (!mounted) return;
 
             setSession(currentSession);
 
             if (event === 'SIGNED_OUT') {
-                console.log('📤 [AUTH] SIGNED_OUT: Clearing user state.');
                 syncUser(null);
                 setSession(null);
                 setIsImpersonating(false);
-                setLoading(false);
                 fetchingLocks.current.clear();
                 return;
             }
@@ -117,26 +121,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const impersonatedId = sessionStorage.getItem('fintrack_impersonated_id');
                 const targetId = impersonatedId || currentSession.user.id;
 
-                // Use ref to check for redundancy
+                // Avoid unnecessary fetches if profile is already loaded for this user
                 if (userRef.current && userRef.current.id === targetId && event !== 'TOKEN_REFRESHED' && event !== 'PASSWORD_RECOVERY') {
-                    console.log('⏩ [AUTH] User match, skip profile background refresh.');
-                    setLoading(false);
                     return;
                 }
 
-                console.log(`🔄 [AUTH] Refreshing profile for ${targetId} in background...`);
-                fetchProfile(targetId);
-                setLoading(false); // Unlock UI immediately on auth state change
-            } else if (authInitialized.current) {
-                // IMPORTANT: Only stop loading if we are NOT in the initial boot sync
-                console.log('⚠️ [AUTH] No session detected. Clearing user.');
+                await fetchProfile(targetId);
+            } else {
                 syncUser(null);
                 setIsImpersonating(false);
-                setLoading(false);
             }
         });
 
-        return () => authData.subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            authData.subscription.unsubscribe();
+        };
     }, []);
 
     const login = async (email: string, password: string) => {
