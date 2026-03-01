@@ -4,7 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { UserPlus } from 'lucide-react';
+import logoFull from '../assets/logo-full.svg';
+import './Login.css';
 
 export const Register: React.FC = () => {
     const { register } = useAuth();
@@ -39,44 +40,19 @@ export const Register: React.FC = () => {
     };
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            backgroundColor: 'var(--color-bg)',
-            padding: '1rem'
-        }}>
-            <div style={{
-                width: '100%',
-                maxWidth: '400px',
-                padding: '2rem',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--color-border)'
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div style={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--color-primary-light)',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 1rem'
-                    }}>
-                        <UserPlus size={32} style={{ color: 'var(--color-primary)' }} />
+        <div className="login-page">
+            <div className="login-card animate-up">
+                <div className="login-header">
+                    <div className="logo-container">
+                        <img src={logoFull} alt="FinTrack" className="logo-img" />
                     </div>
-                    <h1 className="text-lg font-bold">Criar Conta</h1>
-                    <p style={{ color: 'var(--color-text-muted)' }}>Comece a controlar suas finanças</p>
+                    <p className="slogan">Comece hoje sua jornada para a liberdade.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <form onSubmit={handleSubmit} className="login-form">
                     <Input
                         label="Nome Completo"
+                        placeholder="Nome Sobrenome"
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
@@ -84,6 +60,7 @@ export const Register: React.FC = () => {
                     <Input
                         type="email"
                         label="E-mail"
+                        placeholder="seu@email.com"
                         value={email}
                         onChange={e => {
                             setEmail(e.target.value);
@@ -94,6 +71,7 @@ export const Register: React.FC = () => {
                     <Input
                         type="password"
                         label="Senha"
+                        placeholder="••••••••"
                         value={password}
                         onChange={e => {
                             setPassword(e.target.value);
@@ -104,6 +82,7 @@ export const Register: React.FC = () => {
                     <Input
                         type="password"
                         label="Confirmar Senha"
+                        placeholder="••••••••"
                         value={confirmPassword}
                         onChange={e => {
                             setConfirmPassword(e.target.value);
@@ -112,12 +91,15 @@ export const Register: React.FC = () => {
                         error={error}
                         required
                     />
-                    <Button type="submit" fullWidth>Cadastrar</Button>
+                    <Button type="submit" fullWidth size="lg">Cadastrar</Button>
                 </form>
 
-                <div className="text-center mt-4">
-                    <p className="text-sm text-muted">
-                        Já tem uma conta? <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
+                <div className="register-footer">
+                    <p>
+                        Já tem uma conta? <Link to="/login" className="register-link">Entrar</Link>
+                    </p>
+                    <p className="auth-copyright">
+                        @copyright by Ivan Rossi - todos direitos reservados
                     </p>
                 </div>
             </div>

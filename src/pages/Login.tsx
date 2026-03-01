@@ -76,7 +76,7 @@ export const Login: React.FC = () => {
                     <p>
                         Ainda não tem conta? <Link to="/register" className="register-link">Criar conta grátis</Link>
                     </p>
-                    <p style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.5 }}>
+                    <p className="auth-copyright">
                         @copyright by Ivan Rossi - todos direitos reservados
                     </p>
                 </div>

@@ -247,17 +247,34 @@
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 0.85rem 1.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    /* More visible background */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.85rem 2rem;
     border-radius: 100px;
     width: fit-content;
-    margin: 0 auto 2.5rem;
-    font-size: 0.95rem;
-    font-weight: 600;
+    margin: 0 auto 3rem;
+    font-size: 1rem;
+    /* Slightly larger */
+    font-weight: 700;
+    /* Bolder */
     color: #FFFFFF;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    /* Pure white */
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+    animation: promoFadeIn 1s ease-out;
+}
+
+@keyframes promoFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .promo-check {
